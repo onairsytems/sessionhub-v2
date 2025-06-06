@@ -41,6 +41,20 @@
   - Established modern design system
 - **Status**: Complete ✅
 
+### v0.4 - Core Two-Actor Architecture
+- **Date**: 2025-06-06 20:00:00 UTC
+- **Session**: 0.4 - Core Two-Actor Architecture
+- **Key Changes**: 
+  - Implemented PlanningEngine with instruction generation
+  - Built ExecutionEngine with sandboxed execution
+  - Created InstructionProtocol data models
+  - Added ActorBoundaryEnforcer for separation
+  - Implemented ProtocolValidator for content checking
+  - Built comprehensive logging and audit system
+  - Added ErrorHandler with recovery strategies
+  - Created complete test suite validating architecture
+- **Status**: Complete ✅
+
 ## Rollback Instructions
 To rollback to a previous version:
 ```bash
