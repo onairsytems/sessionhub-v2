@@ -7,7 +7,7 @@ import { join } from 'path';
 import { promises as fs } from 'fs';
 import { DevelopmentEnvironment } from '../../src/services/development/DevelopmentEnvironment';
 import { SelfUpdatePipeline } from '../../src/services/development/SelfUpdatePipeline';
-import { GitHubSessionGenerator } from '../../src/services/development/GitHubSessionGenerator';
+// GitHubSessionGenerator will be imported when needed
 import { EmergencyRecovery } from '../../src/services/development/EmergencyRecovery';
 import { QualityAssurancePipeline } from '../../src/services/development/QualityAssurancePipeline';
 import { SelfDevelopmentAuditor } from '../../src/services/development/SelfDevelopmentAuditor';
@@ -116,14 +116,14 @@ export class SelfDevelopmentCycleTest {
       });
 
     } catch (error) {
-      this.logger.error('Self-development cycle test failed', { error: error.message });
+      this.logger.error('Self-development cycle test failed', error as Error);
       
       result.totalDuration = Date.now() - startTime;
       result.stages.push({
         stage: 'test_execution',
         passed: false,
         duration: result.totalDuration,
-        error: error.message,
+        error: (error as Error).message,
       });
     } finally {
       await this.cleanupTestEnvironment();
@@ -173,7 +173,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'environment_setup',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -217,7 +217,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'issue_processing',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -231,7 +231,7 @@ export class SelfDevelopmentCycleTest {
 
     try {
       // Create a simulated code change
-      const mockChanges = await this.createMockCodeChanges();
+      // Mock changes would be used for update pipeline validation
 
       // Build update
       const manifest = await this.updatePipeline.buildUpdate((progress) => {
@@ -264,7 +264,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'update_pipeline',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -301,7 +301,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'quality_assurance',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -345,7 +345,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'performance_validation',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -391,7 +391,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'audit_trail',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -441,7 +441,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'emergency_recovery',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -480,7 +480,7 @@ export class SelfDevelopmentCycleTest {
         stage: 'architecture_boundaries',
         passed: false,
         duration: Date.now() - startTime,
-        error: error.message,
+        error: (error as Error).message,
       };
     }
   }
@@ -492,15 +492,15 @@ export class SelfDevelopmentCycleTest {
     await fs.mkdir(this.testWorkspace, { recursive: true });
     
     // Set environment variables for testing
-    process.env.NODE_ENV = 'test';
-    process.env.SESSIONHUB_INSTANCE = 'test';
+    process.env['NODE_ENV'] = 'test';
+    process.env['SESSIONHUB_INSTANCE'] = 'test';
   }
 
   private async cleanupTestEnvironment(): Promise<void> {
     try {
       await fs.rm(this.testWorkspace, { recursive: true, force: true });
     } catch (error) {
-      this.logger.warn('Failed to cleanup test environment', { error: error.message });
+      this.logger.warn('Failed to cleanup test environment', { error: (error as Error).message });
     }
   }
 
@@ -557,19 +557,6 @@ export class SelfDevelopmentCycleTest {
     );
   }
 
-  private async createMockCodeChanges(): Promise<string[]> {
-    const mockFile = join(this.testWorkspace, 'mock-change.ts');
-    await fs.writeFile(mockFile, `
-// Mock code change for testing
-export class TestOptimization {
-  optimizeStartup(): void {
-    // Simulated performance optimization
-    console.log('Startup optimized');
-  }
-}
-`);
-    return [mockFile];
-  }
 
   private async testPlanningBoundaryViolation(): Promise<boolean> {
     try {
@@ -625,7 +612,7 @@ if (require.main === module) {
       process.exit(result.overallPassed ? 0 : 1);
       
     } catch (error) {
-      console.error('❌ Test execution failed:', error.message);
+      console.error('❌ Test execution failed:', (error as Error).message);
       process.exit(1);
     }
   })();
