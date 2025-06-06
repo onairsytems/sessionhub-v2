@@ -1,0 +1,24 @@
+{
+  "name": "sessionhub-v2",
+  "version": "0.0.1",
+  "description": "Personal Development Velocity Platform - Built with Claude Code",
+  "private": true,
+  "main": "dist/index.js",
+  "scripts": {
+    "validate": "tsc --noEmit && echo '✅ TypeScript validation passed!'",
+    "validate:strict": "tsc --noEmit && eslint . && echo '✅ All validations passed!'",
+    "dev": "npm run validate && echo 'Ready for development'",
+    "build": "npm run validate && tsc",
+    "test": "npm run validate && echo 'Tests will be added in Session 1'"
+  },
+  "keywords": ["development", "velocity", "claude", "zero-errors"],
+  "author": "Jonathan Hoggard",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
