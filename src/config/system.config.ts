@@ -39,11 +39,12 @@ export const SYSTEM_CONFIG = {
     lockoutDuration: parseInt(process.env.LOCKOUT_DURATION || '900000') // 15 minutes
   },
   
-  // Storage
+  // Storage (Mac app directories)
   storage: {
-    dataDir: process.env.DATA_DIR || './data',
-    logsDir: process.env.LOGS_DIR || './logs',
-    tempDir: process.env.TEMP_DIR || './temp',
+    dataDir: process.env.DATA_DIR || '~/Library/Application Support/SessionHub',
+    logsDir: process.env.LOGS_DIR || '~/Library/Logs/SessionHub',
+    tempDir: process.env.TEMP_DIR || '/tmp/SessionHub',
+    cacheDir: process.env.CACHE_DIR || '~/Library/Caches/SessionHub',
     maxFileSizeMB: parseInt(process.env.MAX_FILE_SIZE_MB || '100')
   },
   

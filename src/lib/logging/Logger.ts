@@ -20,11 +20,18 @@ export class Logger {
   private readonly name: string;
   private readonly logs: LogEntry[] = [];
   private readonly maxLogs: number = 10000;
-  private readonly auditFile?: string;
+  private readonly logFile?: string;
 
   constructor(name: string, auditFile?: string) {
     this.name = name;
-    this.auditFile = auditFile;
+    
+    // If audit file requested, use Mac log directory
+    if (auditFile) {
+      const os = require('os');
+      const path = require('path');
+      const logDir = path.join(os.homedir(), 'Library', 'Logs', 'SessionHub');
+      this.logFile = path.join(logDir, auditFile);
+    }
   }
 
   debug(message: string, context?: Record<string, any>): void {
@@ -62,9 +69,9 @@ export class Logger {
     // Output to console
     this.outputToConsole(entry);
 
-    // Write to audit file if configured
-    if (this.auditFile) {
-      this.writeToAuditFile(entry);
+    // Write to log file if configured
+    if (this.logFile) {
+      this.writeToLogFile(entry);
     }
   }
 
@@ -91,10 +98,12 @@ export class Logger {
     }
   }
 
-  private writeToAuditFile(entry: LogEntry): void {
-    // In a real implementation, this would write to a file
+  private writeToLogFile(entry: LogEntry): void {
+    // In production Mac app, this would write to log file
+    // Using async file operations to avoid blocking
     // For now, we'll skip actual file I/O
-    // fs.appendFileSync(this.auditFile, JSON.stringify(entry) + '\n');
+    // const fs = require('fs/promises');
+    // fs.appendFile(this.logFile, JSON.stringify(entry) + '\n');
   }
 
   /**

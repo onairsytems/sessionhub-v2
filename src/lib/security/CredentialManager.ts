@@ -41,10 +41,24 @@ export class CredentialManager {
   constructor(
     logger: Logger,
     masterKey?: string,
-    credentialsPath: string = './data/credentials'
+    credentialsPath?: string
   ) {
     this.logger = logger;
-    this.credentialsPath = credentialsPath;
+    
+    // Use Mac app directory if not specified
+    if (!credentialsPath) {
+      const os = require('os');
+      const path = require('path');
+      this.credentialsPath = path.join(
+        os.homedir(),
+        'Library',
+        'Application Support',
+        'SessionHub',
+        'credentials'
+      );
+    } else {
+      this.credentialsPath = credentialsPath;
+    }
     
     // Use provided master key or generate from environment
     this.encryptionKey = this.deriveEncryptionKey(

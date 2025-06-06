@@ -57,11 +57,14 @@ export class StateManager {
 
   constructor(
     logger: Logger,
-    dataDir: string = './data'
+    dataDir?: string
   ) {
     this.logger = logger;
-    this.stateFilePath = path.join(dataDir, 'system-state.json');
-    this.snapshotDir = path.join(dataDir, 'snapshots');
+    
+    // Use Mac app directories if not specified
+    const baseDir = dataDir || this.getMacAppDataDir();
+    this.stateFilePath = path.join(baseDir, 'system-state.json');
+    this.snapshotDir = path.join(baseDir, 'snapshots');
     
     this.currentState = this.initializeState();
   }
@@ -421,5 +424,15 @@ export class StateManager {
 
   private generateSnapshotId(): string {
     return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  private getMacAppDataDir(): string {
+    const os = require('os');
+    return path.join(
+      os.homedir(),
+      'Library',
+      'Application Support',
+      'SessionHub'
+    );
   }
 }

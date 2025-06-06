@@ -17,6 +17,8 @@ import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
 import { CredentialManager } from '@/src/lib/security/CredentialManager';
 import { SecuritySandbox } from '@/src/core/execution/SecuritySandbox';
+import { MacKeychainService } from '@/src/lib/security/MacKeychainService';
+import { MAC_CONFIG } from '@/src/config/mac.config';
 
 export interface SystemConfig {
   apiKey?: string;
@@ -24,6 +26,7 @@ export interface SystemConfig {
   maxConcurrentSessions?: number;
   dataDir?: string;
   masterKey?: string;
+  useMacKeychain?: boolean;
 }
 
 export interface RequestQueueItem {
@@ -49,6 +52,7 @@ export class SystemOrchestrator {
   private planningEngine?: PlanningEngine;
   private executionEngine?: ExecutionEngine;
   private claudeApiClient?: ClaudeAPIClient;
+  private keychainService?: MacKeychainService;
   
   private readonly requestQueue: RequestQueueItem[] = [];
   private isProcessing: boolean = false;
@@ -61,12 +65,21 @@ export class SystemOrchestrator {
     this.logger = new Logger('SystemOrchestrator');
     this.auditLogger = new AuditLogger();
     
-    // Initialize security
+    // Initialize security with Mac-specific paths
+    const credentialsPath = config.dataDir 
+      ? `${config.dataDir}/credentials`
+      : MAC_CONFIG.paths.appSupport + '/credentials';
+      
     this.credentialManager = new CredentialManager(
       this.logger,
       config.masterKey,
-      config.dataDir ? `${config.dataDir}/credentials` : undefined
+      credentialsPath
     );
+    
+    // Initialize Mac Keychain service if enabled
+    if (config.useMacKeychain !== false && process.platform === 'darwin') {
+      this.keychainService = new MacKeychainService(this.logger);
+    }
     
     // Initialize core components
     this.protocolValidator = new ProtocolValidator(this.logger);
@@ -83,7 +96,10 @@ export class SystemOrchestrator {
       this.errorHandler
     );
     this.workflowEngine = new WorkflowEngine(this.logger, this.auditLogger);
-    this.stateManager = new StateManager(this.logger, config.dataDir);
+    
+    // Use Mac-specific data directory
+    const stateDir = config.dataDir || MAC_CONFIG.paths.appSupport;
+    this.stateManager = new StateManager(this.logger, stateDir);
   }
 
   /**
@@ -255,6 +271,11 @@ export class SystemOrchestrator {
   private async setupClaudeAPI(): Promise<void> {
     let apiKey = this.config.apiKey;
     
+    // Try Mac Keychain first
+    if (!apiKey && this.keychainService) {
+      apiKey = await this.keychainService.getAPIKey('claude') || undefined;
+    }
+    
     // Try to get API key from credential manager if not provided
     if (!apiKey) {
       const credential = await this.credentialManager.getCredentialByName('claude-api-key');
@@ -262,12 +283,17 @@ export class SystemOrchestrator {
         apiKey = credential.value;
       } else if (process.env.ANTHROPIC_API_KEY) {
         apiKey = process.env.ANTHROPIC_API_KEY;
-        // Store in credential manager for future use
+        
+        // Store in both credential manager and keychain
         await this.credentialManager.storeCredential({
           name: 'claude-api-key',
           type: 'api_key',
           value: apiKey
         });
+        
+        if (this.keychainService) {
+          await this.keychainService.storeAPIKey('claude', apiKey);
+        }
       }
     }
     
