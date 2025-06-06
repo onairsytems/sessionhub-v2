@@ -1,0 +1,9 @@
+{
+  "name": "sessionhub-validator",
+  "version": "0.2.0",
+  "description": "SessionHub V2 Bootstrap Validator",
+  "main": "validator.js",
+  "scripts": {
+    "test": "node validator.js"
+  }
+}
