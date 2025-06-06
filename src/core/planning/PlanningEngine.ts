@@ -16,6 +16,7 @@ import {
 } from '@/src/models/Instruction';
 import { Logger } from '@/src/lib/logging/Logger';
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
+import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UserRequest {
@@ -36,10 +37,18 @@ export interface PlanningStrategy {
 export class PlanningEngine {
   private readonly logger: Logger;
   private readonly validator: ProtocolValidator;
+  private readonly claudeApi?: ClaudeAPIClient;
+  private readonly useRealApi: boolean;
 
-  constructor(logger: Logger, validator: ProtocolValidator) {
+  constructor(
+    logger: Logger, 
+    validator: ProtocolValidator,
+    claudeApi?: ClaudeAPIClient
+  ) {
     this.logger = logger;
     this.validator = validator;
+    this.claudeApi = claudeApi;
+    this.useRealApi = !!claudeApi;
   }
 
   /**
@@ -47,17 +56,23 @@ export class PlanningEngine {
    * This method ONLY creates instructions, never executes anything
    */
   async generateInstructions(request: UserRequest): Promise<InstructionProtocol> {
-    this.logger.info('PlanningEngine: Generating instructions', { requestId: request.id });
+    this.logger.info('PlanningEngine: Generating instructions', { 
+      requestId: request.id,
+      useRealApi: this.useRealApi 
+    });
 
     try {
-      // Analyze the request to understand intent
-      const context = await this.analyzeContext(request);
-      
-      // Generate strategic approach
-      const strategy = await this.generateStrategy(request, context);
-      
-      // Build instruction protocol
-      const instructions = await this.buildInstructions(request, context, strategy);
+      let instructions: InstructionProtocol;
+
+      if (this.useRealApi && this.claudeApi) {
+        // Use real Claude API
+        instructions = await this.generateWithClaudeAPI(request);
+      } else {
+        // Use mock implementation
+        const context = await this.analyzeContext(request);
+        const strategy = await this.generateStrategy(request, context);
+        instructions = await this.buildInstructions(request, context, strategy);
+      }
       
       // Validate instructions contain no code
       this.validator.ensureNoCode(instructions);
@@ -74,6 +89,51 @@ export class PlanningEngine {
       this.logger.error('PlanningEngine: Failed to generate instructions', error as Error);
       throw error;
     }
+  }
+
+  private async generateWithClaudeAPI(request: UserRequest): Promise<InstructionProtocol> {
+    if (!this.claudeApi) {
+      throw new Error('Claude API client not configured');
+    }
+
+    const context = await this.analyzeContext(request);
+    
+    // Generate strategy using Claude API
+    const strategyResponse = await this.claudeApi.generateStrategy({
+      request: {
+        id: request.id,
+        content: request.content,
+        context: request.context,
+        timestamp: request.timestamp
+      },
+      context
+    });
+
+    // If Claude returns a complete instruction protocol, use it
+    if (this.isValidInstructionProtocol(strategyResponse)) {
+      return strategyResponse as InstructionProtocol;
+    }
+
+    // Otherwise, build instructions from the strategy
+    const strategy: PlanningStrategy = {
+      approach: strategyResponse.approach || 'Systematic implementation',
+      rationale: strategyResponse.rationale || 'Best practices approach',
+      risks: strategyResponse.risks || [],
+      alternatives: strategyResponse.alternatives || []
+    };
+
+    return this.buildInstructions(request, context, strategy);
+  }
+
+  private isValidInstructionProtocol(obj: any): boolean {
+    return obj &&
+      obj.metadata &&
+      obj.context &&
+      obj.objectives &&
+      obj.requirements &&
+      obj.deliverables &&
+      obj.constraints &&
+      obj.successCriteria;
   }
 
   private async analyzeContext(request: UserRequest): Promise<InstructionContext> {
