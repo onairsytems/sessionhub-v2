@@ -83,6 +83,19 @@
   - Added future session definitions
 - **Status**: Complete ✅
 
+### v0.5.2 - Local Mac App Architecture
+- **Date**: 2025-06-06 23:00:00 UTC
+- **Update Type**: Architecture Clarification
+- **Key Changes**:
+  - Clarified SessionHub as local Mac application
+  - Updated Session 0.6 to Local Installation & Setup
+  - Redefined Session 0.7 as Cloud-Primary Data Persistence
+  - Repositioned Session 0.8 for Mac System Integration
+  - Emphasized Supabase as primary storage with local cache
+  - Added Mac-specific security and integration features
+  - Updated orchestration for local process management
+- **Status**: Complete ✅
+
 ## Rollback Instructions
 To rollback to a previous version:
 ```bash
