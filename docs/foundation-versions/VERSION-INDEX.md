@@ -72,6 +72,17 @@
   - Created end-to-end integration tests
 - **Status**: Complete ✅
 
+### v0.5.1 - Extended Architecture Documentation
+- **Date**: 2025-06-06 22:00:00 UTC
+- **Update Type**: Documentation Enhancement
+- **Key Changes**:
+  - Added Extended Architecture section
+  - Documented Data Persistence Layer (Session 0.7)
+  - Documented Platform Integration Framework (Session 0.8)
+  - Updated architectural roadmap
+  - Added future session definitions
+- **Status**: Complete ✅
+
 ## Rollback Instructions
 To rollback to a previous version:
 ```bash
