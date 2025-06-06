@@ -3,20 +3,31 @@
   "version": "0.0.1",
   "description": "Personal Development Velocity Platform - Built with Claude Code",
   "private": true,
-  "main": "dist/index.js",
   "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
     "validate": "tsc --noEmit && echo '✅ TypeScript validation passed!'",
-    "validate:strict": "tsc --noEmit && eslint . && echo '✅ All validations passed!'",
-    "dev": "npm run validate && echo 'Ready for development'",
-    "build": "npm run validate && tsc",
-    "test": "npm run validate && echo 'Tests will be added in Session 1'"
+    "validate:strict": "tsc --noEmit && next lint && echo '✅ All validations passed!'"
   },
-  "keywords": ["development", "velocity", "claude", "zero-errors"],
-  "author": "Jonathan Hoggard",
-  "license": "MIT",
+  "dependencies": {
+    "next": "14.1.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.323.0"
+  },
   "devDependencies": {
-    "@types/node": "^20.11.0",
-    "typescript": "^5.3.3"
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "14.1.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.3.0",
+    "typescript": "^5"
   },
   "engines": {
     "node": ">=20.0.0"
