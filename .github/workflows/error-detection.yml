@@ -1,0 +1,57 @@
+name: Error Detection
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  error-detection:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run Error Detection
+      run: |
+        npx ts-node -e "
+        const { CICDIntegration } = require('./src/core/error-detection/CICDIntegration');
+        const cicd = new CICDIntegration({
+          provider: 'github',
+          enabled: true,
+          blockOnError: true,
+          blockOnWarning: false,
+          reportFormat: 'junit'
+        });
+        
+        cicd.run().then(result => {
+          process.exit(result.exitCode);
+        }).catch(err => {
+          console.error('Error detection failed:', err);
+          process.exit(1);
+        });
+        "
+    
+    - name: Upload Error Report
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: error-report
+        path: .sessionhub/reports/
+    
+    - name: Publish Test Results
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: |
+          .sessionhub/reports/*.xml

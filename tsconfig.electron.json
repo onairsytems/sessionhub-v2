@@ -1,0 +1,34 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/main",
+    "target": "ES2020",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": true,
+    "incremental": true,
+    "tsBuildInfoFile": "dist/main/.tsbuildinfo"
+  },
+  "include": [
+    "main/**/*",
+    "src/config/**/*",
+    "src/services/**/*",
+    "src/models/**/*",
+    "src/lib/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "renderer",
+    "app",
+    "components",
+    "pages"
+  ]
+}

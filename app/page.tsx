@@ -1,118 +1,305 @@
 'use client';
 
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { ArrowRight, Zap, Code2, Users, GitBranch } from 'lucide-react';
-import Link from 'next/link';
+import { useState } from 'react';
 
-const features = [
-  {
-    icon: Code2,
-    title: 'Two-Actor Model',
-    description: 'Perfect separation between planning and execution for zero-error development.',
-  },
-  {
-    icon: Zap,
-    title: 'Lightning Fast',
-    description: 'Achieve unprecedented development velocity through systematic execution.',
-  },
-  {
-    icon: GitBranch,
-    title: 'Version Control',
-    description: 'Every session tracked, versioned, and validated automatically.',
-  },
-  {
-    icon: Users,
-    title: 'AI-Powered',
-    description: 'Leverage Claude Chat for planning and Claude Code for implementation.',
-  },
-];
+export default function Home() {
+  const [activeTab, setActiveTab] = useState('home');
+  const [sessionInput, setSessionInput] = useState('');
+  const [sessions, setSessions] = useState([
+    { id: 1, name: 'Example Session 1.1', status: 'completed', date: '2025-06-06' },
+    { id: 2, name: 'Local Build Setup', status: 'completed', date: '2025-06-06' },
+  ]);
 
-export default function HomePage() {
-  return (
-    <div className="animate-fade-in">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-50 to-primary-100 dark:from-gray-900 dark:to-gray-800">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-32">
-          <div className="text-center">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-              <span className="block bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent animate-slide-in">
-                Development Velocity
-              </span>
-              <span className="block text-gray-900 dark:text-white mt-2">
-                Through Perfect Execution
-              </span>
+  const handleNewSession = () => {
+    if (sessionInput.trim()) {
+      const newSession = {
+        id: sessions.length + 1,
+        name: sessionInput,
+        status: 'in-progress',
+        date: new Date().toISOString().split('T')[0]
+      };
+      setSessions([newSession, ...sessions]);
+      setSessionInput('');
+      setActiveTab('sessions');
+    }
+  };
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'sessions':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6">Session Management</h2>
+            
+            {/* New Session Form */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+              <h3 className="text-lg font-semibold mb-4">Create New Session</h3>
+              <div className="flex gap-4">
+                <input
+                  type="text"
+                  value={sessionInput}
+                  onChange={(e) => setSessionInput(e.target.value)}
+                  placeholder="Enter session description (e.g., 'Add user authentication system')"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <button
+                  onClick={handleNewSession}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  Start Session
+                </button>
+              </div>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+                Describe what you want to build, and SessionHub's Two-Actor Model will handle the planning and execution.
+              </p>
+            </div>
+
+            {/* Session List */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-semibold">Recent Sessions</h3>
+              </div>
+              <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                {sessions.map((session) => (
+                  <div key={session.id} className="p-6 flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-900 dark:text-white">{session.name}</h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        {session.date} • {session.status}
+                      </p>
+                    </div>
+                    <div className="flex gap-2">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        session.status === 'completed' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                      }`}>
+                        {session.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'two-actor':
+        return (
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6">Two-Actor Model</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mr-4">
+                    <span className="text-2xl">🧠</span>
+                  </div>
+                  <h3 className="text-xl font-semibold">Planning Actor</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  <li>• Analyzes requirements and context</li>
+                  <li>• Generates structured instructions</li>
+                  <li>• Never writes actual code</li>
+                  <li>• Focuses on strategic decisions</li>
+                  <li>• Validates architectural patterns</li>
+                </ul>
+              </div>
+
+              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center mr-4">
+                    <span className="text-2xl">⚡</span>
+                  </div>
+                  <h3 className="text-xl font-semibold">Execution Actor</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-300">
+                  <li>• Implements solutions precisely</li>
+                  <li>• Writes all code and files</li>
+                  <li>• Never makes strategic decisions</li>
+                  <li>• Focuses on technical execution</li>
+                  <li>• Reports results and status</li>
+                </ul>
+              </div>
+            </div>
+            
+            <div className="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold mb-4">🎯 Why This Works</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-medium mb-2">Benefits</h4>
+                  <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                    <li>• Zero-error development</li>
+                    <li>• Clear separation of concerns</li>
+                    <li>• Faster execution cycles</li>
+                    <li>• Perfect reproducibility</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="font-medium mb-2">Process</h4>
+                  <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+                    <li>• User provides requirements</li>
+                    <li>• Planning Actor creates instructions</li>
+                    <li>• Execution Actor implements solution</li>
+                    <li>• Results validated and delivered</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 'settings':
+        return (
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-2xl font-bold mb-6">Settings</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Application</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Theme</label>
+                      <select className="px-3 py-2 border border-gray-300 rounded-lg">
+                        <option>Auto</option>
+                        <option>Light</option>
+                        <option>Dark</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Auto-save sessions</label>
+                      <input type="checkbox" defaultChecked className="rounded" />
+                    </div>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-semibold mb-4">Development</h3>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Enable debug mode</label>
+                      <input type="checkbox" className="rounded" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <label className="text-sm font-medium">Show developer tools</label>
+                      <input type="checkbox" className="rounded" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="text-center py-12">
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+              Welcome to SessionHub
             </h1>
-            <p className="mt-6 text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto animate-slide-in animation-delay-100">
-              SessionHub revolutionizes software development with the Two-Actor Model. 
-              Plan with intelligence. Execute with precision. Ship with confidence.
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8">
+              AI-Powered Development Platform with Two-Actor Model
             </p>
-            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center animate-bounce-in animation-delay-200">
-              <Button size="lg" className="group">
-                Get Started
-                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button size="lg" variant="secondary">
-                View Documentation
-              </Button>
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 max-w-2xl mx-auto mb-8">
+              <h2 className="text-2xl font-semibold mb-4">🚀 Production Ready</h2>
+              <p className="text-gray-600 dark:text-gray-300 mb-6">
+                SessionHub 1.0 is now live! Experience zero-error development with the revolutionary Two-Actor Model.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2">Planning Actor</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Analyzes requirements and generates clear instructions
+                  </p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
+                  <h3 className="font-semibold text-lg mb-2">Execution Actor</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Implements solutions with precision and reliability
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveTab('sessions')}
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+              >
+                Start Your First Session
+              </button>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Navigation */}
+      <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <span className="text-xl font-bold text-gray-900 dark:text-white">SessionHub</span>
+            </div>
+            <div className="flex space-x-8">
+              <button
+                onClick={() => setActiveTab('home')}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  activeTab === 'home'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                }`}
+              >
+                Home
+              </button>
+              <button
+                onClick={() => setActiveTab('sessions')}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  activeTab === 'sessions'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                }`}
+              >
+                Sessions
+              </button>
+              <button
+                onClick={() => setActiveTab('two-actor')}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  activeTab === 'two-actor'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                }`}
+              >
+                Two-Actor Model
+              </button>
+              <button
+                onClick={() => setActiveTab('settings')}
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  activeTab === 'settings'
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200'
+                    : 'text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white'
+                }`}
+              >
+                Settings
+              </button>
             </div>
           </div>
         </div>
-      </section>
+      </nav>
 
-      {/* Features Section */}
-      <section className="py-16 sm:py-24 bg-white dark:bg-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white">
-              Built for Speed & Precision
-            </h2>
-            <p className="mt-4 text-lg text-gray-600 dark:text-gray-300">
-              Every feature designed to maximize your development velocity.
-            </p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((feature, index) => (
-              <Card
-                key={feature.title}
-                hover
-                className={`animate-slide-in animation-delay-${index * 100}`}
-              >
-                <CardHeader className="pb-3">
-                  <feature.icon className="h-10 w-10 text-primary-600 dark:text-primary-400 mb-3" />
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {feature.title}
-                  </h3>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {feature.description}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+      {/* Main Content */}
+      <main className="py-8">
+        <div className="SessionHub-container">
+          {renderContent()}
+        </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 py-8 mt-auto">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>© 2025 SessionHub. Built with the Two-Actor Model.</p>
           </div>
         </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-primary-600 to-primary-700 dark:from-primary-700 dark:to-primary-800">
-        <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
-          <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-            Ready to Transform Your Development?
-          </h2>
-          <p className="text-xl text-primary-100 mb-8">
-            Join the revolution. Build faster. Ship better. Zero errors.
-          </p>
-          <Link href="/sessions">
-            <Button size="lg" variant="secondary" className="group">
-              Start Your First Session
-              <Zap className="ml-2 h-5 w-5 animate-pulse" />
-            </Button>
-          </Link>
-        </div>
-      </section>
+      </footer>
     </div>
   );
 }
