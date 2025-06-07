@@ -35,7 +35,7 @@ export function Navigation() {
                   priority
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-primary-600 to-primary-400 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
                 SessionHub
               </span>
               <Zap className="h-5 w-5 text-yellow-500 animate-pulse" />

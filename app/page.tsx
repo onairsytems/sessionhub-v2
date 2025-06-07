@@ -40,7 +40,7 @@ export default function Home() {
                   value={sessionInput}
                   onChange={(e) => setSessionInput(e.target.value)}
                   placeholder="Enter session description (e.g., 'Add user authentication system')"
-                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 />
                 <button
                   onClick={handleNewSession}
@@ -159,7 +159,7 @@ export default function Home() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Theme</label>
-                      <select className="px-3 py-2 border border-gray-300 rounded-lg">
+                      <select className="px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400">
                         <option>Auto</option>
                         <option>Light</option>
                         <option>Dark</option>
@@ -167,7 +167,7 @@ export default function Home() {
                     </div>
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Auto-save sessions</label>
-                      <input type="checkbox" defaultChecked className="rounded" />
+                      <input type="checkbox" defaultChecked className="rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400" />
                     </div>
                   </div>
                 </div>
@@ -177,11 +177,11 @@ export default function Home() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Enable debug mode</label>
-                      <input type="checkbox" className="rounded" />
+                      <input type="checkbox" className="rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400" />
                     </div>
                     <div className="flex items-center justify-between">
                       <label className="text-sm font-medium">Show developer tools</label>
-                      <input type="checkbox" className="rounded" />
+                      <input type="checkbox" className="rounded bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400" />
                     </div>
                   </div>
                 </div>

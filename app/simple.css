@@ -99,6 +99,11 @@ nav {
 .dark .bg-gray-900 { background-color: #111827; }
 .dark .bg-gray-800 { background-color: #1f2937; }
 .dark .bg-gray-700 { background-color: #374151; }
+.dark .bg-gray-600 { background-color: #4b5563; }
+.dark .bg-blue-900 { background-color: #1e3a8a; }
+.dark .bg-green-900 { background-color: #14532d; }
+.dark .bg-yellow-900 { background-color: #78350f; }
+.dark .bg-gray-700 { background-color: #374151; }
 .dark .bg-blue-900 { background-color: #1e3a8a; }
 .dark .bg-green-900 { background-color: #14532d; }
 .dark .bg-yellow-900 { background-color: #78350f; }
@@ -180,11 +185,37 @@ input, select {
   padding: 0.5rem 1rem;
   outline: none;
   transition: all 0.2s;
+  background-color: #ffffff;
+  color: #111827;
+}
+
+.dark input, .dark select {
+  background-color: #374151;
+  color: #f9fafb;
+  border-color: #4b5563;
 }
 
 input:focus, select:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.dark input:focus, .dark select:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+}
+
+/* Checkbox styling */
+input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  background-color: #ffffff;
+  border-color: #d1d5db;
+}
+
+.dark input[type="checkbox"] {
+  background-color: #374151;
+  border-color: #4b5563;
 }
 
 .focus\\:outline-none:focus { outline: none; }
