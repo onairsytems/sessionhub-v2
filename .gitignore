@@ -21,3 +21,11 @@ coverage/
 .nyc_output/
 tmp/
 temp/
+
+# Electron build output
+dist-electron/
+out/
+
+# TypeScript errors log
+typescript-errors.txt
+typescript-errors.log
