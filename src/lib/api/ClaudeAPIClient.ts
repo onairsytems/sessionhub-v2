@@ -47,8 +47,8 @@ export class ClaudeAPIClient {
   private readonly config: Required<ClaudeAPIConfig>;
   private readonly defaultSystemPrompt: string;
 
-  constructor(config: ClaudeAPIConfig, logger: Logger) {
-    this.logger = logger;
+  constructor(config: ClaudeAPIConfig, logger?: Logger) {
+    this.logger = logger || new Logger('ClaudeAPIClient');
     this.config = {
       apiKey: config.apiKey,
       apiUrl: config.apiUrl || 'https://api.anthropic.com/v1/messages',
@@ -197,6 +197,39 @@ Please analyze this request and generate a comprehensive instruction protocol th
     } catch (error) {
       this.logger.error('API key validation failed', error as Error);
       return false;
+    }
+  }
+
+  /**
+   * Send a chat message (simpler interface for chat)
+   */
+  async sendMessage(message: string, sessionId: string, history: any[] = []): Promise<string> {
+    const messages: ClaudeMessage[] = history.map(msg => ({
+      role: msg.role as 'user' | 'assistant',
+      content: msg.content
+    }));
+
+    // Add the new message
+    messages.push({
+      role: 'user',
+      content: message
+    });
+
+    try {
+      const response = await this.sendRequest({
+        model: this.config.model,
+        messages,
+        max_tokens: this.config.maxTokens,
+        temperature: this.config.temperature,
+        system: `You are the Planning Actor for SessionHub, helping users plan their development projects. 
+Be helpful, clear, and focused on understanding requirements and creating strategic plans.
+Do not write code - only describe what needs to be built.`
+      });
+
+      return response.content[0]?.text || 'No response generated';
+    } catch (error) {
+      this.logger.error('Failed to send chat message', error as Error);
+      throw error;
     }
   }
 

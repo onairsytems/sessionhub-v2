@@ -16,6 +16,18 @@ interface SessionHubAPI {
   // Session management
   createNewSession: () => void;
   
+  // API Configuration
+  checkApiKey: () => Promise<boolean>;
+  validateApiKey: (apiKey: string) => Promise<boolean>;
+  saveApiKey: (apiKey: string) => Promise<void>;
+  
+  // Chat functionality
+  sendChatMessage: (sessionId: string, message: string) => Promise<string>;
+  
+  // GitHub integration
+  selectGitHubRepo: () => Promise<any>;
+  analyzeRepository: (sessionId: string, repoInfo: any) => Promise<string>;
+  
   // Event listeners
   onNewSession: (callback: () => void) => void;
   removeAllListeners: (channel: string) => void;
@@ -33,6 +45,20 @@ contextBridge.exposeInMainWorld('sessionhub', {
   // Session management
   createNewSession: () => ipcRenderer.send('new-session'),
   
+  // API Configuration
+  checkApiKey: () => ipcRenderer.invoke('check-api-key'),
+  validateApiKey: (apiKey: string) => ipcRenderer.invoke('validate-api-key', apiKey),
+  saveApiKey: (apiKey: string) => ipcRenderer.invoke('save-api-key', apiKey),
+  
+  // Chat functionality
+  sendChatMessage: (sessionId: string, message: string) => 
+    ipcRenderer.invoke('send-chat-message', sessionId, message),
+  
+  // GitHub integration
+  selectGitHubRepo: () => ipcRenderer.invoke('select-github-repo'),
+  analyzeRepository: (sessionId: string, repoInfo: any) => 
+    ipcRenderer.invoke('analyze-repository', sessionId, repoInfo),
+  
   // Event listeners
   onNewSession: (callback: () => void) => {
     ipcRenderer.on('new-session', callback);
@@ -43,9 +69,34 @@ contextBridge.exposeInMainWorld('sessionhub', {
   }
 } as SessionHubAPI);
 
+// Also expose electronAPI for compatibility
+contextBridge.exposeInMainWorld('electronAPI', {
+  // API Configuration
+  checkApiKey: () => ipcRenderer.invoke('check-api-key'),
+  validateApiKey: (apiKey: string) => ipcRenderer.invoke('validate-api-key', apiKey),
+  saveApiKey: (apiKey: string) => ipcRenderer.invoke('save-api-key', apiKey),
+  
+  // Chat functionality
+  sendChatMessage: (sessionId: string, message: string) => 
+    ipcRenderer.invoke('send-chat-message', sessionId, message),
+  
+  // GitHub integration
+  selectGitHubRepo: () => ipcRenderer.invoke('select-github-repo'),
+  analyzeRepository: (sessionId: string, repoInfo: any) => 
+    ipcRenderer.invoke('analyze-repository', sessionId, repoInfo),
+});
+
 // Also expose to window for TypeScript
 declare global {
   interface Window {
     sessionhub: SessionHubAPI;
+    electronAPI: {
+      checkApiKey: () => Promise<boolean>;
+      validateApiKey: (apiKey: string) => Promise<boolean>;
+      saveApiKey: (apiKey: string) => Promise<void>;
+      sendChatMessage: (sessionId: string, message: string) => Promise<string>;
+      selectGitHubRepo: () => Promise<any>;
+      analyzeRepository: (sessionId: string, repoInfo: any) => Promise<string>;
+    };
   }
 }

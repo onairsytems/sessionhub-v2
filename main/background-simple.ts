@@ -297,6 +297,10 @@ class SessionHubApp {
       };
     });
 
+    // Register API handlers
+    const { registerApiHandlers } = require('./ipc/apiHandlers');
+    registerApiHandlers();
+
     // Trigger test issue (for demo purposes)
     ipcMain.handle('trigger-test-issue', async () => {
       return { success: true, message: 'Test issue triggered' };

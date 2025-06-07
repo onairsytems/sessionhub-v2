@@ -161,6 +161,32 @@
   - Screen reader compatible
 - **Status**: Complete ✅ 🚨
 
+### v1.2 - Core Planning Interface and API Integration
+- **Date**: 2025-06-06 22:30:00 UTC
+- **Session**: 1.2 - Core Planning Interface and API Integration
+- **Update Type**: CORE FEATURE
+- **Key Changes**:
+  - Created API configuration screen for Claude credentials
+  - Implemented secure Mac Keychain storage
+  - Built real-time planning chat interface
+  - Integrated Claude API for chat functionality
+  - Added GitHub repository import capabilities
+  - Created three-phase session workflow UI
+  - Comprehensive error handling throughout
+- **Components Created**:
+  - ApiConfiguration.tsx: Startup credential screen
+  - PlanningChat.tsx: Real-time chat interface
+  - SessionWorkflow.tsx: Complete session management
+  - GitHubRepoSelector.tsx: Repository import UI
+  - MacKeychainService.ts: Secure credential storage
+  - apiHandlers.ts: IPC communication handlers
+- **Integration Points**:
+  - Claude API: Full chat integration
+  - Mac Keychain: Secure API key storage
+  - Electron IPC: Secure bridge for API calls
+  - Session management: Workflow orchestration
+- **Status**: Complete ✅ 🎯
+
 ## Rollback Instructions
 To rollback to a previous version:
 ```bash
