@@ -1,3 +1,4 @@
+
 /**
  * SessionVerificationEngine - Ensures sessions are actually executed, not just documented
  * 
@@ -206,11 +207,11 @@ export class SessionVerificationEngine {
     }
 
     const latestVerification = history[history.length - 1];
-    if (!latestVerification.verified) {
+    if (!latestVerification || !latestVerification.verified) {
       this.logger.error('Session not verified - blocking deployment', new Error('Verification failed'), {
         sessionId,
-        score: latestVerification.verificationScore,
-        missing: latestVerification.missingDeliverables
+        score: latestVerification?.verificationScore,
+        missing: latestVerification?.missingDeliverables
       });
       return false;
     }
@@ -234,25 +235,25 @@ export class SessionVerificationEngine {
     return `
 # Session Verification Report
 Session ID: ${sessionId}
-Timestamp: ${latestResult.timestamp}
-Status: ${latestResult.verified ? '✅ VERIFIED' : '❌ FAILED'}
-Score: ${latestResult.verificationScore}/100
+Timestamp: ${latestResult?.timestamp || 'N/A'}
+Status: ${latestResult?.verified ? '✅ VERIFIED' : '❌ FAILED'}
+Score: ${latestResult?.verificationScore || 0}/100
 
 ## Planned Deliverables
 ${contract.plannedDeliverables.map(d => 
-  `- ${d.description} ${latestResult.missingDeliverables.includes(d.description) ? '❌' : '✅'}`
+  `- ${d.description} ${latestResult?.missingDeliverables?.includes(d.description) ? '❌' : '✅'}`
 ).join('\n')}
 
 ## Evidence Found
-${latestResult.evidenceFound.map(e => 
+${latestResult?.evidenceFound?.map(e => 
   `- ${e.description}: ${e.verified ? '✅' : '❌'}`
-).join('\n')}
+).join('\n') || 'None'}
 
 ## Missing Deliverables
-${latestResult.missingDeliverables.length === 0 ? 'None' : latestResult.missingDeliverables.join('\n')}
+${!latestResult?.missingDeliverables || latestResult.missingDeliverables.length === 0 ? 'None' : latestResult.missingDeliverables.join('\n')}
 
 ## Unexpected Changes
-${latestResult.unexpectedChanges.length === 0 ? 'None' : latestResult.unexpectedChanges.join('\n')}
+${!latestResult?.unexpectedChanges || latestResult.unexpectedChanges.length === 0 ? 'None' : latestResult.unexpectedChanges.join('\n')}
     `.trim();
   }
 
@@ -262,22 +263,33 @@ ${latestResult.unexpectedChanges.length === 0 ? 'None' : latestResult.unexpected
     const deliverables: PlannedDeliverable[] = [];
     
     // Parse instructions to extract what should be created/modified
-    if (instructions.tasks) {
-      for (const task of instructions.tasks) {
-        if (task.includes('create') || task.includes('implement') || task.includes('fix')) {
+    if (instructions.requirements) {
+      for (const requirement of instructions.requirements) {
+        if (requirement.description.includes('create') || requirement.description.includes('implement') || requirement.description.includes('fix')) {
           deliverables.push({
             type: 'file',
-            description: task,
+            description: requirement.description,
             required: true
           });
         }
+      }
+    }
+    
+    // Also check deliverables if specified
+    if (instructions.deliverables) {
+      for (const deliverable of instructions.deliverables) {
+        deliverables.push({
+          type: 'file',
+          description: deliverable.description,
+          required: true
+        });
       }
     }
 
     return deliverables;
   }
 
-  private defineRequiredEvidence(instructions: InstructionProtocol): RequiredEvidence[] {
+  private defineRequiredEvidence(_instructions: InstructionProtocol): RequiredEvidence[] {
     return [
       {
         type: 'build_succeeds',
@@ -292,7 +304,7 @@ ${latestResult.unexpectedChanges.length === 0 ? 'None' : latestResult.unexpected
     ];
   }
 
-  private defineAcceptanceCriteria(instructions: InstructionProtocol): AcceptanceCriteria[] {
+  private defineAcceptanceCriteria(_instructions: InstructionProtocol): AcceptanceCriteria[] {
     return [
       {
         description: 'All tests pass',

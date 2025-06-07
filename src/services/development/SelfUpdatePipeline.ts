@@ -1,3 +1,4 @@
+
 /**
  * Self-Update Pipeline
  * Secure mechanism for SessionHub to build and deploy its own updates

@@ -1,14 +1,14 @@
+
 /**
  * Claude Code API client for the Execution Actor
  * Integrates with Anthropic's Claude Code API for code generation and execution
  */
 
 import { Logger } from '@/src/lib/logging/Logger';
-import { InstructionProtocol, ExecutionOutput } from '@/src/models/Instruction';
+import { InstructionProtocol } from '@/src/models/Instruction';
 import { spawn } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface ClaudeCodeAPIConfig {
   apiKey: string;
@@ -182,8 +182,8 @@ Implement everything needed to meet all success criteria.`;
     let match;
 
     while ((match = fileRegex.exec(code)) !== null) {
-      const filePath = match[1].trim();
-      const fileContent = match[2].trim();
+      const filePath = match[1]?.trim() || '';
+      const fileContent = match[2]?.trim() || '';
       
       const fullPath = path.join(sessionDir, filePath);
       const dir = path.dirname(fullPath);
@@ -246,7 +246,7 @@ Implement everything needed to meet all success criteria.`;
   private async runCommand(command: string, cwd: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const [cmd, ...args] = command.split(' ');
-      const child = spawn(cmd, args, {
+      const child = spawn(cmd || '', args, {
         cwd,
         env: { ...process.env },
         timeout: this.config.timeout
@@ -255,11 +255,11 @@ Implement everything needed to meet all success criteria.`;
       let stdout = '';
       let stderr = '';
 
-      child.stdout.on('data', (data) => {
+      child.stdout?.on('data', (data) => {
         stdout += data.toString();
       });
 
-      child.stderr.on('data', (data) => {
+      child.stderr?.on('data', (data) => {
         stderr += data.toString();
       });
 
@@ -281,7 +281,7 @@ Implement everything needed to meet all success criteria.`;
    * Run validation tests
    */
   private async runValidation(
-    sessionDir: string,
+    _sessionDir: string,
     instruction: InstructionProtocol
   ): Promise<string> {
     const results: string[] = ['=== Validation Results ==='];
@@ -292,7 +292,7 @@ Implement everything needed to meet all success criteria.`;
           // Simple file existence check for now
           const filesExist = instruction.deliverables
             .filter(d => d.type === 'file')
-            .every(d => true); // Would check actual files
+            .every(_d => true); // Would check actual files
           
           if (filesExist) {
             results.push(`✓ ${criterion.criterion}`);
@@ -311,7 +311,7 @@ Implement everything needed to meet all success criteria.`;
   /**
    * Send request to Claude API
    */
-  private async sendRequest(request: any): Promise<any> {
+  private async sendRequest(request): Promise<any> {
     const response = await fetch(this.config.apiUrl, {
       method: 'POST',
       headers: {

@@ -1,3 +1,4 @@
+
 /**
  * IPC handlers for session progress tracking
  */
@@ -10,7 +11,7 @@ export interface ProgressEvent {
   type: 'queued' | 'started' | 'progress' | 'completed' | 'failed' | 'retrying';
   sessionId: string;
   timestamp: string;
-  data?: any;
+  data?: unknown;
 }
 
 export class ProgressHandlers {

@@ -1,0 +1,45 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Post-commit verification to catch any bypasses
+echo "🔍 Running post-commit verification..."
+
+# Log the commit
+COMMIT_HASH=$(git rev-parse HEAD)
+echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] COMMIT: $COMMIT_HASH" >> "$HOME/.sessionhub/git-audit.log"
+
+# Verify the commit meets quality standards
+echo "🛡️ Verifying commit quality..."
+
+# Check if TypeScript compiles
+npx tsc --noEmit > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo "⚠️  WARNING: Post-commit TypeScript check failed!"
+  echo "This commit contains TypeScript errors that bypassed pre-commit hooks."
+  echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] POST_COMMIT_TS_ERROR: $COMMIT_HASH" >> "$HOME/.sessionhub/git-audit.log"
+  echo ""
+  echo "❌ CRITICAL: Quality gate bypass detected!"
+  echo "Please fix the errors and amend your commit:"
+  echo "  git commit --amend"
+  echo ""
+  echo "Run 'npx tsc --noEmit' to see the errors."
+  
+  # Alert if on macOS
+  if command -v osascript &> /dev/null; then
+    osascript -e 'display alert "TypeScript Errors Detected" message "Your commit contains TypeScript errors. Please fix and amend." as critical'
+  fi
+  
+  exit 1
+fi
+
+# Check for error suppression patterns
+PATTERNS="@ts-ignore|@ts-nocheck|@ts-expect-error|eslint-disable|eslint-disable-next-line"
+if git diff HEAD~1 HEAD --name-only | xargs grep -E "$PATTERNS" 2>/dev/null | grep -v "strict-build-validator.ts"; then
+  echo "⚠️  WARNING: Error suppression detected in commit!"
+  echo "[$(date -u +"%Y-%m-%dT%H:%M:%SZ")] ERROR_SUPPRESSION: $COMMIT_HASH" >> "$HOME/.sessionhub/git-audit.log"
+  echo ""
+  echo "Found error suppression comments. This violates zero-tolerance policy."
+  echo "Please remove these suppressions and fix the underlying issues."
+fi
+
+echo "✅ Post-commit verification complete"

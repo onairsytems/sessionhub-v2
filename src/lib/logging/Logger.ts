@@ -1,7 +1,11 @@
+
 /**
  * Comprehensive logging system for SessionHub
  * Provides audit trail and debugging capabilities
  */
+
+import * as os from 'os';
+import * as path from 'path';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -27,8 +31,6 @@ export class Logger {
     
     // If audit file requested, use Mac log directory
     if (auditFile) {
-      const os = require('os');
-      const path = require('path');
       const logDir = path.join(os.homedir(), 'Library', 'Logs', 'SessionHub');
       this.logFile = path.join(logDir, auditFile);
     }
@@ -102,7 +104,7 @@ export class Logger {
     // In production Mac app, this would write to log file
     // Using async file operations to avoid blocking
     // For now, we'll skip actual file I/O
-    // const fs = require('fs/promises');
+    // import fs from 'fs/promises';
     // fs.appendFile(this.logFile, JSON.stringify(entry) + '\n');
   }
 

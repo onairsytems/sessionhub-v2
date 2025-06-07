@@ -1,3 +1,4 @@
+
 /**
  * Performance Monitor for Self-Development
  * Validates that updates improve rather than degrade system performance
@@ -235,7 +236,7 @@ export class PerformanceMonitor {
   /**
    * Measure instruction generation performance
    */
-  async measureInstructionGeneration(_instruction: any): Promise<number> {
+  async measureInstructionGeneration(_instruction): Promise<number> {
     const startTime = performance.now();
     
     try {
@@ -266,9 +267,9 @@ export class PerformanceMonitor {
   /**
    * Measure session execution performance
    */
-  async measureSessionExecution(sessionId: string, operation: () => Promise<any>): Promise<{ duration: number; result: any }> {
+  async measureSessionExecution(sessionId: string, operation: ($1) => Promise<any>): Promise<{ duration: number; result: unknown }> {
     const startTime = performance.now();
-    let result: any;
+    let result: unknown;
 
     try {
       result = await operation();
@@ -431,8 +432,8 @@ export class PerformanceMonitor {
    * Private helper methods
    */
   private async getCurrentResources(): Promise<SystemResource> {
-    const os = require('os');
-    // const process = require('process'); // Commented out for future use
+    import os from 'os';
+    // import process from 'process'; // Commented out for future use
 
     // Get CPU usage
     const cpus = os.cpus();
@@ -471,7 +472,7 @@ export class PerformanceMonitor {
   }
 
   private async getCPUUsage(): Promise<number> {
-    // const os = require('os'); // Commented out for future use
+    // import os from 'os'; // Commented out for future use
     
     return new Promise((resolve) => {
       const startMeasure = this.cpuAverage();
@@ -488,7 +489,7 @@ export class PerformanceMonitor {
   }
 
   private cpuAverage(): { idle: number; total: number } {
-    const os = require('os');
+    import os from 'os';
     let totalIdle = 0;
     let totalTick = 0;
     const cpus = os.cpus();
@@ -516,7 +517,7 @@ export class PerformanceMonitor {
       const metrics = JSON.parse(content);
       
       // Convert timestamp strings back to Date objects
-      return metrics.map((m: any) => ({
+      return metrics.map((m) => ({
         ...m,
         timestamp: new Date(m.timestamp),
       }));
@@ -530,7 +531,7 @@ export class PerformanceMonitor {
       const content = await fs.readFile(this.baselinesPath, 'utf-8');
       const baselines = JSON.parse(content);
       
-      return baselines.map((b: any) => ({
+      return baselines.map((b) => ({
         ...b,
         lastUpdated: new Date(b.lastUpdated),
       }));

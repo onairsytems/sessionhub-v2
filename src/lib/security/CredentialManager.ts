@@ -1,3 +1,4 @@
+
 /**
  * Secure credential management for API keys and sensitive data
  */
@@ -47,8 +48,8 @@ export class CredentialManager {
     
     // Use Mac app directory if not specified
     if (!credentialsPath) {
-      const os = require('os');
-      const path = require('path');
+      import os from 'os';
+      import path from 'path';
       this.credentialsPath = path.join(
         os.homedir(),
         'Library',
@@ -344,7 +345,7 @@ export class CredentialManager {
         }
       }
     } catch (error) {
-      if ((error as any).code === 'ENOENT') {
+      if ((error).code === 'ENOENT') {
         this.logger.info('No credentials directory found, starting fresh');
       } else {
         throw error;

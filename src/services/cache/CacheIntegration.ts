@@ -1,3 +1,4 @@
+
 /**
  * Cache Integration Module
  * Provides a unified interface that combines Supabase and local cache
@@ -92,10 +93,10 @@ export class CachedDataService {
     initialized: boolean;
     online: boolean;
     cacheEnabled: boolean;
-    cacheStats?: any;
+    cacheStats?: unknown;
     offlineQueueSize?: number;
   }> {
-    const status: any = {
+    const status: unknown = {
       initialized: this.initialized,
       online: this.isOnline(),
       cacheEnabled: this.config.enableCache !== false && this.cacheService.isInitialized()
@@ -272,7 +273,7 @@ export class CachedDataService {
   /**
    * Import cache data
    */
-  async importCache(data: any): Promise<void> {
+  async importCache(data): Promise<void> {
     if (!this.cacheService.isInitialized()) {
       throw new Error('Cache not initialized');
     }

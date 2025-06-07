@@ -1,3 +1,4 @@
+
 /**
  * Centralized error handling and recovery system
  * Manages failures gracefully and attempts recovery where possible
@@ -324,7 +325,7 @@ export class ErrorHandler {
   /**
    * Get error statistics
    */
-  getErrorStats(): any {
+  getErrorStats(): unknown {
     const now = Date.now();
     const oneHourAgo = now - 3600000;
     

@@ -18,7 +18,7 @@ async function startMonitor() {
   // Set up event handlers
   errorSystem.monitor.on('errors', (event) => {
     console.log(`\n❌ Errors detected in ${event.filePath}:`);
-    event.errors?.forEach((error: any) => {
+    event.errors?.forEach((error) => {
       const icon = error.severity === 'error' ? '🔴' : error.severity === 'warning' ? '🟡' : 'ℹ️';
       console.log(`  ${icon} ${error.line}:${error.column} - ${error.message}`);
       if (error.suggestion) {
@@ -47,7 +47,7 @@ async function startMonitor() {
     console.log('🛑 Press Ctrl+C to stop\n');
 
     // Keep process running
-    process.on('SIGINT', async () => {
+    process.on('SIGINT', () => {
       console.log('\n\n🛑 Stopping error monitor...');
       await errorSystem.stop();
       

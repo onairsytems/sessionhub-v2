@@ -1,3 +1,4 @@
+
 /**
  * CICDIntegration.ts
  * CI/CD pipeline integration that blocks deployment on any error
@@ -52,7 +53,7 @@ export class CICDIntegration {
 
     try {
       // Run build validation
-      const validation = await this.validator.validateBuild();
+      const validation: any = await this.validator.validateBuild();
       
       // Determine success based on configuration
       let success = validation.canBuild;

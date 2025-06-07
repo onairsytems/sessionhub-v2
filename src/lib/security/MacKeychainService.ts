@@ -1,3 +1,4 @@
+
 /**
  * Mac Keychain integration for secure credential storage
  * Uses native macOS Keychain Services for storing sensitive data
@@ -72,7 +73,7 @@ export class MacKeychainService {
       return stdout.trim();
     } catch (error) {
       // Item not found is not an error
-      if ((error as any).code === 44) {
+      if ((error).code === 44) {
         return null;
       }
       
@@ -92,7 +93,7 @@ export class MacKeychainService {
       this.logger.info('Credential deleted from Mac Keychain', { account });
     } catch (error) {
       // Item not found is not an error
-      if ((error as any).code !== 44) {
+      if ((error).code !== 44) {
         this.logger.error('Failed to delete credential from Keychain', error as Error);
         throw error;
       }
@@ -135,7 +136,7 @@ export class MacKeychainService {
       return true;
     } catch (error) {
       // If we get a permission error, user needs to grant access
-      if ((error as any).code === 1) {
+      if ((error).code === 1) {
         this.logger.warn('Keychain access denied - user needs to grant permission');
         return false;
       }

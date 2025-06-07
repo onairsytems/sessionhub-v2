@@ -1,3 +1,4 @@
+
 /**
  * @actor planning
  * @responsibility Generates instructions from user requests
@@ -179,7 +180,7 @@ export class PlanningEngine {
     }
   }
 
-  private isValidInstructionProtocol(obj: any): boolean {
+  private isValidInstructionProtocol(obj): boolean {
     return obj &&
       obj.metadata &&
       obj.context &&

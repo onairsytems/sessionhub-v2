@@ -1,3 +1,4 @@
+
 /**
  * BuildValidator.ts
  * Build-time validation that prevents any production build with errors
@@ -157,7 +158,9 @@ export class BuildValidator {
    */
   private async validateTypeScript(): Promise<{ errors: ErrorReport[] }> {
     try {
-      const { stdout: _stdout, stderr } = await execAsync('npx tsc --noEmit --pretty false');
+      const { stdout: _stdout, stderr } = await execAsync('npx tsc --noEmit --pretty false', {
+        maxBuffer: 50 * 1024 * 1024 // 50MB buffer
+      });
       
       if (stderr) {
         return { errors: this.parseTypeScriptErrors(stderr) };
@@ -178,7 +181,9 @@ export class BuildValidator {
    */
   private async validateESLint(): Promise<{ errors: ErrorReport[] }> {
     try {
-      const { stdout } = await execAsync('npx eslint . --ext .ts,.tsx,.js,.jsx --format json');
+      const { stdout } = await execAsync('npx eslint . --ext .ts,.tsx,.js,.jsx --format json', {
+        maxBuffer: 50 * 1024 * 1024 // 50MB buffer
+      });
       const results = JSON.parse(stdout);
       
       const errors: ErrorReport[] = [];
@@ -191,7 +196,7 @@ export class BuildValidator {
             column: message.column || 0,
             severity: message.severity === 2 ? 'error' : 'warning',
             category: 'ESLint',
-            code: message.ruleId || 'unknown',
+            code: message.ruleId || 'any',
             message: message.message,
             timestamp: new Date().toISOString()
           });
@@ -213,7 +218,7 @@ export class BuildValidator {
                 column: message.column || 0,
                 severity: message.severity === 2 ? 'error' : 'warning',
                 category: 'ESLint',
-                code: message.ruleId || 'unknown',
+                code: message.ruleId || 'any',
                 message: message.message,
                 timestamp: new Date().toISOString()
               });
@@ -236,7 +241,8 @@ export class BuildValidator {
     try {
       // Run Next.js build in dry-run mode
       const { stdout, stderr } = await execAsync('npx next build --no-lint', {
-        env: { ...process.env, NODE_ENV: 'production' }
+        env: { ...process.env, NODE_ENV: 'production' },
+        maxBuffer: 50 * 1024 * 1024 // 50MB buffer
       });
 
       const errors: ErrorReport[] = [];
@@ -286,7 +292,9 @@ export class BuildValidator {
    */
   private async runTests(): Promise<{ errors: ErrorReport[] }> {
     try {
-      const { stdout: _stdout, stderr } = await execAsync('npm test -- --passWithNoTests');
+      const { stdout: _stdout, stderr } = await execAsync('npm test --passWithNoTests', {
+        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+      });
       
       if (stderr && stderr.includes('FAIL')) {
         return {

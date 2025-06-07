@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Key, AlertCircle, CheckCircle, Loader } from 'lucide-react';
@@ -15,12 +16,7 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
   const [error, setError] = useState('');
   const [isValid, setIsValid] = useState(false);
 
-  useEffect(() => {
-    // Check if API key already exists
-    checkExistingApiKey();
-  }, []);
-
-  const checkExistingApiKey = async () => {
+  const checkExistingApiKey = useCallback(async () => {
     try {
       const hasKey = await window.electronAPI.checkApiKey();
       if (hasKey) {
@@ -29,7 +25,12 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
     } catch (err) {
       console.error('Error checking API key:', err);
     }
-  };
+  }, [onComplete]);
+
+  useEffect(() => {
+    // Check if API key already exists
+    checkExistingApiKey();
+  }, [checkExistingApiKey]);
 
   const validateApiKey = async () => {
     if (!apiKey.trim()) {

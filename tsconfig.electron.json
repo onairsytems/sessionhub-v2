@@ -1,34 +1,35 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "dist/main",
-    "target": "ES2020",
     "module": "commonjs",
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "skipLibCheck": false,
-    "strict": true,
+    "target": "es2020",
+    "outDir": "./dist-electron",
+    "lib": [
+      "es2020"
+    ],
     "noEmit": false,
-    "declaration": false,
-    "sourceMap": true,
-    "incremental": true,
-    "tsBuildInfoFile": "dist/main/.tsbuildinfo"
+    "strict": true,
+    "skipLibCheck": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "types": [
+      "node",
+      "electron"
+    ]
   },
   "include": [
-    "main/**/*",
-    "src/config/**/*",
-    "src/services/**/*",
-    "src/models/**/*",
-    "src/lib/**/*"
+    "main/**/*"
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "dist-electron",
     "renderer",
     "app",
     "components",
-    "pages"
+    ".next"
   ]
 }

@@ -1,3 +1,4 @@
+
 /**
  * Data model for sessions
  */
@@ -78,5 +79,5 @@ export interface SessionMetadata {
   totalDuration?: number;
   
   // Custom metadata
-  [key: string]: any;
+  [key: string]: unknown;
 }

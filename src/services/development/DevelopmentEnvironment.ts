@@ -1,3 +1,4 @@
+
 /**
  * Development Environment Manager
  * Handles isolation and coordination between development and production instances
@@ -92,7 +93,7 @@ export class DevelopmentEnvironment {
     });
 
     child.on('error', (error) => {
-      this.logger.error('Development instance error', error as Error);
+      this.logger.error('Development instance error', error);
       this.updateStatus('error');
     });
 

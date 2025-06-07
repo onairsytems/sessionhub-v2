@@ -1,3 +1,4 @@
+
 /**
  * Mac-specific configuration for SessionHub local app
  */

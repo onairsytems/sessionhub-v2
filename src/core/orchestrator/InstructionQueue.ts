@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Manages instruction queue and real-time monitoring
@@ -37,7 +38,7 @@ export interface InstructionEvent {
   instructionId: string;
   sessionId: string;
   timestamp: string;
-  data?: any;
+  data?: unknown;
 }
 
 export class InstructionQueue extends EventEmitter {
@@ -160,7 +161,9 @@ export class InstructionQueue extends EventEmitter {
       // Maintain history size
       if (this.completed.size > this.maxCompletedHistory) {
         const oldestKey = this.completed.keys().next().value;
-        this.completed.delete(oldestKey);
+        if (oldestKey !== undefined) {
+          this.completed.delete(oldestKey);
+        }
       }
 
       // Emit completed/failed event

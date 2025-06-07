@@ -1,3 +1,4 @@
+
 /**
  * Security sandbox for safe execution of tasks
  * Prevents malicious code execution and resource abuse
@@ -18,7 +19,7 @@ export class SecuritySandbox {
    * Execute a function in a sandboxed environment with resource limits
    */
   async executeSecurely<T>(
-    fn: () => Promise<T>,
+    fn: ($1) => Promise<T>,
     timeoutMs: number
   ): Promise<T> {
     this.logger.debug('SecuritySandbox: Executing function securely', { timeoutMs });
@@ -45,7 +46,7 @@ export class SecuritySandbox {
     }
   }
 
-  private async wrapWithResourceLimits<T>(fn: () => Promise<T>): Promise<T> {
+  private async wrapWithResourceLimits<T>(fn: ($1) => Promise<T>): Promise<T> {
     // In a real implementation, this would:
     // 1. Create a separate process or worker
     // 2. Set resource limits (memory, CPU, file access)

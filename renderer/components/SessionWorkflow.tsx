@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,10 +13,10 @@ interface Session {
   name: string;
   status: 'configuring' | 'planning' | 'executing' | 'completed';
   plan?: string;
-  results?: any;
+  results?: unknown;
 }
 
-export function SessionWorkflow() {
+export function SessionWorkflow() : void {
   const [hasApiKey, setHasApiKey] = useState(false);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
@@ -54,7 +55,7 @@ export function SessionWorkflow() {
     }
   };
 
-  const handleExecutionComplete = (results: any) => {
+  const handleExecutionComplete = (results) => {
     if (currentSession) {
       setCurrentSession({
         ...currentSession,

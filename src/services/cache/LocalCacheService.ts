@@ -1,3 +1,4 @@
+
 /**
  * Local SQLite Cache Service for SessionHub
  * Provides fast local caching of Supabase data with offline support
@@ -346,7 +347,7 @@ export class LocalCacheService {
       'SELECT version FROM schema_migrations ORDER BY version'
     );
     const appliedVersions = new Set(
-      getAppliedVersions.all().map((row: any) => row.version)
+      getAppliedVersions.all().map((row) => row.version)
     );
 
     const insertMigration = this.db.prepare(
@@ -411,7 +412,7 @@ export class LocalCacheService {
   private getCacheSize(): number {
     if (!this.db) return 0;
     
-    const result = this.db.prepare('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()').get() as any;
+    const result = this.db.prepare('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()').get();
     return result?.size || 0;
   }
 
@@ -443,7 +444,7 @@ export class LocalCacheService {
           );
           
           // Delete 10% of records at a time
-          const recordCount = this.db!.prepare(`SELECT COUNT(*) as count FROM ${table}`).get() as any;
+          const recordCount = this.db!.prepare(`SELECT COUNT(*) as count FROM ${table}`).get();
           const deleteCount = Math.floor(recordCount.count * 0.1);
           if (deleteCount > 0) {
             deleteOldest.run(deleteCount);
@@ -454,7 +455,7 @@ export class LocalCacheService {
       // Check record count limits per table
       const tables = ['projects', 'sessions', 'instructions', 'execution_results', 'patterns'];
       for (const table of tables) {
-        const countResult = this.db!.prepare(`SELECT COUNT(*) as count FROM ${table}`).get() as any;
+        const countResult = this.db!.prepare(`SELECT COUNT(*) as count FROM ${table}`).get();
         if (countResult.count > this.config.maxRecords) {
           const deleteCount = countResult.count - this.config.maxRecords;
           const deleteOldest = this.db!.prepare(
@@ -542,7 +543,7 @@ export class LocalCacheService {
     if (!this.db) throw new Error('Cache not initialized');
 
     const getStmt = this.db.prepare('SELECT * FROM projects WHERE id = ?');
-    const cached = getStmt.get(id) as any;
+    const cached = getStmt.get(id);
 
     // Check if we have a valid cached version
     if (cached && !forceRefresh && !this.isExpired(cached.ttl_expires_at)) {
@@ -662,7 +663,7 @@ export class LocalCacheService {
 
     // Track for sync
     const versionStmt = this.db.prepare('SELECT version FROM projects WHERE id = ?');
-    const version = (versionStmt.get(id) as any)?.version || 1;
+    const version = (versionStmt.get(id))?.version || 1;
     this.trackSync(id, 'projects', 'update', version);
 
     // Try to sync immediately if online
@@ -727,7 +728,7 @@ export class LocalCacheService {
 
     // Fall back to cache
     const getAll = this.db.prepare('SELECT * FROM projects ORDER BY last_accessed DESC');
-    const cached = getAll.all() as any[];
+    const cached = getAll.all();
     return cached.map(row => this.deserializeProject(row));
   }
 
@@ -809,7 +810,7 @@ export class LocalCacheService {
       case 'create':
       case 'update':
         const getProject = this.db.prepare('SELECT * FROM projects WHERE id = ?');
-        const project = getProject.get(sync.id) as any;
+        const project = getProject.get(sync.id);
         if (project) {
           const projectData = this.deserializeProject(project);
           if (sync.operation === 'create') {
@@ -875,20 +876,20 @@ export class LocalCacheService {
     // Get record counts
     const tables = ['projects', 'sessions', 'instructions', 'execution_results', 'patterns'];
     for (const table of tables) {
-      const count = this.db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get() as any;
+      const count = this.db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get();
       stats.recordCounts[table] = count.count;
     }
 
     // Get pending syncs
     const pendingSyncs = this.db.prepare(
       `SELECT COUNT(*) as count FROM sync_queue WHERE sync_status IN ('pending', 'error')`
-    ).get() as any;
+    ).get();
     stats.pendingSyncs = pendingSyncs.count;
 
     // Get last sync time
     const lastSync = this.db.prepare(
       `SELECT value FROM cache_metadata WHERE key = 'last_sync'`
-    ).get() as any;
+    ).get();
     if (lastSync) {
       stats.lastSync = lastSync.value;
     }
@@ -902,7 +903,7 @@ export class LocalCacheService {
         UNION SELECT MIN(cached_at) FROM execution_results
         UNION SELECT MIN(cached_at) FROM patterns
       )
-    `).get() as any;
+    `).get();
     if (oldestRecord?.oldest) {
       stats.oldestRecord = oldestRecord.oldest;
     }
@@ -933,7 +934,7 @@ export class LocalCacheService {
   async exportCache(): Promise<any> {
     if (!this.db) throw new Error('Cache not initialized');
 
-    const data: any = {
+    const data: unknown = {
       exportedAt: new Date().toISOString(),
       stats: await this.getCacheStats(),
       tables: {}
@@ -951,7 +952,7 @@ export class LocalCacheService {
   /**
    * Import cache data
    */
-  async importCache(data: any): Promise<void> {
+  async importCache(data): Promise<void> {
     if (!this.db) throw new Error('Cache not initialized');
 
     const transaction = this.db.transaction(() => {
@@ -1006,7 +1007,7 @@ export class LocalCacheService {
   /**
    * Deserialize a project from cache
    */
-  private deserializeProject(row: any): Project {
+  private deserializeProject(row): Project {
     return {
       id: row.id,
       name: row.name,
@@ -1033,7 +1034,7 @@ export class LocalCacheService {
 
     const count = this.db.prepare(
       `SELECT COUNT(*) as count FROM sync_queue WHERE sync_status IN ('pending', 'error')`
-    ).get() as any;
+    ).get();
 
     return count?.count || 0;
   }

@@ -1,11 +1,12 @@
+
 /**
  * Integration tests for Session 1.3 - Real Two-Actor Model Implementation
  */
 
 import { SystemOrchestrator } from '@/src/core/orchestrator/SystemOrchestrator';
-import { Logger } from '@/src/lib/logging/Logger';
+// import { Logger } from '@/src/lib/logging/Logger';
 import { v4 as uuidv4 } from 'uuid';
-import * as path from 'path';
+// import * as path from 'path';
 import * as fs from 'fs/promises';
 
 // Test configuration
@@ -68,11 +69,11 @@ const TEST_SCENARIOS = [
 
 class TwoActorWorkflowTest {
   private orchestrator: SystemOrchestrator;
-  private logger: Logger;
-  private testResults: any[] = [];
+  // private logger: Logger;
+  private testResults: {name: string; passed: boolean; details: string[]}[] = [];
 
   constructor() {
-    this.logger = new Logger('TwoActorWorkflowTest');
+    // this.logger = new Logger('TwoActorWorkflowTest');
     this.orchestrator = new SystemOrchestrator(TEST_CONFIG);
   }
 
@@ -116,7 +117,7 @@ class TwoActorWorkflowTest {
   private async testActorSeparation(): Promise<void> {
     console.log('🔍 Test 1: Actor Separation and Boundaries');
     
-    const result = {
+    const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Actor Separation',
       passed: true,
       details: []
@@ -167,7 +168,7 @@ class TwoActorWorkflowTest {
   private async testInstructionProtocol(): Promise<void> {
     console.log('🔍 Test 2: Instruction Protocol Validation');
     
-    const result = {
+    const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Instruction Protocol',
       passed: true,
       details: []
@@ -193,7 +194,7 @@ class TwoActorWorkflowTest {
         result.passed = false;
         result.details.push('❌ No instructions found in session history');
       } else {
-        const instruction = history[0].data;
+        const instruction = history[0]?.data;
         
         // Validate instruction structure
         const requiredFields = ['metadata', 'context', 'objectives', 'requirements', 'deliverables', 'constraints', 'successCriteria'];
@@ -221,7 +222,7 @@ class TwoActorWorkflowTest {
   private async testSessionStatePersistence(): Promise<void> {
     console.log('🔍 Test 3: Session State Persistence');
     
-    const result = {
+    const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Session State Persistence',
       passed: true,
       details: []
@@ -284,7 +285,7 @@ class TwoActorWorkflowTest {
   private async testRealTimeMonitoring(): Promise<void> {
     console.log('🔍 Test 4: Real-Time Monitoring');
     
-    const result = {
+    const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Real-Time Monitoring',
       passed: true,
       details: []
@@ -299,7 +300,7 @@ class TwoActorWorkflowTest {
       result.details.push(`✅ Initial metrics: ${initialMetrics.pendingCount} pending, ${initialMetrics.completedCount} completed`);
       
       // Submit a request and monitor events
-      const events: any[] = [];
+      const events: unknown[] = [];
       const eventStream = instructionQueue.getEventStream();
       
       // Collect events in background
@@ -361,7 +362,7 @@ class TwoActorWorkflowTest {
   private async testErrorHandling(): Promise<void> {
     console.log('🔍 Test 5: Error Handling and Recovery');
     
-    const result = {
+    const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Error Handling',
       passed: true,
       details: []
@@ -377,7 +378,7 @@ class TwoActorWorkflowTest {
       
       await this.waitForSession(sessionId, 10000);
       
-      const session = await this.orchestrator.getSessionStatus(sessionId);
+      await this.orchestrator.getSessionStatus(sessionId);
       const sessionStateManager = this.orchestrator.getSessionStateManager();
       const errors = await sessionStateManager.getHistory(sessionId, {
         type: 'error'
@@ -416,7 +417,7 @@ class TwoActorWorkflowTest {
     console.log('🔍 Test 6: Complete Two-Actor Workflow');
     
     for (const scenario of TEST_SCENARIOS) {
-      const result = {
+      const result: {name: string; passed: boolean; details: string[]} = {
         name: `Complete Workflow: ${scenario.name}`,
         passed: true,
         details: []
@@ -444,7 +445,7 @@ class TwoActorWorkflowTest {
           result.details.push('✅ Session completed successfully');
         } else {
           result.passed = false;
-          result.details.push(`❌ Session status: ${session?.status || 'unknown'}`);
+          result.details.push(`❌ Session status: ${session?.status || 'any'}`);
         }
         
         // Verify workflow steps
@@ -480,7 +481,7 @@ class TwoActorWorkflowTest {
         if (TEST_CONFIG.useRealApi && hasExecution) {
           const execution = history.find(h => h.type === 'execution');
           if (execution?.data?.outputs?.length > 0) {
-            result.details.push(`✅ Deliverables created: ${execution.data.outputs.length} files`);
+            result.details.push(`✅ Deliverables created: ${execution?.data?.outputs?.length || 0} files`);
           } else {
             result.details.push('⚠️  No deliverables created (mock mode or API issue)');
           }

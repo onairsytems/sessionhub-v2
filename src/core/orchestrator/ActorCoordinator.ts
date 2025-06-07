@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Coordinates communication between Planning and Execution actors
@@ -197,7 +198,7 @@ export class ActorCoordinator {
       // Generate instructions - adapt request format
       const planningRequest = {
         id: request.id,
-        content: request.context?.['content'] || 'Process user request',
+        content: request.request,
         context: request.context,
         sessionId: request.sessionId,
         timestamp: request.timestamp
@@ -375,7 +376,7 @@ export class ActorCoordinator {
   /**
    * Get actor metrics
    */
-  getActorMetrics(): any {
+  getActorMetrics(): unknown {
     const actors = this.getAllActorStates();
     
     return {
@@ -534,7 +535,7 @@ export class ActorCoordinator {
   /**
    * Get queue metrics
    */
-  getQueueMetrics(): any {
+  getQueueMetrics(): unknown {
     return this.instructionQueue.getMetrics();
   }
 }

@@ -1,3 +1,4 @@
+
 /**
  * Emergency Recovery System
  * Provides manual intervention and recovery capabilities for self-development failures
@@ -22,7 +23,7 @@ export interface RecoverySnapshot {
     hash: string;
   }[];
   databaseSnapshot?: string;
-  configSnapshot?: any;
+  configSnapshot?: unknown;
 }
 
 export interface EmergencyState {
@@ -41,7 +42,7 @@ export interface EmergencyState {
 export interface RecoveryCommand {
   name: string;
   description: string;
-  execute: () => Promise<boolean>;
+  execute: ($1) => Promise<boolean>;
   requiresConfirmation: boolean;
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
 }
@@ -162,7 +163,7 @@ export class EmergencyRecovery {
           const backupPath = join(snapshotDir, filePath.replace(/[\/\\]/g, '_'));
           await fs.writeFile(backupPath, content);
 
-          const hash = require('crypto').createHash('sha256').update(content).digest('hex');
+          const hash = createHash('sha256').update(content).digest('hex');
           
           snapshot.files.push({
             path: filePath,
@@ -405,20 +406,20 @@ export class EmergencyRecovery {
 
   private setupSignalHandlers(): void {
     // Handle SIGTERM gracefully
-    process.on('SIGTERM', async () => {
+    process.on('SIGTERM', () => {
       this.logger.info('Received SIGTERM, creating emergency snapshot');
       await this.createSnapshot('automatic', 'Emergency shutdown snapshot');
     });
 
     // Handle SIGINT (Ctrl+C)
-    process.on('SIGINT', async () => {
+    process.on('SIGINT', () => {
       this.logger.info('Received SIGINT, entering emergency mode');
       await this.enterEmergencyMode('Manual interrupt (SIGINT)');
       process.exit(0);
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', async (error) => {
+    process.on('uncaughtException', (error) => {
       this.logger.error('Uncaught exception, entering emergency mode', error);
       await this.enterEmergencyMode(`Uncaught exception: ${error.message}`);
     });

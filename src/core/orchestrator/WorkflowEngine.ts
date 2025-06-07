@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Manages the flow of instructions through the system
@@ -13,8 +14,8 @@ export interface WorkflowStep {
   startTime?: string;
   endTime?: string;
   duration?: number;
-  input?: any;
-  output?: any;
+  input?: unknown;
+  output?: unknown;
   error?: string;
 }
 
@@ -45,7 +46,7 @@ export class WorkflowEngine {
   private readonly transitions: WorkflowTransition[] = [
     { from: 'request', to: 'planning' },
     { from: 'planning', to: 'validation' },
-    { from: 'validation', to: 'execution', condition: (step) => step.status === 'completed' },
+    { from: 'validation', to: 'execution', condition: (step) => voidstep.status === 'completed' },
     { from: 'execution', to: 'result' }
   ];
 
@@ -268,7 +269,7 @@ export class WorkflowEngine {
   /**
    * Get workflow metrics
    */
-  getMetrics(): any {
+  getMetrics(): unknown {
     const workflows = Array.from(this.workflows.values());
     
     return {
@@ -404,7 +405,7 @@ export class WorkflowEngine {
     return totalTime / completed.length;
   }
 
-  private calculateStepMetrics(workflows: Workflow[]): any {
+  private calculateStepMetrics(workflows: Workflow[]): unknown {
     const stepTypes: WorkflowStep['type'][] = ['request', 'planning', 'validation', 'execution', 'result'];
     const metrics: Record<string, any> = {};
 

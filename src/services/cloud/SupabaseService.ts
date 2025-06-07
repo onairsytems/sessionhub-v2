@@ -1,3 +1,4 @@
+
 /**
  * Supabase Service for SessionHub
  * Manages all Supabase connections, operations, and authentication
@@ -49,7 +50,7 @@ export interface ExecutionResult {
   instruction_id: string;
   status: 'pending' | 'running' | 'success' | 'failure' | 'cancelled';
   outputs?: Record<string, any>;
-  errors?: any[];
+  errors?: unknown[];
   duration?: string;
   created_at?: string;
   started_at?: string;
@@ -249,7 +250,7 @@ export class SupabaseService {
    * Execute operation with retry logic
    */
   private async executeWithRetry<T>(
-    operation: () => Promise<T>,
+    operation: ($1) => Promise<T>,
     operationName: string
   ): Promise<T> {
     let lastError: Error | null = null;
@@ -277,7 +278,7 @@ export class SupabaseService {
   /**
    * Queue operation for offline execution
    */
-  private queueOfflineOperation<T>(operation: () => Promise<T>): void {
+  private queueOfflineOperation<T>(operation: ($1) => Promise<T>): void {
     this.offlineQueue.push(operation);
     this.logger.info('Operation queued for offline execution');
   }
@@ -547,6 +548,28 @@ export class SupabaseService {
       
       return data || [];
     }, 'getActiveSessions');
+  }
+
+  /**
+   * Get active session states for SessionStateManager
+   * Returns SessionState objects from sessions with state metadata
+   */
+  async getActiveSessionStates(): Promise<any[]> {
+    const client = this.getClient();
+    
+    return this.executeWithRetry(async () => {
+      const { data, error } = await client
+        .from('sessions')
+        .select('metadata')
+        .eq('status', 'active')
+        .eq('metadata->>_type', 'session_state');
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to fetch active session states', error.code, error);
+      }
+      
+      return (data || []).map(item => item.metadata).filter(Boolean);
+    }, 'getActiveSessionStates');
   }
 
   /**
@@ -1000,6 +1023,117 @@ export class SupabaseService {
       hasServiceKey: !!serviceKey
     };
   }
+
+  // Session State Management methods for SessionStateManager
+
+  /**
+   * Upsert session state data
+   * Stores SessionStateManager's state in the session metadata
+   */
+  async upsertSessionState(sessionState): Promise<void> {
+    const client = this.getClient();
+    
+    if (!this.isOnline) {
+      this.queueOfflineOperation(() => this.upsertSessionState(sessionState));
+      throw new SupabaseServiceError('Offline mode - operation queued');
+    }
+
+    return this.executeWithRetry(async () => {
+      // First check if session exists
+      const { data: existingSession } = await client
+        .from('sessions')
+        .select('id')
+        .eq('id', sessionState.sessionId)
+        .single();
+
+      if (existingSession) {
+        // Update existing session's metadata
+        const { error } = await client
+          .from('sessions')
+          .update({
+            metadata: {
+              ...sessionState,
+              _type: 'session_state'
+            },
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', sessionState.sessionId);
+
+        if (error) {
+          throw new SupabaseServiceError('Failed to update session state', error.code, error);
+        }
+      } else {
+        // Create new session with state in metadata
+        const { error } = await client
+          .from('sessions')
+          .insert({
+            id: sessionState.sessionId,
+            user_id: sessionState.context?.userId || '00000000-0000-0000-0000-000000000000', // Placeholder for system
+            project_id: sessionState.context?.projectId || '00000000-0000-0000-0000-000000000000', // Placeholder
+            status: sessionState.status || 'active',
+            metadata: {
+              ...sessionState,
+              _type: 'session_state'
+            }
+          });
+
+        if (error) {
+          throw new SupabaseServiceError('Failed to create session state', error.code, error);
+        }
+      }
+    }, 'upsertSessionState');
+  }
+
+  /**
+   * Get session state data
+   * Retrieves SessionStateManager's state from session metadata
+   */
+  async getSessionState(sessionId: string): Promise<any | null> {
+    const client = this.getClient();
+    
+    return this.executeWithRetry(async () => {
+      const { data, error } = await client
+        .from('sessions')
+        .select('metadata')
+        .eq('id', sessionId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        throw new SupabaseServiceError('Failed to fetch session state', error.code, error);
+      }
+
+      if (data && data.metadata && data.metadata._type === 'session_state') {
+        return data.metadata;
+      }
+
+      return null;
+    }, 'getSessionState');
+  }
+
+  /**
+   * Clean up old session states
+   */
+  async cleanupOldSessions(cutoffDate: Date): Promise<void> {
+    const client = this.getClient();
+    
+    if (!this.isOnline) {
+      this.queueOfflineOperation(() => this.cleanupOldSessions(cutoffDate));
+      throw new SupabaseServiceError('Offline mode - operation queued');
+    }
+
+    return this.executeWithRetry(async () => {
+      const { error } = await client
+        .from('sessions')
+        .delete()
+        .lt('updated_at', cutoffDate.toISOString())
+        .neq('status', 'active');
+
+      if (error) {
+        throw new SupabaseServiceError('Failed to cleanup old sessions', error.code, error);
+      }
+    }, 'cleanupOldSessions');
+  }
+
 }
 
 // Export singleton instance

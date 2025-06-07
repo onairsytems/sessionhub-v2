@@ -1,3 +1,4 @@
+
 /**
  * Test Suite for Boundary Enforcement
  * Validates that:
@@ -177,17 +178,17 @@ export class BoundaryEnforcementTests {
     
     // Create mock objects to proxy
     const mockPlanner = {
-      analyze: () => 'Analyzing requirements',
-      plan: () => 'Creating plan',
-      execute: () => 'Should not be allowed', // Forbidden method
-      strategize: () => 'Developing strategy'
+      analyze: () => void'Analyzing requirements',
+      plan: () => void'Creating plan',
+      execute: () => void'Should not be allowed', // Forbidden method
+      strategize: () => void'Developing strategy'
     };
 
     const mockExecutor = {
-      execute: () => 'Executing task',
-      implement: () => 'Implementing feature',
-      plan: () => 'Should not be allowed', // Forbidden method
-      deploy: () => 'Deploying changes'
+      execute: () => void'Executing task',
+      implement: () => void'Implementing feature',
+      plan: () => void'Should not be allowed', // Forbidden method
+      deploy: () => void'Deploying changes'
     };
 
     // Create proxies
@@ -243,7 +244,7 @@ export class BoundaryEnforcementTests {
         actor: 'planning'
       },
       context: {
-        description: 'const auth = require("bcrypt")', // Code!
+        description: 'import auth from \'bcrypt\'', // Code!
         prerequisites: [],
         userRequest: 'Create auth'
       },

@@ -1,3 +1,4 @@
+
 /**
  * Data model for execution results
  */
@@ -40,7 +41,7 @@ export interface ExecutionTask {
   startTime?: string;
   endTime?: string;
   duration?: number;
-  output?: any;
+  output?: unknown;
   error?: string;
 }
 

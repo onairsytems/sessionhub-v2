@@ -1,3 +1,4 @@
+
 /**
  * Tests for Session Verification System
  * These tests ensure that sessions cannot be marked complete without actual implementation
@@ -17,7 +18,7 @@ describe('Session Verification System', () => {
 
   beforeEach(() => {
     logger = new Logger('test');
-    const auditLogger = new AuditLogger(logger);
+    const auditLogger = new AuditLogger();
     sessionManager = new SessionManager(logger, auditLogger);
     verificationEngine = new SessionVerificationEngine(logger);
     verificationGates = new VerificationGates(verificationEngine, logger, true);
@@ -36,16 +37,48 @@ describe('Session Verification System', () => {
         userId: 'test-user',
         projectId: 'test-project',
         instructions: {
-          objective: 'Create user authentication',
-          constraints: [],
-          context: {},
-          tasks: [
-            'Create auth service at src/auth/AuthService.ts',
-            'Create login component at src/components/Login.tsx',
-            'Add authentication tests'
+          objectives: [{
+            id: 'obj-1',
+            primary: 'Create user authentication',
+            measurable: true
+          }],
+          constraints: {
+            timeLimit: 300000,
+            technology: ['typescript', 'react'],
+            patterns: ['authentication']
+          },
+          context: {
+            description: 'Test session context',
+            prerequisites: [],
+            userRequest: 'Create authentication system'
+          },
+          requirements: [
+            {
+              id: 'req-1',
+              description: 'Create auth service at src/auth/AuthService.ts',
+              priority: 'must' as const
+            },
+            {
+              id: 'req-2',
+              description: 'Create login component at src/components/Login.tsx',
+              priority: 'must' as const
+            },
+            {
+              id: 'req-3',
+              description: 'Add authentication tests',
+              priority: 'should' as const
+            }
           ],
           deliverables: [],
-          successCriteria: []
+          successCriteria: [],
+          metadata: {
+            id: 'inst-1',
+            sessionId: 'test-session-1',
+            sessionName: 'Create User Authentication',
+            timestamp: new Date().toISOString(),
+            version: '1.0',
+            actor: 'planning' as const
+          }
         },
         metadata: {}
       };
@@ -91,14 +124,38 @@ describe('Session Verification System', () => {
         userId: 'test-user',
         projectId: 'test-project',
         instructions: {
-          objective: 'Create user service',
-          constraints: [],
-          context: {},
-          tasks: [
-            'Create user service at src/services/UserService.ts'
+          objectives: [{
+            id: 'obj-1',
+            primary: 'Create user service',
+            measurable: true
+          }],
+          constraints: {
+            timeLimit: 300000,
+            technology: ['typescript', 'react'],
+            patterns: ['authentication']
+          },
+          context: {
+            description: 'Test session context',
+            prerequisites: [],
+            userRequest: 'Create authentication system'
+          },
+          requirements: [
+            {
+              id: 'req-1',
+              description: 'Create user service at src/services/UserService.ts',
+              priority: 'must' as const
+            }
           ],
           deliverables: [],
-          successCriteria: []
+          successCriteria: [],
+          metadata: {
+            id: 'inst-2',
+            sessionId: 'test-session-2',
+            sessionName: 'Create User Service',
+            timestamp: new Date().toISOString(),
+            version: '1.0',
+            actor: 'planning' as const
+          }
         },
         metadata: {}
       };

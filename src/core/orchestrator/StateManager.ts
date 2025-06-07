@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Manages and persists system state across all components
@@ -192,7 +193,7 @@ export class StateManager {
         workflows: Object.keys(loadedState.workflows).length
       });
     } catch (error) {
-      if ((error as any).code === 'ENOENT') {
+      if ((error).code === 'ENOENT') {
         this.logger.info('No existing state file found, using initial state');
       } else {
         this.logger.error('Failed to load state', error as Error);
@@ -427,7 +428,7 @@ export class StateManager {
   }
 
   private getMacAppDataDir(): string {
-    const os = require('os');
+    import os from 'os';
     return path.join(
       os.homedir(),
       'Library',

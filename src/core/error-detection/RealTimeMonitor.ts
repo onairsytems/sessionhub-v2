@@ -1,3 +1,4 @@
+
 /**
  * RealTimeMonitor.ts
  * Real-time error monitoring with immediate feedback
@@ -69,7 +70,7 @@ export class RealTimeMonitor extends EventEmitter {
         .on('add', (filePath) => this.handleFileChange(filePath, 'add'))
         .on('change', (filePath) => this.handleFileChange(filePath, 'change'))
         .on('unlink', (filePath) => this.handleFileRemove(filePath))
-        .on('error', (error) => this.logger.error('Watcher error', error as Error));
+        .on('error', (error) => this.logger.error('Watcher error', error));
 
       // Wait for initial scan
       await new Promise<void>((resolve) => {
@@ -114,7 +115,7 @@ export class RealTimeMonitor extends EventEmitter {
 
     // Debounce file checks
     if (this.pendingChecks.has(filePath)) {
-      clearTimeout(this.pendingChecks.get(filePath)!);
+      clearTimeout(this.pendingChecks.get(filePath));
     }
 
     const timeout = setTimeout(() => {

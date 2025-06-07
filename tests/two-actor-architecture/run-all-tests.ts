@@ -12,7 +12,7 @@ import { IntegrationTests } from './test-integration';
 
 interface TestSuite {
   name: string;
-  runner: () => Promise<void>;
+  runner: ($1) => Promise<void>;
 }
 
 class TwoActorArchitectureTestRunner {

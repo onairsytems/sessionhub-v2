@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -37,6 +38,6 @@ export default function Home() {
   }
 
   // If we have Electron API, load the actual workflow
-  const SessionWorkflow = require('../renderer/components/SessionWorkflow').SessionWorkflow;
+  const { default: SessionWorkflow } = await import('../renderer/components/SessionWorkflow');
   return <SessionWorkflow />;
 }

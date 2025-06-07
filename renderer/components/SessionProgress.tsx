@@ -1,9 +1,10 @@
+
 /**
  * Progress tracking UI component for real-time session monitoring
  */
 
 import React, { useState, useEffect } from 'react';
-import { Card } from './ui/Card';
+import { Card } from '../../components/ui/Card';
 
 export interface SessionProgressProps {
   sessionId: string;
@@ -43,43 +44,42 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
 
   useEffect(() => {
     // Connect to real-time progress updates
-    connectToProgressStream();
+    const connect = async () => {
+      try {
+        // Subscribe to session progress events
+        const unsubscribe = await window.Electron.onSessionProgress(sessionId, (event) => {
+          handleProgressEvent(event);
+        });
+        
+        setIsConnected(true);
+        
+        // Get initial status
+        const status = await window.Electron.getSessionStatus(sessionId);
+        if (status) {
+          updateStepsFromStatus(status);
+        }
+        
+        return () => {
+          unsubscribe();
+          setIsConnected(false);
+        };
+      } catch (err) {
+        console.error('Failed to connect to progress stream:', err);
+        setError('Failed to connect to progress updates');
+        return undefined;
+      }
+    };
+
+    connect();
     
     return () => {
-      disconnectProgressStream();
+      // Cleanup handled by unsubscribe function
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-  const connectToProgressStream = async () => {
-    try {
-      // Subscribe to session progress events
-      const unsubscribe = await window.electron.onSessionProgress(sessionId, (event: any) => {
-        handleProgressEvent(event);
-      });
-      
-      setIsConnected(true);
-      
-      // Get initial status
-      const status = await window.electron.getSessionStatus(sessionId);
-      if (status) {
-        updateStepsFromStatus(status);
-      }
-      
-      return () => {
-        unsubscribe();
-        setIsConnected(false);
-      };
-    } catch (err) {
-      console.error('Failed to connect to progress stream:', err);
-      setError('Failed to connect to progress updates');
-    }
-  };
 
-  const disconnectProgressStream = () => {
-    // Cleanup handled by unsubscribe function
-  };
-
-  const handleProgressEvent = (event: any) => {
+  const handleProgressEvent = (event) => {
     switch (event.type) {
       case 'queued':
         updateStep('queue', 'active', 'Position in queue: ' + event.data.position);
@@ -153,7 +153,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
     );
   };
 
-  const updateStepsFromStatus = (status: any) => {
+  const updateStepsFromStatus = (status) => {
     if (status.state === 'planning') {
       updateStep('queue', 'completed');
       updateStep('planning', 'active');
@@ -167,7 +167,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
     }
   };
 
-  const determineFailedStep = (data: any): string => {
+  const determineFailedStep = (data): string => {
     if (data.actor === 'planning') return 'planning';
     if (data.actor === 'execution') return 'execution';
     if (data.stage === 'validation') return 'validation';
@@ -227,7 +227,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
           
           {/* Steps */}
           <div className="space-y-4">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <div key={step.id} className="relative flex items-start">
                 {/* Step Icon */}
                 <div className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 ${

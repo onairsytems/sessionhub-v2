@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -16,7 +17,7 @@ const navItems = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export function Navigation() {
+export function Navigation() : void {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (

@@ -110,7 +110,7 @@ export class PatternRecognitionService {
 
       if (error) throw error;
 
-      patterns?.forEach((pattern: any) => {
+      patterns?.forEach((pattern) => {
         this.patterns.set(pattern.id, {
           ...pattern,
           lastSeen: new Date(pattern.last_seen),
@@ -126,7 +126,7 @@ export class PatternRecognitionService {
         .from('workflow_patterns')
         .select('*');
 
-      workflows?.forEach((workflow: any) => {
+      workflows?.forEach((workflow) => {
         this.workflowPatterns.set(workflow.id, {
           ...workflow,
           steps: JSON.parse(workflow.steps || '[]'),
@@ -215,7 +215,7 @@ export class PatternRecognitionService {
     }
   }
 
-  private async extractPatternsFromSession(session: any): Promise<CodePattern[]> {
+  private async extractPatternsFromSession(session): Promise<CodePattern[]> {
     const patterns: CodePattern[] = [];
     const codeBlocks = this.extractCodeBlocks(session.content || '');
 
@@ -460,8 +460,8 @@ export class PatternRecognitionService {
 
       // Analyze session sequences
       for (let i = 0; i < (sessions?.length || 0) - 1; i++) {
-        const currentSession = sessions![i];
-        const nextSession = sessions![i + 1];
+        const currentSession = sessions[i];
+        const nextSession = sessions[i + 1];
         
         const timeDiff = new Date(nextSession.created_at).getTime() - 
                         new Date(currentSession.created_at).getTime();

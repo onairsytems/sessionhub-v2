@@ -1,3 +1,4 @@
+
 /**
  * Specialized audit logger for tracking all actor operations
  * Provides immutable audit trail for compliance and debugging
@@ -15,8 +16,8 @@ export interface AuditEvent {
   operation: {
     type: string;
     description: string;
-    input?: any;
-    output?: any;
+    input?: unknown;
+    output?: unknown;
   };
   result: {
     status: 'success' | 'failure';
@@ -154,7 +155,7 @@ export class AuditLogger {
   /**
    * Generate compliance report
    */
-  generateComplianceReport(startTime: string, endTime: string): any {
+  generateComplianceReport(startTime: string, endTime: string): unknown {
     const start = new Date(startTime).getTime();
     const end = new Date(endTime).getTime();
 

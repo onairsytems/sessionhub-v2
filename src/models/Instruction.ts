@@ -1,3 +1,4 @@
+
 /**
  * Core data models for the Two-Actor Architecture
  * These types define the structure of communication between actors
@@ -95,5 +96,5 @@ export interface ValidationResult {
   criterionId: string;
   passed: boolean;
   message: string;
-  details?: any;
+  details?: unknown;
 }

@@ -1,3 +1,4 @@
+
 /**
  * @actor execution
  * @responsibility Executes instructions in isolated environments
@@ -28,7 +29,7 @@ export interface ExecutionTask {
   id: string;
   type: 'code' | 'command' | 'file' | 'service';
   description: string;
-  action: () => Promise<any>;
+  action: ($1) => Promise<any>;
   rollback?: () => Promise<void>;
 }
 
@@ -183,7 +184,7 @@ export class ExecutionEngine {
           this.logger.info('Using Claude Code API to generate implementation');
           
           // Generate code from instructions
-          const generatedCode = await this.claudeCodeApi.generateCode({
+          const generatedCode = await this.claudeCodeApi!.generateCode({
             instruction: instructions,
             context: {
               projectType: context.environment['PROJECT_TYPE'] || 'web',
@@ -196,7 +197,7 @@ export class ExecutionEngine {
           this.logger.debug('Code generated, executing...');
           
           // Execute the generated code
-          const executionResult = await this.claudeCodeApi.executeCode(
+          const executionResult = await this.claudeCodeApi!.executeCode(
             generatedCode,
             instructions
           );

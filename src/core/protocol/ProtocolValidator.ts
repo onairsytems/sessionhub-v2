@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Validates instruction protocol and enforces actor boundaries

@@ -1,3 +1,4 @@
+
 /**
  * Electron Main Process - Background Service
  * Handles app lifecycle, window management, and system integration
@@ -46,7 +47,7 @@ class SessionHubApp {
     // Security: Prevent new window creation
     app.on('web-contents-created', (_event, contents) => {
       contents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
+        void shell.openExternal(url)
         return { action: 'deny' };
       });
     });
@@ -79,7 +80,7 @@ class SessionHubApp {
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows are closed
     if (process.platform !== 'darwin') {
-      app.quit();
+      void app.quit();
     }
   }
 
@@ -137,7 +138,7 @@ class SessionHubApp {
     // Show window when ready
     this.mainWindow.once('ready-to-show', () => {
       if (this.mainWindow) {
-        this.mainWindow.show();
+        void this.mainWindow.show()
         
         // Focus on the window
         if (isDev) {
@@ -182,7 +183,7 @@ class SessionHubApp {
           {
             label: 'New Session',
             accelerator: 'CmdOrCtrl+N',
-            click: () => this.newSession()
+            click: () => voidthis.newSession()
           },
           { type: 'separator' },
           { role: 'close' }
@@ -228,16 +229,16 @@ class SessionHubApp {
         submenu: [
           {
             label: 'Documentation',
-            click: () => shell.openExternal('https://sessionhub.com/docs')
+            click: () => voidshell.openExternal('https://sessionhub.com/docs')
           },
           {
             label: 'Support',
-            click: () => shell.openExternal('https://sessionhub.com/support')
+            click: () => voidshell.openExternal('https://sessionhub.com/support')
           },
           { type: 'separator' },
           {
             label: 'System Health',
-            click: () => this.showSystemHealth()
+            click: () => voidthis.showSystemHealth()
           }
         ]
       }
@@ -352,12 +353,12 @@ class SessionHubApp {
     const health = await productionMonitor.performHealthChecks();
     const message = `SessionHub Status: ${health.status.toUpperCase()}\n\nUptime: ${Math.round(health.uptime / 1000)}s\nChecks passed: ${health.checks.filter(c => c.status === 'pass').length}/${health.checks.length}`;
     
-    dialog.showMessageBox(this.mainWindow!, {
+    void dialog.showMessageBox(this.mainWindow!, {
       type: 'info',
       title: 'System Health',
       message,
       buttons: ['OK']
-    });
+    })
   }
 }
 

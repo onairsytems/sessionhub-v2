@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
@@ -15,7 +16,7 @@ interface Message {
 interface PlanningChatProps {
   sessionId: string;
   sessionName: string;
-  onPlanComplete: (plan: string) => void;
+  onPlanComplete: () => void;
 }
 
 export function PlanningChat({ sessionId, sessionName, onPlanComplete }: PlanningChatProps) {

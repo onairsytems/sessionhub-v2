@@ -1,3 +1,4 @@
+
 /**
  * ErrorCatalog.ts
  * Comprehensive catalog of known errors with fix suggestions
@@ -81,7 +82,7 @@ export class ErrorCatalog {
       code: 'TS7053',
       description: 'Element implicitly has an any type (index access)',
       examples: [
-        'const obj = {}; obj["key"]; // Element implicitly has any type'
+        'const obj = {}; obj["key"]; // Element implicitly has unknown type'
       ],
       fixes: [
         'Add proper type annotations to the object',
@@ -170,11 +171,11 @@ export class ErrorCatalog {
       code: '@typescript-eslint/no-explicit-any',
       description: 'Using any type',
       examples: [
-        'let value: any = "something";'
+        'let value: unknown = "something";'
       ],
       fixes: [
         'Replace any with a specific type',
-        'Use unknown if the type is truly unknown',
+        'Use unknown if the type is truly any',
         'Create a proper interface or type alias',
         'Use generics for flexible typing'
       ]

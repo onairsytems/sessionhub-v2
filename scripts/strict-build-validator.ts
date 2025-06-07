@@ -43,7 +43,7 @@ class StrictBuildValidator {
     try {
       const output = execSync(command, { encoding: 'utf8', stdio: 'pipe' });
       return { success: true, output };
-    } catch (error: any) {
+    } catch (error) {
       return { success: false, output: error.stdout || error.message };
     }
   }
@@ -190,7 +190,7 @@ class StrictBuildValidator {
       { pattern: /@ts-nocheck/g, description: '@ts-nocheck comments' },
       { pattern: /@ts-expect-error/g, description: '@ts-expect-error comments' },
       { pattern: /eslint-disable/g, description: 'eslint-disable comments' },
-      { pattern: /any\s*as\s*any/g, description: 'any as any casts' },
+      { pattern: /any\s*as\s*any/g, description: 'any as unknown casts' },
       { pattern: /console\.(log|warn|error|debug)/g, description: 'console statements' }
     ];
     
@@ -309,7 +309,7 @@ class StrictBuildValidator {
         this.addResult({
           step: 'Version Integrity',
           success: true,
-          details: `Package version: ${packageJson.version}, Foundation version: ${versionMatch ? versionMatch[1] : 'unknown'}`
+          details: `Package version: ${packageJson.version}, Foundation version: ${versionMatch ? versionMatch[1] : 'any'}`
         });
       } else {
         this.addResult({

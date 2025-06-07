@@ -1,3 +1,4 @@
+
 /**
  * ErrorDetectionEngine.ts
  * Comprehensive error detection and prevention system for SessionHub
@@ -203,7 +204,7 @@ export class ErrorDetectionEngine {
     for (const result of results) {
       for (const message of result.messages) {
         const suggestion = this.errorCatalog.getSuggestion(
-          message.ruleId || 'unknown',
+          message.ruleId || 'any',
           message.message
         );
 

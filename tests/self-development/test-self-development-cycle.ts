@@ -1,3 +1,4 @@
+
 /**
  * Self-Development Cycle Integration Test
  * Tests the complete end-to-end flow of SessionHub developing itself
@@ -19,7 +20,7 @@ interface TestResult {
   passed: boolean;
   duration: number;
   error?: string;
-  details?: any;
+  details?: unknown;
 }
 
 interface CycleTestResult {
@@ -504,7 +505,7 @@ export class SelfDevelopmentCycleTest {
     }
   }
 
-  private createMockGitHubIssue(): any {
+  private createMockGitHubIssue(): unknown {
     return {
       id: 12345,
       number: 42,
@@ -517,7 +518,7 @@ export class SelfDevelopmentCycleTest {
     };
   }
 
-  private async simulateIssueProcessing(issue: any): Promise<any> {
+  private async simulateIssueProcessing(issue): Promise<any> {
     // Simulate the GitHub session generator processing
     return {
       sessionId: `session-${Date.now()}-${issue.number}`,
@@ -547,7 +548,7 @@ export class SelfDevelopmentCycleTest {
     };
   }
 
-  private validateInstruction(instruction: any): boolean {
+  private validateInstruction(instruction): boolean {
     return !!(
       instruction.sessionId &&
       instruction.objectives?.length > 0 &&

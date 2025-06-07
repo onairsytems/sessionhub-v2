@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ButtonHTMLAttributes, forwardRef } from 'react';
@@ -9,8 +10,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   fullWidth?: boolean;
 }
 
-export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', fullWidth = false, ...props }, ref) => {
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(({ className, variant = 'primary', size = 'md', fullWidth = false, ...props }, ref) => {
     return (
       <button
         ref={ref}

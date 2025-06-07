@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Handles API failures and execution errors with retry logic
@@ -74,7 +75,7 @@ export class APIErrorHandler {
    * Handle error with retry logic
    */
   async handleWithRetry<T>(
-    operation: () => Promise<T>,
+    operation: ($1) => Promise<T>,
     context: ErrorContext
   ): Promise<T> {
     const circuitBreakerId = `${context.actor}-${context.operation}`;
@@ -256,7 +257,7 @@ export class APIErrorHandler {
       metadata: {
         sessionId: context.sessionId,
         instructionId: context.instructionId,
-        attemptNumber: context.attemptNumber
+        correlationId: `error-${Date.now()}`
       }
     });
   }

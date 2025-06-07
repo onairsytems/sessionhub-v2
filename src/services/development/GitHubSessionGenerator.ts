@@ -1,3 +1,4 @@
+
 /**
  * GitHub Session Generator
  * Automatically converts GitHub issues into executable SessionHub development sessions

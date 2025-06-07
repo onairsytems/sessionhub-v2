@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Main orchestrator that coordinates all system components
@@ -13,7 +14,7 @@ import { ExecutionEngine } from '@/src/core/execution/ExecutionEngine';
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
 import { ActorBoundaryEnforcer } from './ActorBoundaryEnforcer';
 import { ErrorHandler } from './ErrorHandler';
-import { APIErrorHandler } from './APIErrorHandler';
+// import { APIErrorHandler } from './APIErrorHandler';
 import { Logger } from '@/src/lib/logging/Logger';
 import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
@@ -53,7 +54,7 @@ export class SystemOrchestrator {
   private readonly protocolValidator: ProtocolValidator;
   private readonly boundaryEnforcer: ActorBoundaryEnforcer;
   private readonly errorHandler: ErrorHandler;
-  private readonly apiErrorHandler: APIErrorHandler;
+  // private readonly apiErrorHandler: APIErrorHandler;
   
   private planningEngine?: PlanningEngine;
   private executionEngine?: ExecutionEngine;
@@ -93,7 +94,7 @@ export class SystemOrchestrator {
     this.protocolValidator = new ProtocolValidator(this.logger);
     this.boundaryEnforcer = new ActorBoundaryEnforcer(this.logger);
     this.errorHandler = new ErrorHandler(this.logger, this.auditLogger);
-    this.apiErrorHandler = new APIErrorHandler(this.logger, this.auditLogger);
+    // this.apiErrorHandler = new APIErrorHandler(this.logger, this.auditLogger);
     
     // Initialize orchestration components
     this.sessionManager = new SessionManager(this.logger, this.auditLogger);
@@ -280,7 +281,7 @@ export class SystemOrchestrator {
   /**
    * Get queue metrics
    */
-  getQueueMetrics(): any {
+  getQueueMetrics(): unknown {
     return this.actorCoordinator.getQueueMetrics();
   }
 
@@ -428,7 +429,15 @@ export class SystemOrchestrator {
       await this.sessionStateManager.createSession(session.id, sessionContext);
       
       // Record user request in session history
-      await this.sessionStateManager.recordUserRequest(session.id, nextItem.request);
+      // Convert SessionManager.UserRequest to PlanningEngine.UserRequest format
+      const planningUserRequest = {
+        id: nextItem.request.id,
+        content: nextItem.request.request, // Map 'request' property to 'content'
+        context: nextItem.request.context,
+        sessionId: nextItem.request.sessionId,
+        timestamp: nextItem.request.timestamp
+      };
+      await this.sessionStateManager.recordUserRequest(session.id, planningUserRequest);
       
       // Create workflow
       const workflow = this.workflowEngine.createWorkflow(session.id);

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -18,7 +19,7 @@ interface Repository {
 }
 
 interface GitHubRepoSelectorProps {
-  onSelect: (repo: Repository) => void;
+  onSelect: () => void;
   onClose: () => void;
 }
 
@@ -112,8 +113,7 @@ export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProp
           )}
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {repositories.map((repo) => (
-              <button
+            {repositories.map((repo) => (<button
                 key={repo.id}
                 onClick={() => handleSelect(repo)}
                 className="w-full p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-left transition-colors"

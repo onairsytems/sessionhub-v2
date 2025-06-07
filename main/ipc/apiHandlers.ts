@@ -6,7 +6,7 @@ import Store from 'electron-store';
 const store = new Store();
 const keychainService = new MacKeychainService();
 
-export function registerApiHandlers() {
+export function registerApiHandlers() : void {
   // Check if API key exists
   ipcMain.handle('check-api-key', async () => {
     try {
@@ -52,7 +52,7 @@ export function registerApiHandlers() {
       const client = new ClaudeAPIClient({ apiKey });
       
       // Get conversation history
-      const history = store.get(`sessions.${sessionId}.messages`, []) as any[];
+      const history = store.get(`sessions.${sessionId}.messages`, []) as unknown[];
       
       // Add user message to history
       history.push({ role: 'user', content: message });

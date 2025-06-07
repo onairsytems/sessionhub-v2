@@ -1,3 +1,4 @@
+
 /**
  * Claude API client for the Planning Actor
  * Integrates with Anthropic's Claude API for instruction generation
@@ -125,7 +126,7 @@ Output your response as a valid JSON object following this exact InstructionProt
    * Generate strategy from user request
    */
   async generateStrategy(params: {
-    request: any;
+    request: unknown;
     context: any;
     systemPrompt?: string;
   }): Promise<any> {

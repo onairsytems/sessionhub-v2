@@ -1,3 +1,4 @@
+
 /**
  * Electron Main Process - Background Service (Simplified)
  * Handles app lifecycle, window management, and system integration
@@ -40,7 +41,7 @@ class SessionHubApp {
     // Security: Prevent new window creation
     app.on('web-contents-created', (_event, contents) => {
       contents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url);
+        void shell.openExternal(url)
         return { action: 'deny' };
       });
     });
@@ -73,7 +74,7 @@ class SessionHubApp {
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows are closed
     if (process.platform !== 'darwin') {
-      app.quit();
+      void app.quit();
     }
   }
 
@@ -141,14 +142,14 @@ class SessionHubApp {
     } catch (error) {
       console.error('Failed to load content:', error);
       // Show proper error dialog
-      dialog.showErrorBox('SessionHub Error', `Failed to load application: ${error}`);
-      app.quit();
+      void dialog.showErrorBox('SessionHub Error', `Failed to load application: ${error}`)
+      void app.quit();
     }
 
     // Show window when ready
     this.mainWindow.once('ready-to-show', () => {
       if (this.mainWindow) {
-        this.mainWindow.show();
+        void this.mainWindow.show()
         
         // Focus on the window
         if (isDev) {
@@ -382,12 +383,12 @@ class SessionHubApp {
     
     const message = `SessionHub Status: ${health.status.toUpperCase()}\\n\\nUptime: ${Math.round(health.uptime / 1000)}s\\nChecks passed: ${health.checks.filter(c => c.status === 'pass').length}/${health.checks.length}`;
     
-    dialog.showMessageBox(this.mainWindow!, {
+    void dialog.showMessageBox(this.mainWindow!, {
       type: 'info',
       title: 'System Health',
       message,
       buttons: ['OK']
-    });
+    })
   }
 }
 

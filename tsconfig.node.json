@@ -1,20 +1,42 @@
 {
+  "extends": "./tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
-    "moduleResolution": "node",
+    "target": "es2020",
+    "lib": [
+      "es2020"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
     "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "isolatedModules": false,
     "allowSyntheticDefaultImports": true,
-    "target": "es2017",
-    "lib": ["es2017"],
-    "types": ["node"],
-    "skipLibCheck": false
+    "types": [
+      "node"
+    ]
   },
-  "include": ["scripts/**/*"],
-  "ts-node": {
-    "transpileOnly": true,
-    "files": true,
-    "compilerOptions": {
-      "module": "commonjs"
-    }
-  }
+  "include": [
+    "scripts/**/*",
+    "main/**/*",
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "dist-electron",
+    "out",
+    ".next"
+  ]
 }

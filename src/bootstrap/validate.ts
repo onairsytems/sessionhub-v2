@@ -1,3 +1,4 @@
+
 /**
  * Bootstrap validation script for SessionHub V2
  * This will evolve into our comprehensive validation engine

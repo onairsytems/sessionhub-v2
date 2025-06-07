@@ -1,3 +1,4 @@
+
 /**
  * @actor system
  * @responsibility Manages session state persistence across actor interactions
@@ -38,7 +39,7 @@ export interface SessionHistoryEntry {
   timestamp: string;
   type: 'request' | 'instruction' | 'execution' | 'error';
   actor: 'user' | 'planning' | 'execution' | 'system';
-  data: any;
+  data: unknown;
   parentId?: string;
 }
 
@@ -203,17 +204,46 @@ export class SessionStateManager {
   }
 
   /**
-   * Record execution result
+   * Record execution result (accepts both ExecutionResult types)
    */
   async recordExecutionResult(
     sessionId: string,
-    result: ExecutionResult,
+    result: ExecutionResult | any, // Accept SessionManager.ExecutionResult too
     instructionId: string
   ): Promise<void> {
+    // Convert SessionManager.ExecutionResult to models/Instruction.ExecutionResult if needed
+    let executionResult: ExecutionResult;
+    
+    if ('sessionId' in result && 'deliverables' in result) {
+      // This is a SessionManager.ExecutionResult, convert it
+      executionResult = {
+        instructionId: instructionId,
+        status: result.status,
+        startTime: new Date(Date.now() - (result.metrics?.duration || 0)).toISOString(),
+        endTime: new Date().toISOString(),
+        outputs: result.deliverables.map((d) => ({
+          type: d.type === 'file' ? 'file' : 'artifact',
+          path: d.path,
+          description: `${d.type} ${d.status}`,
+          content: undefined
+        })),
+        errors: result.errors.map((e: string) => ({
+          code: 'EXECUTION_ERROR',
+          message: e,
+          recoverable: false
+        })),
+        logs: result.logs || [],
+        validationResults: []
+      };
+    } else {
+      // Already the correct type
+      executionResult = result as ExecutionResult;
+    }
+    
     await this.addHistoryEntry(sessionId, {
       type: 'execution',
       actor: 'execution',
-      data: result,
+      data: executionResult,
       parentId: instructionId
     });
   }
@@ -289,7 +319,7 @@ export class SessionStateManager {
       limit: 1
     });
 
-    return history.length > 0 ? history[0].data : null;
+    return history.length > 0 && history[0] ? history[0].data : null;
   }
 
   /**
@@ -406,18 +436,19 @@ export class SessionStateManager {
     }
   }
 
-  private async loadFromCloud(sessionId: string): Promise<SessionState | null> {
+  private async loadFromCloud(sessionId: string): Promise<SessionState | undefined> {
     try {
-      return await this.supabaseService!.getSessionState(sessionId);
+      const session = await this.supabaseService!.getSessionState(sessionId);
+      return session || undefined;
     } catch (error) {
       this.logger.error('Failed to load session from cloud', error as Error);
-      return null;
+      return undefined;
     }
   }
 
   private async fetchActiveSessionsFromCloud(): Promise<SessionState[]> {
     try {
-      return await this.supabaseService!.getActiveSessions();
+      return await this.supabaseService!.getActiveSessionStates();
     } catch (error) {
       this.logger.error('Failed to fetch active sessions from cloud', error as Error);
       return [];

@@ -1,3 +1,4 @@
+
 /**
  * Example usage of SupabaseService
  * Demonstrates how to use the service for various operations
@@ -70,7 +71,7 @@ async function exampleUsage() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Update execution result
-    await supabaseService.updateExecutionResult(executionResult.id!, {
+    await supabaseService.updateExecutionResult(executionResult.id, {
       status: 'success',
       completed_at: new Date().toISOString(),
       outputs: {
@@ -91,10 +92,10 @@ async function exampleUsage() {
     // });
 
     // Step 9: Query data
-    const projectSessions = await supabaseService.getProjectSessions(project.id!);
+    const projectSessions = await supabaseService.getProjectSessions(project.id);
     logger.info('Project sessions', { count: projectSessions.length });
 
-    const sessionInstructions = await supabaseService.getSessionInstructions(newSession.id!);
+    const sessionInstructions = await supabaseService.getSessionInstructions(newSession.id);
     logger.info('Session instructions', { count: sessionInstructions.length });
 
     const patterns = await supabaseService.getPatterns({ projectId: project.id });

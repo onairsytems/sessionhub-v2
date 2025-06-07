@@ -1,3 +1,4 @@
+
 /**
  * End-to-end integration tests for the complete orchestration system
  */
@@ -59,7 +60,7 @@ async function testEndToEndFlow() {
     console.log('\n6️⃣ Checking system health...');
     const health = await orchestrator.getHealthStatus();
     console.log(`📊 System status: ${health.status}`);
-    console.log(`📊 Actors healthy: ${health.actors.every((a: any) => a.healthy) ? 'Yes' : 'No'}`);
+    console.log(`📊 Actors healthy: ${health.actors.every((a) => a.healthy) ? 'Yes' : 'No'}`);
     console.log(`📊 Queue length: ${health.queue.length}`);
     
     // Get metrics

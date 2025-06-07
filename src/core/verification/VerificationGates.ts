@@ -1,3 +1,4 @@
+
 /**
  * VerificationGates - Enforcement points that prevent unverified sessions from proceeding
  * 
@@ -12,7 +13,7 @@ import { Logger } from '@/src/lib/logging/Logger';
 export class VerificationGates {
   private readonly verificationEngine: SessionVerificationEngine;
   private readonly logger: Logger;
-  private readonly strictMode: boolean;
+  private strictMode: boolean;
 
   constructor(
     verificationEngine: SessionVerificationEngine,
@@ -92,7 +93,7 @@ export class VerificationGates {
     
     // Extract score from report (this is a simple implementation)
     const scoreMatch = report.match(/Score: (\d+)\/100/);
-    const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+    const score = scoreMatch && scoreMatch[1] ? parseInt(scoreMatch[1], 10) : 0;
 
     if (score < minScore) {
       const error = new Error(

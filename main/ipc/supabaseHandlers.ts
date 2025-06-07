@@ -5,7 +5,7 @@ import { Logger } from '../../src/lib/logging/Logger';
 const logger = new Logger('SupabaseHandlers');
 const supabaseService = new SupabaseService(logger);
 
-export function registerSupabaseHandlers() {
+export function registerSupabaseHandlers() : void {
   // Configure Supabase credentials
   ipcMain.handle('configure-supabase', async (_event, config: {
     url: string;
@@ -67,7 +67,7 @@ export function registerSupabaseHandlers() {
   ipcMain.handle('create-project', async (_event, project: {
     name: string;
     path: string;
-    type: string;
+    type: 'nextjs' | 'react' | 'node' | 'python' | 'java' | 'other';
     metadata?: any;
   }) => {
     try {

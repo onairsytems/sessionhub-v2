@@ -6,7 +6,7 @@
  * and includes all recent session improvements.
  */
 
-import { spawn, execSync } from 'child_process';
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
@@ -30,7 +30,7 @@ interface ValidationCheck {
 
 class PostBuildValidator {
   private checks: ValidationCheck[] = [];
-  private electronProcess: any = null;
+  private electronProcess: unknown = null;
 
   constructor() {
     console.log(`${colors.cyan}═══════════════════════════════════════════════════════════${colors.reset}`);
@@ -118,7 +118,7 @@ class PostBuildValidator {
         const foundation = fs.readFileSync(foundationPath, 'utf8');
         const match = foundation.match(/Version[^:]*:\s*v?([\d.]+)/);
         if (match) {
-          foundationVersion = match[1];
+          foundationVersion = match[1] || 'unknown';
         }
       }
 

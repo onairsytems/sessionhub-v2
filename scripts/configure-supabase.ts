@@ -22,23 +22,23 @@ async function main() {
 
   try {
     // Get Supabase URL
-    const url = await question('Enter your Supabase project URL: ') as string;
+    const url = await question('Enter your Supabase project URL: ') as unknown as string;
     if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
       throw new Error('Invalid Supabase URL. It should look like: https://your-project.supabase.co');
     }
 
     // Get Anon Key
-    const anonKey = await question('Enter your Supabase Anon Key (starts with eyJ...): ') as string;
+    const anonKey = await question('Enter your Supabase Anon Key (starts with eyJ...): ') as unknown as string;
     if (!anonKey.startsWith('eyJ')) {
       throw new Error('Invalid Anon Key. It should start with "eyJ"');
     }
 
     // Optional Service Key
-    const hasServiceKey = await question('Do you have a Service Key? (y/n): ') as string;
+    const hasServiceKey = await question('Do you have a Service Key? (y/n): ') as unknown as string;
     let serviceKey: string | undefined;
     
     if (hasServiceKey.toLowerCase() === 'y') {
-      serviceKey = await question('Enter your Supabase Service Key: ') as string;
+      serviceKey = await question('Enter your Supabase Service Key: ') as unknown as string;
     }
 
     console.log('\n📝 Configuring Supabase...');
