@@ -29,3 +29,47 @@ out/
 # TypeScript errors log
 typescript-errors.txt
 typescript-errors.log
+
+# Next.js build output
+.next/
+.vercel
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.swn
+
+# Large files and binaries
+*.dmg
+*.app
+*.exe
+*.dll
+*.so
+*.dylib
+*.zip
+*.tar.gz
+*.rar
+
+# BFG reports
+.bfg-report/
+
+# Git LFS
+*.psd
+*.ai
+*.sketch
+*.fig
+
+# Package manager locks (keep package-lock.json)
+yarn.lock
+pnpm-lock.yaml

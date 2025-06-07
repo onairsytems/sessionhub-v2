@@ -3,6 +3,24 @@
 
 echo "🔍 Running pre-commit quality checks..."
 
+# Check for large files (> 1MB)
+echo "📏 Checking for large files..."
+files=$(git diff --cached --name-only)
+for file in $files; do
+  if [ -f "$file" ]; then
+    size=$(wc -c < "$file")
+    if [ $size -gt 1048576 ]; then
+      echo "❌ File '$file' is larger than 1MB ($(($size / 1048576))MB)"
+      echo "Large files should not be committed. Consider:"
+      echo "  - Moving build artifacts to .gitignore"
+      echo "  - Using Git LFS for large assets"
+      echo "  - Compressing the file"
+      exit 1
+    fi
+  fi
+done
+echo "✅ No large files detected"
+
 # Run TypeScript compiler check
 echo "📘 Checking TypeScript compilation..."
 npx tsc --noEmit
