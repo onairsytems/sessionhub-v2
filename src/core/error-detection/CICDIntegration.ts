@@ -90,7 +90,7 @@ export class CICDIntegration {
       return result;
 
     } catch (error) {
-      this.logger.error('CI/CD validation failed', { error });
+      this.logger.error('CI/CD validation failed', error as Error);
       
       return {
         success: false,
@@ -161,7 +161,7 @@ export class CICDIntegration {
 `;
 
     // Add error test cases
-    validation.blockingErrors.forEach((error: ErrorReport, index: number) => {
+    validation.blockingErrors.forEach((error: ErrorReport, _index: number) => {
       xml += `    <testcase name="${error.code}: ${error.filePath}:${error.line}" classname="${error.category}" time="0">
       <failure message="${this.escapeXml(error.message)}" type="${error.code}">
         File: ${error.filePath}
@@ -174,7 +174,7 @@ export class CICDIntegration {
     });
 
     // Add warning test cases
-    validation.warnings.forEach((warning: ErrorReport, index: number) => {
+    validation.warnings.forEach((warning: ErrorReport, _index: number) => {
       xml += `    <testcase name="${warning.code}: ${warning.filePath}:${warning.line}" classname="${warning.category}" time="0">
       <system-out>${this.escapeXml(warning.message)}</system-out>
     </testcase>
@@ -242,18 +242,18 @@ Generated: ${new Date().toISOString()}
    */
   private async setEnvironmentVariables(validation: any): Promise<void> {
     // Set variables that can be used by subsequent CI/CD steps
-    process.env.SESSIONHUB_VALIDATION_PASSED = validation.canBuild ? 'true' : 'false';
-    process.env.SESSIONHUB_ERROR_COUNT = validation.blockingErrors.length.toString();
-    process.env.SESSIONHUB_WARNING_COUNT = validation.warnings.length.toString();
+    process.env['SESSIONHUB_VALIDATION_PASSED'] = validation.canBuild ? 'true' : 'false';
+    process.env['SESSIONHUB_ERROR_COUNT'] = validation.blockingErrors.length.toString();
+    process.env['SESSIONHUB_WARNING_COUNT'] = validation.warnings.length.toString();
 
     // For GitHub Actions
-    if (this.config.provider === 'github' && process.env.GITHUB_OUTPUT) {
+    if (this.config.provider === 'github' && process.env['GITHUB_OUTPUT']) {
       const output = `
 validation_passed=${validation.canBuild}
 error_count=${validation.blockingErrors.length}
 warning_count=${validation.warnings.length}
 `;
-      await fs.appendFile(process.env.GITHUB_OUTPUT, output);
+      await fs.appendFile(process.env['GITHUB_OUTPUT'], output);
     }
   }
 
@@ -280,9 +280,9 @@ warning_count=${validation.warnings.length}
         warnings: result.warnings.length
       });
     } else {
-      this.logger.error('❌ CI/CD validation FAILED', {
-        errors: result.errors.length,
-        warnings: result.warnings.length
+      this.logger.error('❌ CI/CD validation FAILED', undefined, {
+        errorCount: result.errors.length,
+        warningCount: result.warnings.length
       });
 
       // Show blocking configuration

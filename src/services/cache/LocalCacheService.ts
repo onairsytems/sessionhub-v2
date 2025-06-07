@@ -7,11 +7,7 @@
 import Database from 'better-sqlite3';
 import { Logger } from '@/src/lib/logging/Logger';
 import { 
-  Project, 
-  Session, 
-  Instruction, 
-  ExecutionResult, 
-  Pattern,
+  Project,
   SupabaseService 
 } from '@/src/services/cloud/SupabaseService';
 import * as path from 'path';
@@ -81,17 +77,18 @@ export class LocalCacheService {
   };
 
   // SQL type mappings
-  private readonly typeMap: Record<string, string> = {
-    'uuid': 'TEXT',
-    'varchar': 'TEXT',
-    'text': 'TEXT',
-    'timestamp with time zone': 'TEXT',
-    'jsonb': 'TEXT',
-    'integer': 'INTEGER',
-    'decimal': 'REAL',
-    'interval': 'TEXT',
-    'boolean': 'INTEGER'
-  };
+  // Commented out for future use
+  // private readonly typeMap: Record<string, string> = {
+  //   'uuid': 'TEXT',
+  //   'varchar': 'TEXT',
+  //   'text': 'TEXT',
+  //   'timestamp with time zone': 'TEXT',
+  //   'jsonb': 'TEXT',
+  //   'integer': 'INTEGER',
+  //   'decimal': 'REAL',
+  //   'interval': 'TEXT',
+  //   'boolean': 'INTEGER'
+  // };
 
   constructor(logger: Logger, config?: CacheConfig) {
     this.logger = logger;
@@ -833,7 +830,7 @@ export class LocalCacheService {
   /**
    * Sync a session record
    */
-  private async syncSession(sync: SyncStatus): Promise<void> {
+  private async syncSession(_sync: SyncStatus): Promise<void> {
     // Similar implementation to syncProject
     // ... implementation details ...
   }
@@ -841,7 +838,7 @@ export class LocalCacheService {
   /**
    * Sync an instruction record
    */
-  private async syncInstruction(sync: SyncStatus): Promise<void> {
+  private async syncInstruction(_sync: SyncStatus): Promise<void> {
     // Similar implementation to syncProject
     // ... implementation details ...
   }
@@ -849,7 +846,7 @@ export class LocalCacheService {
   /**
    * Sync an execution result record
    */
-  private async syncExecutionResult(sync: SyncStatus): Promise<void> {
+  private async syncExecutionResult(_sync: SyncStatus): Promise<void> {
     // Similar implementation to syncProject
     // ... implementation details ...
   }
@@ -857,7 +854,7 @@ export class LocalCacheService {
   /**
    * Sync a pattern record
    */
-  private async syncPattern(sync: SyncStatus): Promise<void> {
+  private async syncPattern(_sync: SyncStatus): Promise<void> {
     // Similar implementation to syncProject
     // ... implementation details ...
   }

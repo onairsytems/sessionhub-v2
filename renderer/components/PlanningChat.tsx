@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { Send, GitBranch, FileCode, Loader, User, Bot } from 'lucide-react';
 
 interface Message {
@@ -123,7 +123,7 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
             <div>
               <h2 className="text-xl font-semibold">Planning: {sessionName}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Discuss your requirements and I'll help create a comprehensive plan
+                Discuss your requirements and I&apos;ll help create a comprehensive plan
               </p>
             </div>
             <Button
@@ -215,7 +215,7 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
           </div>
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              When you're ready, finalize the plan to move to execution phase
+              When you&apos;re ready, finalize the plan to move to execution phase
             </p>
             <Button
               variant="primary"

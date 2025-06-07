@@ -18,7 +18,7 @@ async function startMonitor() {
   // Set up event handlers
   errorSystem.monitor.on('errors', (event) => {
     console.log(`\n❌ Errors detected in ${event.filePath}:`);
-    event.errors?.forEach(error => {
+    event.errors?.forEach((error: any) => {
       const icon = error.severity === 'error' ? '🔴' : error.severity === 'warning' ? '🟡' : 'ℹ️';
       console.log(`  ${icon} ${error.line}:${error.column} - ${error.message}`);
       if (error.suggestion) {

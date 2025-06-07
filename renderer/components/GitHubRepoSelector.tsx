@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { GitBranch, Search, ExternalLink, Loader } from 'lucide-react';
 
 interface Repository {

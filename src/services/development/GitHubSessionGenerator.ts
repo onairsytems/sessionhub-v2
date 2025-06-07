@@ -6,8 +6,7 @@
 import { Octokit } from '@octokit/rest';
 import { Logger } from '../../lib/logging/Logger';
 import { ClaudeAPIClient } from '../../lib/api/ClaudeAPIClient';
-import { PlanningEngine } from '../../core/planning/PlanningEngine';
-import { Instruction } from '../../models/Instruction';
+// import { Instruction } from '../../models/Instruction'; // Commented out for future use
 
 export interface GitHubIssue {
   id: number;
@@ -51,15 +50,18 @@ export interface SessionProgress {
 export class GitHubSessionGenerator {
   private logger: Logger;
   private octokit: Octokit;
-  private planningEngine: PlanningEngine;
   private claudeClient: ClaudeAPIClient;
   private repo: { owner: string; repo: string };
 
   constructor(githubToken: string, repoOwner: string, repoName: string) {
     this.logger = new Logger('GitHubSessionGenerator');
     this.octokit = new Octokit({ auth: githubToken });
-    this.planningEngine = new PlanningEngine();
-    this.claudeClient = new ClaudeAPIClient();
+    this.claudeClient = new ClaudeAPIClient({
+      apiKey: process.env['ANTHROPIC_API_KEY'] || '',
+      model: 'claude-3-opus-20240229',
+      maxTokens: 4096,
+      temperature: 0.7
+    });
     this.repo = { owner: repoOwner, repo: repoName };
   }
 
@@ -76,7 +78,7 @@ export class GitHubSessionGenerator {
       try {
         await this.checkForNewIssues();
       } catch (error) {
-        this.logger.error('Issue monitoring error', { error: error.message });
+        this.logger.error('Issue monitoring error', error as Error);
       }
     };
 
@@ -121,7 +123,7 @@ export class GitHubSessionGenerator {
         await this.processIssue(issue);
       }
     } catch (error) {
-      this.logger.error('Failed to check for new issues', { error: error.message });
+      this.logger.error('Failed to check for new issues', error as Error);
     }
   }
 
@@ -169,7 +171,7 @@ export class GitHubSessionGenerator {
       progress.currentStage = 'Creating development branch';
       progress.progress = 60;
       
-      const branchName = await this.createSessionBranch(sessionId, issue.number);
+      // const branchName = await this.createSessionBranch(sessionId, issue.number); // Commented out for future use
       
       // Execute session
       progress.status = 'executing';
@@ -197,18 +199,18 @@ export class GitHubSessionGenerator {
       return progress;
 
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       progress.status = 'failed';
-      progress.currentStage = `Failed: ${error.message}`;
+      progress.currentStage = `Failed: ${errorMessage}`;
       progress.endTime = new Date();
 
-      this.logger.error('Session execution failed', {
+      this.logger.error('Session execution failed', error as Error, {
         sessionId,
-        issueNumber: issue.number,
-        error: error.message,
+        issueNumber: issue.number
       });
 
       // Update issue with failure
-      await this.updateIssueWithError(issue.number, error);
+      await this.updateIssueWithError(issue.number, error as Error);
 
       throw error;
     }
@@ -261,7 +263,10 @@ export class GitHubSessionGenerator {
 
     // Use Claude to analyze the issue and generate session instructions
     const prompt = this.buildSessionPrompt(issue);
-    const response = await this.claudeClient.generateCompletion(prompt);
+    const response = await this.claudeClient.generateStrategy({
+      request: { id: 'req-1', content: prompt, context: {}, timestamp: new Date().toISOString() },
+      context: {}
+    });
     
     // Parse Claude's response into structured session instruction
     const sessionInstruction = this.parseSessionResponse(response, issue);
@@ -282,13 +287,13 @@ export class GitHubSessionGenerator {
     this.logger.info('Executing session', { sessionId: instruction.sessionId });
 
     // Convert session instruction to executable format
-    const executableInstruction: Instruction = {
-      id: instruction.sessionId,
-      type: 'development',
-      content: this.formatInstructionForExecution(instruction),
-      priority: this.mapComplexityToPriority(instruction.estimatedComplexity),
-      createdAt: new Date(),
-    };
+    // const executableInstruction: Instruction = { // Commented out for future use
+    //   id: instruction.sessionId,
+    //   type: 'development',
+    //   content: this.formatInstructionForExecution(instruction),
+    //   priority: this.mapComplexityToPriority(instruction.estimatedComplexity),
+    //   createdAt: new Date(),
+    // };
 
     // Execute through the planning and execution engines
     // This would integrate with the existing SessionHub architecture
@@ -319,7 +324,7 @@ export class GitHubSessionGenerator {
         issue_number: issueNumber,
       });
 
-      return comments.some(comment => 
+      return comments.some((comment: any) => 
         comment.body?.includes('<!-- sessionhub-processed -->') &&
         comment.user?.type === 'Bot'
       );
@@ -418,29 +423,30 @@ The issue could not be automatically processed. Manual intervention may be requi
     });
   }
 
-  private async createSessionBranch(sessionId: string, issueNumber: number): Promise<string> {
-    const branchName = `sessionhub/issue-${issueNumber}-${sessionId}`;
-    
-    try {
-      // Get current main branch SHA
-      const { data: mainRef } = await this.octokit.git.getRef({
-        ...this.repo,
-        ref: 'heads/main',
-      });
+  // Commented out for future use
+  // private async createSessionBranch(sessionId: string, issueNumber: number): Promise<string> {
+  //   const branchName = `sessionhub/issue-${issueNumber}-${sessionId}`;
+  //   
+  //   try {
+  //     // Get current main branch SHA
+  //     const { data: mainRef } = await this.octokit.git.getRef({
+  //       ...this.repo,
+  //       ref: 'heads/main',
+  //     });
 
-      // Create new branch
-      await this.octokit.git.createRef({
-        ...this.repo,
-        ref: `refs/heads/${branchName}`,
-        sha: mainRef.object.sha,
-      });
+  //     // Create new branch
+  //     await this.octokit.git.createRef({
+  //       ...this.repo,
+  //       ref: `refs/heads/${branchName}`,
+  //       sha: mainRef.object.sha,
+  //     });
 
-      return branchName;
-    } catch (error) {
-      this.logger.warn('Failed to create session branch', { error: error.message });
-      return 'main'; // Fallback to main branch
-    }
-  }
+  //     return branchName;
+  //   } catch (error) {
+  //     this.logger.warn('Failed to create session branch', { error: error.message });
+  //     return 'main'; // Fallback to main branch
+  //   }
+  // }
 
   private buildSessionPrompt(issue: GitHubIssue): string {
     return `You are SessionHub's Planning Actor. Analyze this GitHub issue and create a development session.
@@ -513,31 +519,33 @@ COMPLEXITY: [simple|moderate|complex|epic]`;
       .filter(line => line.length > 0);
   }
 
-  private formatInstructionForExecution(instruction: SessionInstruction): string {
-    return `${instruction.sessionName}
+  // Commented out for future use
+  // private formatInstructionForExecution(instruction: SessionInstruction): string {
+  //   return `${instruction.sessionName}
+  //
+  // OBJECTIVES:
+  // ${instruction.objectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
+  //
+  // REQUIREMENTS:
+  // ${instruction.requirements.map(req => `- ${req}`).join('\n')}
+  //
+  // VALIDATION:
+  // ${instruction.validation.map(val => `- ${val}`).join('\n')}
+  //
+  // FOUNDATION UPDATE:
+  // ${instruction.foundationUpdate.map(upd => `- ${upd}`).join('\n')}
+  //
+  // COMMIT: '${instruction.commitMessage}'`;
+  // }
 
-OBJECTIVES:
-${instruction.objectives.map((obj, i) => `${i + 1}. ${obj}`).join('\n')}
-
-REQUIREMENTS:
-${instruction.requirements.map(req => `- ${req}`).join('\n')}
-
-VALIDATION:
-${instruction.validation.map(val => `- ${val}`).join('\n')}
-
-FOUNDATION UPDATE:
-${instruction.foundationUpdate.map(upd => `- ${upd}`).join('\n')}
-
-COMMIT: '${instruction.commitMessage}'`;
-  }
-
-  private mapComplexityToPriority(complexity: SessionInstruction['estimatedComplexity']): number {
-    switch (complexity) {
-      case 'simple': return 1;
-      case 'moderate': return 2;
-      case 'complex': return 3;
-      case 'epic': return 4;
-      default: return 2;
-    }
-  }
+  // Commented out for future use
+  // private mapComplexityToPriority(complexity: SessionInstruction['estimatedComplexity']): number {
+  //   switch (complexity) {
+  //     case 'simple': return 1;
+  //     case 'moderate': return 2;
+  //     case 'complex': return 3;
+  //     case 'epic': return 4;
+  //     default: return 2;
+  //   }
+  // }
 }

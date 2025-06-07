@@ -22,7 +22,7 @@ async function exampleUsage() {
     await supabaseService.initialize();
 
     // Step 3: Authentication
-    const { user, session } = await supabaseService.signIn('user@example.com', 'password');
+    const { user, session: _session } = await supabaseService.signIn('user@example.com', 'password');
     logger.info('User signed in', { userId: user?.id });
 
     // Step 4: Create a project
@@ -80,15 +80,15 @@ async function exampleUsage() {
     });
 
     // Step 8: Create a pattern from successful execution
-    const pattern = await supabaseService.createPattern({
-      pattern_type: 'code_pattern',
-      description: 'React authentication component with hooks',
-      project_id: project.id,
-      metadata: {
-        framework: 'React',
-        features: ['hooks', 'form-validation', 'error-handling']
-      }
-    });
+    // const pattern = await supabaseService.createPattern({ // Commented out for future use
+    //   pattern_type: 'code_pattern',
+    //   description: 'React authentication component with hooks',
+    //   project_id: project.id,
+    //   metadata: {
+    //     framework: 'React',
+    //     features: ['hooks', 'form-validation', 'error-handling']
+    //   }
+    // });
 
     // Step 9: Query data
     const projectSessions = await supabaseService.getProjectSessions(project.id!);

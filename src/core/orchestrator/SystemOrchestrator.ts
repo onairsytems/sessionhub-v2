@@ -7,18 +7,22 @@ import { SessionManager, Session, UserRequest } from './SessionManager';
 import { ActorCoordinator } from './ActorCoordinator';
 import { WorkflowEngine } from './WorkflowEngine';
 import { StateManager } from './StateManager';
+import { SessionStateManager } from './SessionStateManager';
 import { PlanningEngine } from '@/src/core/planning/PlanningEngine';
 import { ExecutionEngine } from '@/src/core/execution/ExecutionEngine';
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
 import { ActorBoundaryEnforcer } from './ActorBoundaryEnforcer';
 import { ErrorHandler } from './ErrorHandler';
+import { APIErrorHandler } from './APIErrorHandler';
 import { Logger } from '@/src/lib/logging/Logger';
 import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
+import { ClaudeCodeAPIClient } from '@/src/lib/api/ClaudeCodeAPIClient';
 import { CredentialManager } from '@/src/lib/security/CredentialManager';
 import { SecuritySandbox } from '@/src/core/execution/SecuritySandbox';
 import { MacKeychainService } from '@/src/lib/security/MacKeychainService';
 import { MAC_CONFIG } from '@/src/config/mac.config';
+import { SupabaseService } from '@/src/services/cloud/SupabaseService';
 
 export interface SystemConfig {
   apiKey?: string;
@@ -44,15 +48,19 @@ export class SystemOrchestrator {
   private readonly actorCoordinator: ActorCoordinator;
   private readonly workflowEngine: WorkflowEngine;
   private readonly stateManager: StateManager;
+  private readonly sessionStateManager: SessionStateManager;
   private readonly credentialManager: CredentialManager;
   private readonly protocolValidator: ProtocolValidator;
   private readonly boundaryEnforcer: ActorBoundaryEnforcer;
   private readonly errorHandler: ErrorHandler;
+  private readonly apiErrorHandler: APIErrorHandler;
   
   private planningEngine?: PlanningEngine;
   private executionEngine?: ExecutionEngine;
   private claudeApiClient?: ClaudeAPIClient;
+  private claudeCodeApiClient?: ClaudeCodeAPIClient;
   private keychainService?: MacKeychainService;
+  private supabaseService?: SupabaseService;
   
   private readonly requestQueue: RequestQueueItem[] = [];
   private isProcessing: boolean = false;
@@ -85,6 +93,7 @@ export class SystemOrchestrator {
     this.protocolValidator = new ProtocolValidator(this.logger);
     this.boundaryEnforcer = new ActorBoundaryEnforcer(this.logger);
     this.errorHandler = new ErrorHandler(this.logger, this.auditLogger);
+    this.apiErrorHandler = new APIErrorHandler(this.logger, this.auditLogger);
     
     // Initialize orchestration components
     this.sessionManager = new SessionManager(this.logger, this.auditLogger);
@@ -100,6 +109,12 @@ export class SystemOrchestrator {
     // Use Mac-specific data directory
     const stateDir = config.dataDir || MAC_CONFIG.paths.appSupport;
     this.stateManager = new StateManager(this.logger, stateDir);
+    
+    // Initialize session state manager
+    this.sessionStateManager = new SessionStateManager(
+      this.logger,
+      this.supabaseService
+    );
   }
 
   /**
@@ -141,10 +156,12 @@ export class SystemOrchestrator {
     requestContent: string,
     context?: Record<string, any>
   ): Promise<string> {
+    const requestId = this.generateRequestId();
     const request: UserRequest = {
-      id: this.generateRequestId(),
+      id: requestId,
+      sessionId: '', // Will be set by SessionManager
       userId,
-      content: requestContent,
+      request: requestContent,
       context: context || {},
       timestamp: new Date().toISOString()
     };
@@ -195,14 +212,14 @@ export class SystemOrchestrator {
     // Add queue position if still queued
     const queueItem = this.requestQueue.find(item => item.id === sessionId);
     if (queueItem && queueItem.status === 'queued') {
-      session.metadata.queuePosition = 
+      session.metadata['queuePosition'] = 
         this.requestQueue.findIndex(item => item.id === sessionId) + 1;
     }
 
     // Add workflow progress
     const workflow = this.workflowEngine.getWorkflowBySessionId(sessionId);
     if (workflow) {
-      session.metadata.progress = this.workflowEngine.getProgress(workflow.id);
+      session.metadata['progress'] = this.workflowEngine.getProgress(workflow.id);
     }
 
     return session;
@@ -247,6 +264,27 @@ export class SystemOrchestrator {
   }
 
   /**
+   * Get session state manager
+   */
+  getSessionStateManager(): SessionStateManager {
+    return this.sessionStateManager;
+  }
+
+  /**
+   * Get actor coordinator
+   */
+  getActorCoordinator(): ActorCoordinator {
+    return this.actorCoordinator;
+  }
+
+  /**
+   * Get queue metrics
+   */
+  getQueueMetrics(): any {
+    return this.actorCoordinator.getQueueMetrics();
+  }
+
+  /**
    * Shutdown the system
    */
   async shutdown(): Promise<void> {
@@ -281,8 +319,8 @@ export class SystemOrchestrator {
       const credential = await this.credentialManager.getCredentialByName('claude-api-key');
       if (credential) {
         apiKey = credential.value;
-      } else if (process.env.ANTHROPIC_API_KEY) {
-        apiKey = process.env.ANTHROPIC_API_KEY;
+      } else if (process.env['ANTHROPIC_API_KEY']) {
+        apiKey = process.env['ANTHROPIC_API_KEY'];
         
         // Store in both credential manager and keychain
         await this.credentialManager.storeCredential({
@@ -302,6 +340,7 @@ export class SystemOrchestrator {
       return;
     }
     
+    // Initialize Claude Chat API client for Planning Actor
     this.claudeApiClient = new ClaudeAPIClient({ apiKey }, this.logger);
     
     // Validate API key
@@ -309,7 +348,16 @@ export class SystemOrchestrator {
     if (!isValid) {
       this.logger.error('Invalid Claude API key');
       this.claudeApiClient = undefined;
+      return;
     }
+    
+    // Initialize Claude Code API client for Execution Actor
+    this.claudeCodeApiClient = new ClaudeCodeAPIClient({ 
+      apiKey,
+      workspaceDir: `${this.config.dataDir || MAC_CONFIG.paths.appSupport}/execution`
+    }, this.logger);
+    
+    this.logger.info('Claude API clients initialized successfully');
   }
 
   private async initializeActors(): Promise<void> {
@@ -322,7 +370,12 @@ export class SystemOrchestrator {
     
     // Initialize Execution Engine
     const sandbox = new SecuritySandbox(this.logger);
-    this.executionEngine = new ExecutionEngine(this.logger, sandbox);
+    this.executionEngine = new ExecutionEngine(
+      this.logger, 
+      this.protocolValidator, 
+      sandbox,
+      this.claudeCodeApiClient
+    );
     
     // Initialize actor coordinator with engines
     await this.actorCoordinator.initialize(
@@ -358,11 +411,31 @@ export class SystemOrchestrator {
         throw new Error('Session not found');
       }
       
+      // Create session state
+      const sessionContext = {
+        projectPath: session.metadata['projectPath'] || process.cwd(),
+        projectType: nextItem.request.context?.['projectType'] || 'web',
+        language: nextItem.request.context?.['language'] || 'typescript',
+        framework: nextItem.request.context?.['framework'],
+        environment: nextItem.request.context?.['environment'] || {},
+        userPreferences: nextItem.request.context?.['preferences'] || {},
+        apiKeys: {
+          claudeChatConfigured: !!this.claudeApiClient,
+          claudeCodeConfigured: !!this.claudeCodeApiClient
+        }
+      };
+      
+      await this.sessionStateManager.createSession(session.id, sessionContext);
+      
+      // Record user request in session history
+      await this.sessionStateManager.recordUserRequest(session.id, nextItem.request);
+      
       // Create workflow
       const workflow = this.workflowEngine.createWorkflow(session.id);
       
       // Update session status
       await this.sessionManager.updateSession(session.id, { status: 'planning' });
+      await this.sessionStateManager.updateStatus(session.id, 'active');
       
       // Start workflow
       await this.workflowEngine.startStep(workflow.id, 'request', nextItem.request);
@@ -371,6 +444,13 @@ export class SystemOrchestrator {
       // Process through actors
       await this.workflowEngine.startStep(workflow.id, 'planning');
       const result = await this.actorCoordinator.processRequest(session, nextItem.request);
+      
+      // Record instructions in session history
+      await this.sessionStateManager.recordInstructions(
+        session.id, 
+        result.instructions, 
+        nextItem.request.id
+      );
       
       // Complete workflow steps
       await this.workflowEngine.completeStep(workflow.id, 'planning', result.instructions);
@@ -381,8 +461,16 @@ export class SystemOrchestrator {
       await this.workflowEngine.startStep(workflow.id, 'result');
       await this.workflowEngine.completeStep(workflow.id, 'result', result);
       
+      // Record execution result in session history
+      await this.sessionStateManager.recordExecutionResult(
+        session.id,
+        result.executionResult,
+        result.instructions.metadata.id
+      );
+      
       // Complete session
       await this.sessionManager.completeSession(session.id, result.executionResult);
+      await this.sessionStateManager.updateStatus(session.id, 'completed');
       
       // Update metrics
       this.stateManager.updateMetrics({
@@ -396,13 +484,22 @@ export class SystemOrchestrator {
     } catch (error) {
       await this.errorHandler.handleError(error as Error, {
         actor: 'orchestrator',
-        operation: 'processRequest',
-        severity: 'high'
+        operation: 'processRequest'
       });
+      
+      // Record error in session history
+      if (nextItem.id) {
+        await this.sessionStateManager.recordError(
+          nextItem.id,
+          error as Error,
+          'system'
+        );
+      }
       
       // Fail the session
       if (nextItem.id) {
         await this.sessionManager.failSession(nextItem.id, (error as Error).message);
+        await this.sessionStateManager.updateStatus(nextItem.id, 'failed');
       }
       
       // Update metrics
@@ -424,8 +521,8 @@ export class SystemOrchestrator {
     let priority = 50; // Base priority
     
     // Adjust based on context
-    if (request.context?.priority === 'high') priority += 20;
-    if (request.context?.priority === 'low') priority -= 20;
+    if (request.context?.['priority'] === 'high') priority += 20;
+    if (request.context?.['priority'] === 'low') priority -= 20;
     
     // Could add more sophisticated logic here
     

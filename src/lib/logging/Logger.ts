@@ -98,7 +98,7 @@ export class Logger {
     }
   }
 
-  private writeToLogFile(entry: LogEntry): void {
+  private writeToLogFile(_entry: LogEntry): void {
     // In production Mac app, this would write to log file
     // Using async file operations to avoid blocking
     // For now, we'll skip actual file I/O

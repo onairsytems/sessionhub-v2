@@ -4,11 +4,11 @@
  */
 
 import { app, BrowserWindow, Menu, shell, ipcMain, dialog, Notification } from 'electron';
-import { autoUpdater } from 'electron-updater';
+// import { autoUpdater } from 'electron-updater'; // Commented out for future use
 import * as path from 'path';
 // Simple dev detection without external dependencies
 const isDev = process.env['NODE_ENV'] === 'development' || process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath);
-import serve from 'electron-serve';
+// import serve from 'electron-serve';
 
 class SessionHubApp {
   private mainWindow: BrowserWindow | null = null;
@@ -110,13 +110,13 @@ class SessionHubApp {
       height: 800,
       minWidth: 800,
       minHeight: 600,
-      show: true, // Show immediately for debugging
+      show: false, // Show when ready
       icon: path.join(__dirname, '../resources/icon.png'),
       titleBarStyle: 'hiddenInset',
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        sandbox: false, // Disable sandbox temporarily for debugging
+        sandbox: true, // Enable sandbox for security
         preload: path.join(__dirname, 'preload.js')
       }
     });
@@ -132,16 +132,17 @@ class SessionHubApp {
         this.mainWindow.webContents.openDevTools();
       } else {
         console.log('Loading production files...');
-        // For production, load the static HTML file
-        const appPath = path.join(__dirname, '../../app/electron-index.html');
-        console.log('Attempting to load file:', appPath);
+        // For production, load the Next.js static export
+        const appPath = path.join(__dirname, '../../out/index.html');
+        console.log('Loading production build from:', appPath);
         await this.mainWindow.loadFile(appPath);
       }
       console.log('Content loaded successfully');
     } catch (error) {
       console.error('Failed to load content:', error);
-      // Show error page
-      this.mainWindow.loadURL('data:text/html,<h1>SessionHub</h1><p>Error loading application. Check console for details.</p>');
+      // Show proper error dialog
+      dialog.showErrorBox('SessionHub Error', `Failed to load application: ${error}`);
+      app.quit();
     }
 
     // Show window when ready
@@ -301,42 +302,47 @@ class SessionHubApp {
     const { registerApiHandlers } = require('./ipc/apiHandlers');
     registerApiHandlers();
 
+    // Register Supabase handlers
+    const { registerSupabaseHandlers } = require('./ipc/supabaseHandlers');
+    registerSupabaseHandlers();
+
     // Trigger test issue (for demo purposes)
     ipcMain.handle('trigger-test-issue', async () => {
       return { success: true, message: 'Test issue triggered' };
     });
   }
 
-  private setupAutoUpdater(): void {
-    if (isDev) return;
+  // Commented out for future use
+  // private setupAutoUpdater(): void {
+  //   if (isDev) return;
 
-    autoUpdater.on('checking-for-update', () => {
-      console.log('🔍 Checking for updates...');
-    });
+  //   autoUpdater.on('checking-for-update', () => {
+  //     console.log('🔍 Checking for updates...');
+  //   });
 
-    autoUpdater.on('update-available', (info) => {
-      console.log('📦 Update available:', info.version);
-      this.showUpdateNotification('Update available', `Version ${info.version} is ready to download.`);
-    });
+  //   autoUpdater.on('update-available', (info) => {
+  //     console.log('📦 Update available:', info.version);
+  //     this.showUpdateNotification('Update available', `Version ${info.version} is ready to download.`);
+  //   });
 
-    autoUpdater.on('update-not-available', () => {
-      console.log('✅ SessionHub is up to date');
-    });
+  //   autoUpdater.on('update-not-available', () => {
+  //     console.log('✅ SessionHub is up to date');
+  //   });
 
-    autoUpdater.on('error', (err) => {
-      console.error('❌ Auto-updater error:', err);
-    });
+  //   autoUpdater.on('error', (err) => {
+  //     console.error('❌ Auto-updater error:', err);
+  //   });
 
-    autoUpdater.on('download-progress', (progressObj) => {
-      const percent = Math.round(progressObj.percent);
-      console.log(`📥 Download progress: ${percent}%`);
-    });
+  //   autoUpdater.on('download-progress', (progressObj) => {
+  //     const percent = Math.round(progressObj.percent);
+  //     console.log(`📥 Download progress: ${percent}%`);
+  //   });
 
-    autoUpdater.on('update-downloaded', () => {
-      console.log('✅ Update downloaded');
-      this.showUpdateNotification('Update ready', 'Restart SessionHub to apply the update.');
-    });
-  }
+  //   autoUpdater.on('update-downloaded', () => {
+  //     console.log('✅ Update downloaded');
+  //     this.showUpdateNotification('Update ready', 'Restart SessionHub to apply the update.');
+  //   });
+  // }
 
   private showStartupNotification(): void {
     if (Notification.isSupported()) {
@@ -348,15 +354,16 @@ class SessionHubApp {
     }
   }
 
-  private showUpdateNotification(title: string, body: string): void {
-    if (Notification.isSupported()) {
-      new Notification({
-        title,
-        body,
-        icon: path.join(__dirname, '../resources/icon.png')
-      }).show();
-    }
-  }
+  // Commented out for future use
+  // private showUpdateNotification(title: string, body: string): void {
+  //   if (Notification.isSupported()) {
+  //     new Notification({
+  //       title,
+  //       body,
+  //       icon: path.join(__dirname, '../resources/icon.png')
+  //     }).show();
+  //   }
+  // }
 
   private newSession(): void {
     // Send message to renderer to create new session

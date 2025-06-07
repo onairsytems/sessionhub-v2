@@ -3,6 +3,10 @@
  */
 
 export * from './Instruction';
-export * from './ExecutionResult';
+export type { 
+  ExecutionDeliverable, 
+  ExecutionTask as ModelExecutionTask, 
+  ExecutionMetrics 
+} from './ExecutionResult';
 export * from './Session';
 export * from './ActorConfig';

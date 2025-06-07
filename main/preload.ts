@@ -28,6 +28,18 @@ interface SessionHubAPI {
   selectGitHubRepo: () => Promise<any>;
   analyzeRepository: (sessionId: string, repoInfo: any) => Promise<string>;
   
+  // Supabase operations
+  configureSupabase: (config: { url: string; anonKey: string; serviceKey?: string }) => Promise<any>;
+  checkSupabaseConnection: () => Promise<any>;
+  getSupabaseConfig: () => Promise<any>;
+  initSupabase: () => Promise<any>;
+  createProject: (project: any) => Promise<any>;
+  getProjects: () => Promise<any>;
+  createSession: (session: any) => Promise<any>;
+  updateSessionStatus: (sessionId: string, status: string) => Promise<any>;
+  getActiveSessions: () => Promise<any>;
+  getSessionStats: (sessionId?: string) => Promise<any>;
+  
   // Event listeners
   onNewSession: (callback: () => void) => void;
   removeAllListeners: (channel: string) => void;
@@ -59,6 +71,20 @@ contextBridge.exposeInMainWorld('sessionhub', {
   analyzeRepository: (sessionId: string, repoInfo: any) => 
     ipcRenderer.invoke('analyze-repository', sessionId, repoInfo),
   
+  // Supabase operations
+  configureSupabase: (config: { url: string; anonKey: string; serviceKey?: string }) => 
+    ipcRenderer.invoke('configure-supabase', config),
+  checkSupabaseConnection: () => ipcRenderer.invoke('check-supabase-connection'),
+  getSupabaseConfig: () => ipcRenderer.invoke('get-supabase-config'),
+  initSupabase: () => ipcRenderer.invoke('init-supabase'),
+  createProject: (project: any) => ipcRenderer.invoke('create-project', project),
+  getProjects: () => ipcRenderer.invoke('get-projects'),
+  createSession: (session: any) => ipcRenderer.invoke('create-session', session),
+  updateSessionStatus: (sessionId: string, status: string) => 
+    ipcRenderer.invoke('update-session-status', sessionId, status),
+  getActiveSessions: () => ipcRenderer.invoke('get-active-sessions'),
+  getSessionStats: (sessionId?: string) => ipcRenderer.invoke('get-session-stats', sessionId),
+  
   // Event listeners
   onNewSession: (callback: () => void) => {
     ipcRenderer.on('new-session', callback);
@@ -84,6 +110,15 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectGitHubRepo: () => ipcRenderer.invoke('select-github-repo'),
   analyzeRepository: (sessionId: string, repoInfo: any) => 
     ipcRenderer.invoke('analyze-repository', sessionId, repoInfo),
+    
+  // Supabase operations (also available via electronAPI for compatibility)
+  configureSupabase: (config: { url: string; anonKey: string; serviceKey?: string }) => 
+    ipcRenderer.invoke('configure-supabase', config),
+  checkSupabaseConnection: () => ipcRenderer.invoke('check-supabase-connection'),
+  getSupabaseConfig: () => ipcRenderer.invoke('get-supabase-config'),
+  initSupabase: () => ipcRenderer.invoke('init-supabase'),
+  createProject: (project: any) => ipcRenderer.invoke('create-project', project),
+  getProjects: () => ipcRenderer.invoke('get-projects'),
 });
 
 // Also expose to window for TypeScript
@@ -97,6 +132,12 @@ declare global {
       sendChatMessage: (sessionId: string, message: string) => Promise<string>;
       selectGitHubRepo: () => Promise<any>;
       analyzeRepository: (sessionId: string, repoInfo: any) => Promise<string>;
+      configureSupabase: (config: { url: string; anonKey: string; serviceKey?: string }) => Promise<any>;
+      checkSupabaseConnection: () => Promise<any>;
+      getSupabaseConfig: () => Promise<any>;
+      initSupabase: () => Promise<any>;
+      createProject: (project: any) => Promise<any>;
+      getProjects: () => Promise<any>;
     };
   }
 }

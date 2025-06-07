@@ -74,7 +74,51 @@ You MUST NOT:
 
 Remember: You describe WHAT, the Execution Actor determines HOW.
 
-Output your response as a valid JSON object following the InstructionProtocol schema.`;
+Output your response as a valid JSON object following this exact InstructionProtocol schema:
+{
+  "metadata": {
+    "id": "unique-id",
+    "sessionId": "session-id",
+    "sessionName": "descriptive-name",
+    "timestamp": "ISO-8601-timestamp",
+    "version": "1.0",
+    "actor": "planning"
+  },
+  "context": {
+    "description": "Context description",
+    "prerequisites": ["list", "of", "prerequisites"],
+    "relatedSessions": [],
+    "userRequest": "Original user request"
+  },
+  "objectives": [{
+    "id": "unique-id",
+    "primary": "Main objective",
+    "secondary": ["Secondary", "objectives"],
+    "measurable": true
+  }],
+  "requirements": [{
+    "id": "unique-id",
+    "description": "Requirement description",
+    "priority": "must|should|could",
+    "acceptanceCriteria": ["Criteria 1", "Criteria 2"]
+  }],
+  "deliverables": [{
+    "type": "file|documentation|configuration",
+    "description": "What should be delivered",
+    "validation": "How to validate delivery"
+  }],
+  "constraints": {
+    "patterns": ["Patterns to follow"],
+    "avoid": ["Things to avoid"],
+    "timeLimit": 3600000
+  },
+  "successCriteria": [{
+    "id": "unique-id",
+    "criterion": "Success criterion",
+    "validationMethod": "How to validate",
+    "automated": true
+  }]
+}`;
   }
 
   /**
@@ -95,6 +139,13 @@ Output your response as a valid JSON object following the InstructionProtocol sc
 User Request: ${JSON.stringify(request, null, 2)}
 
 Context: ${JSON.stringify(context, null, 2)}
+
+Important details for the response:
+- Use the request.id as the sessionId
+- Use the request.timestamp for the timestamp
+- Generate unique UUIDs for all id fields (use format: "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx")
+- Ensure all arrays have at least one item
+- Follow the exact schema structure provided in the system prompt
 
 Please analyze this request and generate a comprehensive instruction protocol that describes what needs to be built without including any implementation details or code.`
       }
@@ -203,7 +254,7 @@ Please analyze this request and generate a comprehensive instruction protocol th
   /**
    * Send a chat message (simpler interface for chat)
    */
-  async sendMessage(message: string, sessionId: string, history: any[] = []): Promise<string> {
+  async sendMessage(message: string, _sessionId: string, history: any[] = []): Promise<string> {
     const messages: ClaudeMessage[] = history.map(msg => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content

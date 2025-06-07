@@ -194,7 +194,9 @@ export class SelfDevelopmentProductionService {
     });
     
     const issue = sortedIssues[0];
-    await this.processIssue(issue);
+    if (issue) {
+      await this.processIssue(issue);
+    }
   }
   
   private async processIssue(issue: ProductionIssue): Promise<void> {
@@ -211,7 +213,7 @@ export class SelfDevelopmentProductionService {
       
       if (sessionResult.success) {
         // Deploy the fix
-        const deploymentResult = await this.deployFix(sessionResult.sessionId, sessionResult.changes);
+        const deploymentResult = await this.deployFix(sessionResult.sessionId, sessionResult.changes || []);
         
         if (deploymentResult.success) {
           issue.status = 'completed';
@@ -273,7 +275,7 @@ export class SelfDevelopmentProductionService {
     }
   }
   
-  private async deployFix(sessionId: string, changes: string[]): Promise<{
+  private async deployFix(sessionId: string, _changes: string[]): Promise<{
     success: boolean;
     version: string;
   }> {
@@ -382,10 +384,10 @@ export class SelfDevelopmentProductionService {
     return {
       operational: this.verifyPipelineIntegrity(),
       lastIssueProcessed: this.processingHistory.length > 0 
-        ? this.processingHistory[this.processingHistory.length - 1].createdAt 
+        ? this.processingHistory[this.processingHistory.length - 1]?.createdAt || null
         : null,
       lastUpdateDeployed: this.deploymentHistory.length > 0
-        ? this.deploymentHistory[this.deploymentHistory.length - 1].timestamp
+        ? this.deploymentHistory[this.deploymentHistory.length - 1]?.timestamp || null
         : null,
       pipelineHealth: 'healthy', // Based on checks
       queuedIssues: this.issueQueue.filter(issue => issue.status === 'queued').length,

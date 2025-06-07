@@ -492,7 +492,7 @@ export class SelfDevelopmentCycleTest {
     await fs.mkdir(this.testWorkspace, { recursive: true });
     
     // Set environment variables for testing
-    process.env['NODE_ENV'] = 'test';
+    (process.env as any)['NODE_ENV'] = 'test';
     process.env['SESSIONHUB_INSTANCE'] = 'test';
   }
 

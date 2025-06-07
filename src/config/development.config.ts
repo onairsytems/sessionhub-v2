@@ -46,14 +46,14 @@ export const DEVELOPMENT_CONFIG: DevelopmentConfig = {
   
   // Development Supabase project
   supabase: {
-    url: process.env.SUPABASE_DEV_URL || 'https://sessionhub-dev.supabase.co',
-    anonKey: process.env.SUPABASE_DEV_ANON_KEY || '',
+    url: process.env['SUPABASE_DEV_URL'] || 'https://sessionhub-dev.supabase.co',
+    anonKey: process.env['SUPABASE_DEV_ANON_KEY'] || '',
     projectId: 'sessionhub-dev',
   },
   
   // Separate Claude API quota
   claude: {
-    apiKey: process.env.CLAUDE_DEV_API_KEY || process.env.CLAUDE_API_KEY || '',
+    apiKey: process.env['CLAUDE_DEV_API_KEY'] || process.env['CLAUDE_API_KEY'] || '',
     baseUrl: 'https://api.anthropic.com',
     model: 'claude-3-5-sonnet-20241022',
   },
@@ -86,14 +86,14 @@ export const PRODUCTION_CONFIG: DevelopmentConfig = {
   
   // Production Supabase project
   supabase: {
-    url: process.env.SUPABASE_URL || 'https://sessionhub.supabase.co',
-    anonKey: process.env.SUPABASE_ANON_KEY || '',
+    url: process.env['SUPABASE_URL'] || 'https://sessionhub.supabase.co',
+    anonKey: process.env['SUPABASE_ANON_KEY'] || '',
     projectId: 'sessionhub',
   },
   
   // Production Claude API
   claude: {
-    apiKey: process.env.CLAUDE_API_KEY || '',
+    apiKey: process.env['CLAUDE_API_KEY'] || '',
     baseUrl: 'https://api.anthropic.com',
     model: 'claude-3-5-sonnet-20241022',
   },
@@ -117,8 +117,8 @@ export const PRODUCTION_CONFIG: DevelopmentConfig = {
  * Get configuration based on environment
  */
 export function getConfig(): DevelopmentConfig {
-  const isDevelopment = process.env.NODE_ENV === 'development' || 
-                       process.env.SESSIONHUB_INSTANCE === 'dev';
+  const isDevelopment = process.env['NODE_ENV'] === 'development' || 
+                       process.env['SESSIONHUB_INSTANCE'] === 'dev';
   
   return isDevelopment ? DEVELOPMENT_CONFIG : PRODUCTION_CONFIG;
 }

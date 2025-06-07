@@ -8,7 +8,7 @@ import { Logger } from '@/src/lib/logging/Logger';
 export class SecuritySandbox {
   private readonly logger: Logger;
   private readonly maxMemoryMB: number = 512;
-  private readonly maxCpuPercent: number = 80;
+  // private readonly maxCpuPercent: number = 80; // Commented out for future use
 
   constructor(logger: Logger) {
     this.logger = logger;

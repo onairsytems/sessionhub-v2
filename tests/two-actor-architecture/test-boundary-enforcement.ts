@@ -352,7 +352,7 @@ export class BoundaryEnforcementTests {
         timestamp: new Date().toISOString()
       },
       {
-        type: 'deploy',
+        type: 'analyze',
         actor,
         description: 'Second violation',
         timestamp: new Date().toISOString()
@@ -372,12 +372,14 @@ export class BoundaryEnforcementTests {
     const history = this.boundaryEnforcer.getViolationHistory(actor.id);
     
     console.assert(history.length === violationCount, 'All violations should be tracked');
-    console.assert(history[0].description === 'First violation', 'Violations should be in order');
+    console.assert(history[0]?.description === 'First violation', 'Violations should be in order');
     
     console.log('✅ Violation tracking works correctly');
     console.log(`   - Actor: ${actor.id}`);
     console.log(`   - Violations recorded: ${history.length}`);
-    console.log(`   - First violation: ${history[0].type} - ${history[0].description}`);
+    if (history[0]) {
+      console.log(`   - First violation: ${history[0].type} - ${history[0].description}`);
+    }
     
     // Clear and verify
     this.boundaryEnforcer.clearViolationHistory();

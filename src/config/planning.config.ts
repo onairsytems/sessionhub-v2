@@ -3,9 +3,9 @@
  */
 
 export const PLANNING_CONFIG = {
-  model: process.env.PLANNING_MODEL || 'claude-3-opus-20240229',
-  temperature: parseFloat(process.env.PLANNING_TEMPERATURE || '0.7'),
-  maxTokens: parseInt(process.env.PLANNING_MAX_TOKENS || '4000'),
+  model: process.env['PLANNING_MODEL'] || 'claude-3-opus-20240229',
+  temperature: parseFloat(process.env['PLANNING_TEMPERATURE'] || '0.7'),
+  maxTokens: parseInt(process.env['PLANNING_MAX_TOKENS'] || '4000'),
   
   systemPrompt: `You are the Planning Actor in SessionHub's Two-Actor Architecture.
 
@@ -39,14 +39,14 @@ Output your response as a valid JSON object following the InstructionProtocol sc
   ],
 
   // Performance settings
-  timeout: parseInt(process.env.PLANNING_TIMEOUT || '30000'),
-  retryAttempts: parseInt(process.env.PLANNING_RETRIES || '3'),
-  retryDelay: parseInt(process.env.PLANNING_RETRY_DELAY || '1000'),
+  timeout: parseInt(process.env['PLANNING_TIMEOUT'] || '30000'),
+  retryAttempts: parseInt(process.env['PLANNING_RETRIES'] || '3'),
+  retryDelay: parseInt(process.env['PLANNING_RETRY_DELAY'] || '1000'),
 
   // Features
   features: {
-    useCache: process.env.PLANNING_USE_CACHE === 'true',
-    validateOutput: process.env.PLANNING_VALIDATE_OUTPUT !== 'false',
-    enforceSchema: process.env.PLANNING_ENFORCE_SCHEMA !== 'false'
+    useCache: process.env['PLANNING_USE_CACHE'] === 'true',
+    validateOutput: process.env['PLANNING_VALIDATE_OUTPUT'] !== 'false',
+    enforceSchema: process.env['PLANNING_ENFORCE_SCHEMA'] !== 'false'
   }
 };

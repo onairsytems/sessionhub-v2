@@ -4,7 +4,7 @@
  */
 
 import { PlanningEngine } from '@/src/core/planning/PlanningEngine';
-import { ExecutionEngine } from '@/src/core/execution/ExecutionEngine';
+import { ExecutionEngine, ExecutionContext } from '@/src/core/execution/ExecutionEngine';
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
 import { ActorBoundaryEnforcer } from '@/src/core/orchestrator/ActorBoundaryEnforcer';
 import { ErrorHandler } from '@/src/core/orchestrator/ErrorHandler';
@@ -12,6 +12,7 @@ import { Logger } from '@/src/lib/logging/Logger';
 import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { InstructionProtocol } from '@/src/models/Instruction';
 import { UserRequest, ExecutionResult, Session } from './SessionManager';
+import { InstructionQueue } from './InstructionQueue';
 
 export interface ActorState {
   id: string;
@@ -44,6 +45,7 @@ export class ActorCoordinator {
   private readonly protocolValidator: ProtocolValidator;
   private readonly boundaryEnforcer: ActorBoundaryEnforcer;
   private readonly errorHandler: ErrorHandler;
+  private readonly instructionQueue: InstructionQueue;
   
   private planningEngine?: PlanningEngine;
   private executionEngine?: ExecutionEngine;
@@ -63,8 +65,10 @@ export class ActorCoordinator {
     this.protocolValidator = protocolValidator;
     this.boundaryEnforcer = boundaryEnforcer;
     this.errorHandler = errorHandler;
+    this.instructionQueue = new InstructionQueue(logger);
     
     this.initializeActorStates();
+    this.setupQueueEventListeners();
   }
 
   /**
@@ -149,7 +153,6 @@ export class ActorCoordinator {
       await this.errorHandler.handleError(error as Error, {
         actor: 'coordinator',
         operation: 'processRequest',
-        severity: 'high',
         recoverable: false
       });
       
@@ -191,8 +194,15 @@ export class ActorCoordinator {
       
       this.boundaryEnforcer.validateOperation(operation);
 
-      // Generate instructions
-      const instructions = await this.planningEngine!.generateInstructions(request);
+      // Generate instructions - adapt request format
+      const planningRequest = {
+        id: request.id,
+        content: request.context?.['content'] || 'Process user request',
+        context: request.context,
+        sessionId: request.sessionId,
+        timestamp: request.timestamp
+      };
+      const instructions = await this.planningEngine!.generateInstructions(planningRequest);
 
       // Validate no code in instructions
       this.protocolValidator.ensureNoCode(instructions);
@@ -270,10 +280,11 @@ export class ActorCoordinator {
       this.boundaryEnforcer.validateOperation(operation);
 
       // Execute instructions
-      const executionContext = {
-        sessionId: session.id,
-        projectPath: session.metadata.projectPath || process.cwd(),
-        environment: session.metadata.environment || 'development'
+      const executionContext: ExecutionContext = {
+        workingDirectory: session.metadata['projectPath'] || process.cwd(),
+        environment: {},
+        timeout: 30000,
+        dryRun: false
       };
 
       const result = await this.executionEngine!.executeInstructions(
@@ -295,7 +306,7 @@ export class ActorCoordinator {
         },
         result: {
           status: result.status === 'success' ? 'success' : 'failure',
-          duration: result.metrics.duration
+          duration: new Date(result.endTime).getTime() - new Date(result.startTime).getTime()
         },
         metadata: {
           sessionId: session.id,
@@ -309,7 +320,23 @@ export class ActorCoordinator {
         currentOperation: undefined
       });
 
-      return result;
+      // Convert to SessionManager ExecutionResult format
+      return {
+        sessionId: session.id,
+        status: result.status === 'success' ? 'success' : result.status === 'failure' ? 'failure' : 'partial',
+        deliverables: result.outputs.map(o => ({
+          type: o.type === 'file' ? 'file' : 'documentation',
+          path: o.path || '',
+          status: 'created' as const
+        })),
+        logs: result.logs,
+        errors: result.errors.map(e => e.message),
+        metrics: {
+          duration: new Date(result.endTime).getTime() - new Date(result.startTime).getTime(),
+          tasksCompleted: result.status === 'success' ? 1 : 0,
+          tasksFailed: result.status === 'failure' ? 1 : 0
+        }
+      };
 
     } catch (error) {
       this.updateActorState(executionActorId, {
@@ -459,5 +486,55 @@ export class ActorCoordinator {
 
   private generateCorrelationId(): string {
     return `coord_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  /**
+   * Setup queue event listeners for real-time monitoring
+   */
+  private setupQueueEventListeners(): void {
+    this.instructionQueue.on('instruction-event', (event) => {
+      this.logger.info('Instruction event', {
+        type: event.type,
+        instructionId: event.instructionId,
+        sessionId: event.sessionId
+      });
+
+      // Update actor metrics based on events
+      switch (event.type) {
+        case 'started':
+          this.incrementActorMetric('planning-actor-1', 'totalOperations');
+          break;
+        case 'completed':
+          this.incrementActorMetric('execution-actor-1', 'successfulOperations');
+          break;
+        case 'failed':
+          this.incrementActorMetric('execution-actor-1', 'failedOperations');
+          break;
+      }
+    });
+  }
+
+  /**
+   * Increment actor metric
+   */
+  private incrementActorMetric(actorId: string, metric: keyof ActorState['metrics']): void {
+    const actor = this.actorStates.get(actorId);
+    if (actor && typeof actor.metrics[metric] === 'number') {
+      actor.metrics[metric]++;
+    }
+  }
+
+  /**
+   * Get instruction queue
+   */
+  getInstructionQueue(): InstructionQueue {
+    return this.instructionQueue;
+  }
+
+  /**
+   * Get queue metrics
+   */
+  getQueueMetrics(): any {
+    return this.instructionQueue.getMetrics();
   }
 }

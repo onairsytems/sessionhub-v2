@@ -155,7 +155,8 @@ export class PerformanceMonitor {
         });
 
       } catch (error) {
-        this.logger.warn('Resource monitoring error', { error: error.message });
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        this.logger.warn('Resource monitoring error', { error: errorMessage });
       }
     };
 
@@ -197,7 +198,7 @@ export class PerformanceMonitor {
       await this.updateBaseline(metric);
 
     } catch (error) {
-      this.logger.error('Failed to record metric', { error: error.message, metric: metric.name });
+      this.logger.error('Failed to record metric', error as Error, { metric: metric.name });
     }
   }
 
@@ -226,7 +227,7 @@ export class PerformanceMonitor {
 
       return duration;
     } catch (error) {
-      this.logger.error('Failed to measure startup time', { error: error.message });
+      this.logger.error('Failed to measure startup time', error as Error);
       return -1;
     }
   }
@@ -234,7 +235,7 @@ export class PerformanceMonitor {
   /**
    * Measure instruction generation performance
    */
-  async measureInstructionGeneration(instruction: any): Promise<number> {
+  async measureInstructionGeneration(_instruction: any): Promise<number> {
     const startTime = performance.now();
     
     try {
@@ -257,7 +258,7 @@ export class PerformanceMonitor {
 
       return duration;
     } catch (error) {
-      this.logger.error('Failed to measure instruction generation', { error: error.message });
+      this.logger.error('Failed to measure instruction generation', error as Error);
       return -1;
     }
   }
@@ -431,7 +432,7 @@ export class PerformanceMonitor {
    */
   private async getCurrentResources(): Promise<SystemResource> {
     const os = require('os');
-    const process = require('process');
+    // const process = require('process'); // Commented out for future use
 
     // Get CPU usage
     const cpus = os.cpus();
@@ -443,7 +444,7 @@ export class PerformanceMonitor {
     const usedMem = totalMem - freeMem;
 
     // Get process memory
-    const processMemory = process.memoryUsage();
+    // const processMemory = process.memoryUsage(); // Commented out for future use
 
     return {
       cpu: {
@@ -470,7 +471,7 @@ export class PerformanceMonitor {
   }
 
   private async getCPUUsage(): Promise<number> {
-    const os = require('os');
+    // const os = require('os'); // Commented out for future use
     
     return new Promise((resolve) => {
       const startMeasure = this.cpuAverage();

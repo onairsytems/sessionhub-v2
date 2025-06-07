@@ -105,17 +105,17 @@ export class PlanningEngine {
   private async getPatternSuggestionsForRequest(request: UserRequest): Promise<any[]> {
     try {
       // Extract context from request
-      const projectType = request.context?.projectType || 'web';
-      const language = request.context?.language || 'typescript';
-      const framework = request.context?.framework || 'react';
+      const projectType = request.context?.['projectType'] || 'web';
+      const language = request.context?.['language'] || 'typescript';
+      const framework = request.context?.['framework'] || 'react';
       
       // Get suggestions from pattern service
       const suggestions = await this.patternService.getSuggestionsForContext({
         projectType,
         language,
         framework,
-        currentCode: request.context?.currentCode,
-        errorMessage: request.context?.errorMessage
+        currentCode: request.context?.['currentCode'],
+        errorMessage: request.context?.['errorMessage']
       });
       
       this.logger.info('PlanningEngine: Retrieved pattern suggestions', {
@@ -137,37 +137,46 @@ export class PlanningEngine {
 
     const context = await this.analyzeContext(request, patternSuggestions);
     
-    // Generate strategy using Claude API with pattern context
-    const strategyResponse = await this.claudeApi.generateStrategy({
-      request: {
-        id: request.id,
-        content: request.content,
-        context: request.context,
-        timestamp: request.timestamp
-      },
-      context,
-      patternSuggestions: patternSuggestions.map(s => ({
-        pattern: s.pattern.description,
-        relevance: s.relevanceScore,
-        reason: s.reason,
-        strategy: s.applicationStrategy
-      }))
-    });
+    try {
+      // Generate strategy using Claude API with pattern context
+      const strategyResponse = await this.claudeApi.generateStrategy({
+        request: {
+          id: request.id,
+          content: request.content,
+          context: request.context,
+          timestamp: request.timestamp,
+          patternSuggestions: patternSuggestions.map(s => ({
+            pattern: s.pattern.description,
+            relevance: s.relevanceScore,
+            reason: s.reason,
+            strategy: s.applicationStrategy
+          }))
+        },
+        context
+      });
 
-    // If Claude returns a complete instruction protocol, use it
-    if (this.isValidInstructionProtocol(strategyResponse)) {
-      return strategyResponse as InstructionProtocol;
+      // If Claude returns a complete instruction protocol, use it
+      if (this.isValidInstructionProtocol(strategyResponse)) {
+        return strategyResponse as InstructionProtocol;
+      }
+
+      // Otherwise, build instructions from the strategy
+      const strategy: PlanningStrategy = {
+        approach: strategyResponse.approach || 'Systematic implementation',
+        rationale: strategyResponse.rationale || 'Best practices approach',
+        risks: strategyResponse.risks || [],
+        alternatives: strategyResponse.alternatives || []
+      };
+
+      return this.buildInstructions(request, context, strategy, patternSuggestions);
+    } catch (error) {
+      this.logger.error('Claude API call failed', error as Error);
+      
+      // Fall back to pattern-enhanced local generation
+      const fallbackContext = await this.analyzeContext(request, patternSuggestions);
+      const fallbackStrategy = await this.generateStrategy(request, fallbackContext, patternSuggestions);
+      return this.buildInstructions(request, fallbackContext, fallbackStrategy, patternSuggestions);
     }
-
-    // Otherwise, build instructions from the strategy
-    const strategy: PlanningStrategy = {
-      approach: strategyResponse.approach || 'Systematic implementation',
-      rationale: strategyResponse.rationale || 'Best practices approach',
-      risks: strategyResponse.risks || [],
-      alternatives: strategyResponse.alternatives || []
-    };
-
-    return this.buildInstructions(request, context, strategy, patternSuggestions);
   }
 
   private isValidInstructionProtocol(obj: any): boolean {
@@ -203,14 +212,8 @@ export class PlanningEngine {
     return {
       description: `User request: ${request.content}${patternInsights}`,
       prerequisites,
-      relatedSessions: request.context?.relatedSessions || [],
-      userRequest: request.content,
-      patternContext: {
-        suggestedPatterns: patternSuggestions.map(s => s.pattern.description),
-        avoidPatterns: patternSuggestions
-          .filter(s => s.pattern.type === 'error')
-          .map(s => s.pattern.description)
-      }
+      relatedSessions: request.context?.['relatedSessions'] || [],
+      userRequest: request.content
     };
   }
 
@@ -233,12 +236,12 @@ export class PlanningEngine {
 
   private async generateStrategy(
     request: UserRequest, 
-    context: InstructionContext,
+    _context: InstructionContext,
     patternSuggestions: any[]
   ): Promise<PlanningStrategy> {
     // Strategic planning enhanced with pattern insights
     const topSuggestion = patternSuggestions[0];
-    const hasErrorPatterns = patternSuggestions.some(s => s.pattern.type === 'error');
+    // const hasErrorPatterns = patternSuggestions.some(s => s.pattern.type === 'error'); // Commented out for future use
     
     // Build approach based on patterns
     const approach = topSuggestion 
@@ -335,7 +338,7 @@ export class PlanningEngine {
     return words.join(' ');
   }
 
-  private createObjectives(request: UserRequest, strategy: PlanningStrategy, patternSuggestions?: any[]): InstructionObjective[] {
+  private createObjectives(request: UserRequest, _strategy: PlanningStrategy, patternSuggestions?: any[]): InstructionObjective[] {
     // Create high-level objectives without implementation details
     const secondaryObjectives = [
       'Ensure solution follows best practices',
@@ -367,7 +370,7 @@ export class PlanningEngine {
     }];
   }
 
-  private createRequirements(request: UserRequest, patternSuggestions?: any[]): InstructionRequirement[] {
+  private createRequirements(_request: UserRequest, patternSuggestions?: any[]): InstructionRequirement[] {
     // Extract requirements from request without specifying HOW
     const requirements: InstructionRequirement[] = [];
     
@@ -422,7 +425,7 @@ export class PlanningEngine {
     return requirements;
   }
 
-  private createDeliverables(request: UserRequest, patternSuggestions?: any[]): InstructionDeliverable[] {
+  private createDeliverables(_request: UserRequest, patternSuggestions?: any[]): InstructionDeliverable[] {
     // Define what should be delivered, not how
     const deliverables: InstructionDeliverable[] = [{
       type: 'file',
@@ -438,7 +441,7 @@ export class PlanningEngine {
       
       if (hasTestPatterns) {
         deliverables.push({
-          type: 'test',
+          type: 'file',
           description: 'Test files following recommended testing patterns',
           validation: 'Tests pass and provide adequate coverage'
         });
@@ -460,7 +463,7 @@ export class PlanningEngine {
     return deliverables;
   }
 
-  private createConstraints(request: UserRequest, patternSuggestions?: any[]): InstructionConstraints {
+  private createConstraints(_request: UserRequest, patternSuggestions?: any[]): InstructionConstraints {
     const patterns = ['Follow existing project patterns'];
     const avoid = ['Breaking changes to existing functionality'];
     
@@ -503,7 +506,7 @@ export class PlanningEngine {
     };
   }
 
-  private createSuccessCriteria(request: UserRequest, patternSuggestions?: any[]): SuccessCriterion[] {
+  private createSuccessCriteria(_request: UserRequest, patternSuggestions?: any[]): SuccessCriterion[] {
     const criteria: SuccessCriterion[] = [
       {
         id: uuidv4(),

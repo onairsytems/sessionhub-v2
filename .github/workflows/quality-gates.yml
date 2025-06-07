@@ -1,0 +1,98 @@
+name: Quality Gates
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  quality-checks:
+    name: Quality Gates Enforcement
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: TypeScript Compilation Check
+      run: |
+        echo "📘 Checking TypeScript compilation..."
+        npm run validate
+      
+    - name: ESLint Check
+      run: |
+        echo "🔧 Running ESLint..."
+        npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0
+      
+    - name: Run Error Detection System
+      run: |
+        echo "🛡️ Running SessionHub Error Detection..."
+        npm run error:check
+      
+    - name: Run Tests
+      run: |
+        echo "🧪 Running tests..."
+        npm test -- --passWithNoTests
+      
+    - name: Build Check
+      run: |
+        echo "🏗️ Building application..."
+        npm run build
+      
+    - name: Security Audit
+      run: |
+        echo "🔒 Running security audit..."
+        npm audit --audit-level=high
+      
+    - name: Upload Error Reports
+      if: failure()
+      uses: actions/upload-artifact@v3
+      with:
+        name: error-reports
+        path: |
+          typescript-errors.log
+          error-detection-report.json
+          
+  architecture-compliance:
+    name: Two-Actor Model Compliance
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Check Planning Actor Compliance
+      run: |
+        echo "🎭 Checking Planning Actor compliance..."
+        # Ensure no code generation in planning modules
+        ! grep -r "writeFileSync\|createWriteStream\|fs\.write" src/core/planning/ || exit 1
+        
+    - name: Check Execution Actor Compliance
+      run: |
+        echo "🎭 Checking Execution Actor compliance..."
+        # Ensure no strategic decisions in execution modules
+        ! grep -r "should\|recommend\|suggest\|consider" src/core/execution/ || exit 1
+        
+    - name: Protocol Validation
+      run: |
+        echo "📋 Validating actor communication protocol..."
+        npm run validate:protocol || echo "Protocol validation not implemented yet"

@@ -122,7 +122,7 @@ export class MacKeychainService {
    */
   isSandboxed(): boolean {
     // Check for Mac App Store sandbox
-    return process.env.APP_SANDBOX_CONTAINER_ID !== undefined;
+    return process.env['APP_SANDBOX_CONTAINER_ID'] !== undefined;
   }
 
   /**

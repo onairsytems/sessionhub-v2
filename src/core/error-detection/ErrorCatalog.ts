@@ -243,16 +243,18 @@ export class ErrorCatalog {
     this.catalog.set(entry.code, entry);
   }
 
-  public getSuggestion(code: string, message: string): string | undefined {
+  public getSuggestion(code: string, message?: string): string | undefined {
     const entry = this.catalog.get(code);
     if (!entry) {
       return this.getGenericSuggestion(message);
     }
 
     // Return the most relevant fix based on the error message
-    const relevantFix = entry.fixes.find(fix => 
-      message.toLowerCase().includes(fix.toLowerCase().split(' ')[0])
-    );
+    const relevantFix = entry.fixes.find(fix => {
+      if (!message) return false;
+      const firstWord = fix.toLowerCase().split(' ')[0];
+      return firstWord ? message.toLowerCase().includes(firstWord) : false;
+    });
 
     return relevantFix || entry.fixes[0];
   }
@@ -265,7 +267,9 @@ export class ErrorCatalog {
     return Array.from(this.catalog.keys());
   }
 
-  private getGenericSuggestion(message: string): string {
+  private getGenericSuggestion(message?: string): string {
+    if (!message) return 'Check the code for syntax or type errors';
+    
     // Provide generic suggestions based on error message patterns
     if (message.includes('Cannot find module')) {
       return 'Install the missing package or check the import path';

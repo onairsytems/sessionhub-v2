@@ -167,7 +167,9 @@ export class ExecutionEngineTests {
     const strategicInstructions = this.createMockInstructions();
     
     // Inject strategic language that should be rejected
-    strategicInstructions.requirements[0].description = 'Should we use PostgreSQL or MySQL for the database?';
+    if (strategicInstructions.requirements[0]) {
+      strategicInstructions.requirements[0].description = 'Should we use PostgreSQL or MySQL for the database?';
+    }
     strategicInstructions.metadata.actor = 'execution'; // Mark as from execution
 
     try {

@@ -212,7 +212,7 @@ export class ProtocolValidator {
    * Validate that an execution result matches success criteria
    */
   validateExecutionResult(
-    instructions: InstructionProtocol,
+    _instructions: InstructionProtocol,
     result: any
   ): boolean {
     // This would validate that execution results meet the success criteria

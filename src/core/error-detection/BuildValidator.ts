@@ -4,10 +4,10 @@
  */
 
 import { ErrorDetectionEngine } from './ErrorDetectionEngine';
-import { ValidationResult, BuildValidation, ErrorReport } from './types';
+import { BuildValidation, ErrorReport } from './types';
 import { Logger } from '../../lib/logging/Logger';
 import * as fs from 'fs/promises';
-import * as path from 'path';
+// import * as path from 'path'; // Commented out for future use
 import { exec } from 'child_process';
 import { promisify } from 'util';
 
@@ -90,7 +90,7 @@ export class BuildValidator {
           }
         } catch (error) {
           canBuild = false;
-          this.logger.error(`${step.name} failed`, { error });
+          this.logger.error(`${step.name} failed: ${error}`);
           
           blockingErrors.push({
             filePath: 'build',
@@ -132,7 +132,7 @@ export class BuildValidator {
       return result;
 
     } catch (error) {
-      this.logger.error('Build validation failed with unexpected error', { error });
+      this.logger.error('Build validation failed with unexpected error', error as Error);
       
       return {
         canBuild: false,
@@ -157,7 +157,7 @@ export class BuildValidator {
    */
   private async validateTypeScript(): Promise<{ errors: ErrorReport[] }> {
     try {
-      const { stdout, stderr } = await execAsync('npx tsc --noEmit --pretty false');
+      const { stdout: _stdout, stderr } = await execAsync('npx tsc --noEmit --pretty false');
       
       if (stderr) {
         return { errors: this.parseTypeScriptErrors(stderr) };
@@ -286,7 +286,7 @@ export class BuildValidator {
    */
   private async runTests(): Promise<{ errors: ErrorReport[] }> {
     try {
-      const { stdout, stderr } = await execAsync('npm test -- --passWithNoTests');
+      const { stdout: _stdout, stderr } = await execAsync('npm test -- --passWithNoTests');
       
       if (stderr && stderr.includes('FAIL')) {
         return {
@@ -329,17 +329,18 @@ export class BuildValidator {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+      if (!line) continue;
       const match = line.match(/^(.+)\((\d+),(\d+)\):\s+error\s+(TS\d+):\s+(.+)$/);
       
       if (match) {
         errors.push({
-          filePath: match[1],
-          line: parseInt(match[2]),
-          column: parseInt(match[3]),
+          filePath: match[1] || '',
+          line: parseInt(match[2] || '0'),
+          column: parseInt(match[3] || '0'),
           severity: 'error',
           category: 'TypeScript',
-          code: match[4],
-          message: match[5],
+          code: match[4] || '',
+          message: match[5] || '',
           timestamp: new Date().toISOString()
         });
       }
@@ -381,9 +382,9 @@ export class BuildValidator {
         warnings: warningCount
       });
     } else {
-      this.logger.error(`❌ Build validation FAILED in ${duration}ms`, {
-        errors: errorCount,
-        warnings: warningCount
+      this.logger.error(`❌ Build validation FAILED in ${duration}ms`, undefined, {
+        errorCount,
+        warningCount
       });
 
       // Log first few errors

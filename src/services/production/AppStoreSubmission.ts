@@ -43,8 +43,8 @@ export interface AppStoreCompliance {
 }
 
 export class AppStoreSubmissionService {
-  private readonly bundleId = 'com.sessionhub.desktop';
-  private readonly teamId = process.env.APPLE_TEAM_ID || '';
+  // private readonly bundleId = 'com.sessionhub.desktop'; // Commented out for future use
+  // private readonly teamId = process.env.APPLE_TEAM_ID || ''; // Commented out for future use
   
   // Generate App Store metadata
   generateMetadata(): AppStoreMetadata {
@@ -119,7 +119,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
     // Verify code signing certificate is valid
     try {
       // In production, this would use actual code signing validation
-      const hasValidCertificate = process.env.CODE_SIGNING_IDENTITY !== undefined;
+      const hasValidCertificate = process.env['CODE_SIGNING_IDENTITY'] !== undefined;
       const certificateValid = true; // Mock validation
       return hasValidCertificate && certificateValid;
     } catch (error) {

@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { ApiConfiguration } from './ApiConfiguration';
 import { PlanningChat } from './PlanningChat';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { CheckCircle, Circle, ArrowRight, PlayCircle, MessageSquare, Code } from 'lucide-react';
 
 interface Session {

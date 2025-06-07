@@ -3,7 +3,7 @@
  */
 
 import { SystemOrchestrator } from '@/src/core/orchestrator/SystemOrchestrator';
-import { Logger } from '@/src/lib/logging/Logger';
+// import { Logger } from '@/src/lib/logging/Logger'; // Commented out for future use
 
 // Test configuration
 const TEST_CONFIG = {
@@ -36,7 +36,7 @@ async function testEndToEndFlow() {
     console.log('\n3️⃣ Checking initial session status...');
     let session = await orchestrator.getSessionStatus(sessionId);
     console.log(`📊 Session status: ${session?.status}`);
-    console.log(`📊 Queue position: ${session?.metadata?.queuePosition || 'N/A'}`);
+    console.log(`📊 Queue position: ${session?.metadata?.['queuePosition'] || 'N/A'}`);
     
     // Wait for processing
     console.log('\n4️⃣ Waiting for request processing...');
@@ -106,7 +106,7 @@ async function testMultipleRequests() {
     console.log('\nQueue positions:');
     for (const sessionId of sessionIds) {
       const session = await orchestrator.getSessionStatus(sessionId);
-      console.log(`  Session ${sessionId}: Position ${session?.metadata?.queuePosition || 'Processing'}`);
+      console.log(`  Session ${sessionId}: Position ${session?.metadata?.['queuePosition'] || 'Processing'}`);
     }
     
     // Wait for some processing
@@ -180,7 +180,7 @@ async function testAPIIntegration() {
   console.log('\n🧪 Testing Claude API Integration\n');
   
   // This test requires a real API key
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env['ANTHROPIC_API_KEY'];
   
   if (!apiKey) {
     console.log('⚠️ Skipping API integration test (no API key set)');

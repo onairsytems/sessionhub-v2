@@ -5,8 +5,6 @@
 
 import { Logger } from '@/src/lib/logging/Logger';
 import { AuditLogger } from '@/src/lib/logging/AuditLogger';
-import { InstructionProtocol } from '@/src/models/Instruction';
-import { Session, UserRequest, ExecutionResult } from './SessionManager';
 
 export interface WorkflowStep {
   id: string;
@@ -145,9 +143,7 @@ export class WorkflowEngine {
         duration: 0
       },
       metadata: {
-        workflowId,
         sessionId: workflow.sessionId,
-        stepType,
         correlationId: this.generateCorrelationId()
       }
     });
@@ -300,7 +296,7 @@ export class WorkflowEngine {
 
     workflow.status = 'cancelled';
     workflow.updatedAt = new Date().toISOString();
-    workflow.metadata.cancellationReason = reason;
+    workflow.metadata['cancellationReason'] = reason;
     
     // Mark all pending steps as skipped
     workflow.steps.forEach(step => {
@@ -350,10 +346,11 @@ export class WorkflowEngine {
     const completedSteps = workflow.steps.filter(s => s.status === 'completed');
     if (completedSteps.length === 0) {
       // No completed steps, only request can start
-      return toStep === 'request';
+      return toStep === 'planning';
     }
 
     const lastCompleted = completedSteps[completedSteps.length - 1];
+    if (!lastCompleted) return false;
     
     // Check if transition is valid
     const transition = this.transitions.find(
@@ -363,7 +360,7 @@ export class WorkflowEngine {
     if (!transition) return false;
 
     // Check transition condition if exists
-    if (transition.condition) {
+    if (transition.condition && lastCompleted) {
       return transition.condition(lastCompleted);
     }
 

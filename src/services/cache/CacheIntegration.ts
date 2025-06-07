@@ -5,7 +5,7 @@
  */
 
 import { LocalCacheService } from './LocalCacheService';
-import { SupabaseService, Project, Session, Instruction, ExecutionResult, Pattern } from '../cloud/SupabaseService';
+import { SupabaseService, Project, Session, Instruction } from '../cloud/SupabaseService';
 import { Logger } from '@/src/lib/logging/Logger';
 
 export interface DataServiceConfig {
@@ -95,7 +95,7 @@ export class CachedDataService {
     cacheStats?: any;
     offlineQueueSize?: number;
   }> {
-    const status = {
+    const status: any = {
       initialized: this.initialized,
       online: this.isOnline(),
       cacheEnabled: this.config.enableCache !== false && this.cacheService.isInitialized()

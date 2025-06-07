@@ -1,4 +1,4 @@
-import { ipcMain, safeStorage, dialog } from 'electron';
+import { ipcMain, dialog } from 'electron';
 import { MacKeychainService } from '../services/mac/MacKeychainService';
 import { ClaudeAPIClient } from '../../src/lib/api/ClaudeAPIClient';
 import Store from 'electron-store';
@@ -18,11 +18,11 @@ export function registerApiHandlers() {
   });
 
   // Validate API key
-  ipcMain.handle('validate-api-key', async (event, apiKey: string) => {
+  ipcMain.handle('validate-api-key', async (_event, apiKey: string) => {
     try {
       const client = new ClaudeAPIClient({ apiKey });
       // Test the API key with a simple request
-      const response = await client.sendMessage('Hello', 'test-validation');
+      await client.sendMessage('Hello', 'test-validation');
       return true;
     } catch (error) {
       console.error('API key validation failed:', error);
@@ -31,7 +31,7 @@ export function registerApiHandlers() {
   });
 
   // Save API key to keychain
-  ipcMain.handle('save-api-key', async (event, apiKey: string) => {
+  ipcMain.handle('save-api-key', async (_event, apiKey: string) => {
     try {
       await keychainService.setCredential('sessionhub', 'claude-api-key', apiKey);
       return true;
@@ -42,7 +42,7 @@ export function registerApiHandlers() {
   });
 
   // Send chat message
-  ipcMain.handle('send-chat-message', async (event, sessionId: string, message: string) => {
+  ipcMain.handle('send-chat-message', async (_event, sessionId: string, message: string) => {
     try {
       const apiKey = await keychainService.getCredential('sessionhub', 'claude-api-key');
       if (!apiKey) {
@@ -105,7 +105,7 @@ export function registerApiHandlers() {
   });
 
   // Analyze repository
-  ipcMain.handle('analyze-repository', async (event, sessionId: string, repoInfo: any) => {
+  ipcMain.handle('analyze-repository', async (_event, sessionId: string, repoInfo: any) => {
     try {
       const apiKey = await keychainService.getCredential('sessionhub', 'claude-api-key');
       if (!apiKey) {

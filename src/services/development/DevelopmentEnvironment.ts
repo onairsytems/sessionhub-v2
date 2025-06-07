@@ -92,7 +92,7 @@ export class DevelopmentEnvironment {
     });
 
     child.on('error', (error) => {
-      this.logger.error('Development instance error', { error: error.message });
+      this.logger.error('Development instance error', error as Error);
       this.updateStatus('error');
     });
 
@@ -139,7 +139,7 @@ export class DevelopmentEnvironment {
       try {
         process.kill(instance.pid, 'SIGKILL');
       } catch (killError) {
-        this.logger.error('Failed to force stop instance', { error: killError });
+        this.logger.error('Failed to force stop instance', killError as Error);
       }
     }
 
@@ -180,7 +180,7 @@ export class DevelopmentEnvironment {
     
     const portConflicts = devPorts.filter(port => prodPorts.includes(port));
     if (portConflicts.length > 0) {
-      this.logger.error('Port conflicts detected', { conflicts: portConflicts });
+      this.logger.error('Port conflicts detected', undefined, { conflicts: portConflicts });
       return false;
     }
 
@@ -203,7 +203,7 @@ export class DevelopmentEnvironment {
     await this.stopInstance();
     
     // Optional: Remove data directory
-    const shouldCleanData = process.env.SESSIONHUB_CLEAN_DATA === 'true';
+    const shouldCleanData = process.env['SESSIONHUB_CLEAN_DATA'] === 'true';
     if (shouldCleanData) {
       const dataDir = this.expandPath(this.config.dataDirectory);
       await fs.rm(dataDir, { recursive: true, force: true });
@@ -243,7 +243,7 @@ export class DevelopmentEnvironment {
       pid,
       status,
       lastUpdate: new Date(),
-      version: process.env.npm_package_version || '0.9.0',
+      version: process.env['npm_package_version'] || '0.9.0',
       config: this.config,
     };
 
@@ -281,11 +281,11 @@ export class DevelopmentEnvironment {
 
   private findElectronPath(): string {
     // Try common electron paths
-    const candidates = [
-      'npx electron',
-      './node_modules/.bin/electron',
-      'electron',
-    ];
+    // const candidates = [ // Commented out for future use
+    //   'npx electron',
+    //   './node_modules/.bin/electron',
+    //   'electron',
+    // ];
 
     // For now, return the npx version
     // In production, this should be the bundled electron

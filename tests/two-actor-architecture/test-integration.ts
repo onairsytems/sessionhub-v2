@@ -8,11 +8,11 @@
 
 import { PlanningEngine, UserRequest } from '@/src/core/planning/PlanningEngine';
 import { ExecutionEngine, ExecutionContext } from '@/src/core/execution/ExecutionEngine';
-import { ActorBoundaryEnforcer } from '@/src/core/orchestrator/ActorBoundaryEnforcer';
+// import { ActorBoundaryEnforcer } from '@/src/core/orchestrator/ActorBoundaryEnforcer'; // Commented out for future use
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
 import { SecuritySandbox } from '@/src/core/execution/SecuritySandbox';
 import { Logger } from '@/src/lib/logging/Logger';
-import * as fs from 'fs';
+// import * as fs from 'fs'; // Commented out for future use
 import * as path from 'path';
 
 export class IntegrationTests {
@@ -20,7 +20,7 @@ export class IntegrationTests {
   private executionLogger: Logger;
   private systemLogger: Logger;
   private validator: ProtocolValidator;
-  private boundaryEnforcer: ActorBoundaryEnforcer;
+  // private boundaryEnforcer: ActorBoundaryEnforcer; // Commented out for future use
   private planningEngine: PlanningEngine;
   private executionEngine: ExecutionEngine;
   private auditLogPath: string;
@@ -36,7 +36,7 @@ export class IntegrationTests {
     
     // Initialize components
     this.validator = new ProtocolValidator(this.systemLogger);
-    this.boundaryEnforcer = new ActorBoundaryEnforcer(this.systemLogger);
+    // this.boundaryEnforcer = new ActorBoundaryEnforcer(this.systemLogger); // Commented out for future use
     
     // Initialize engines with boundary enforcement
     const sandbox = new SecuritySandbox(this.executionLogger);
@@ -82,7 +82,7 @@ export class IntegrationTests {
     console.assert(instructions.requirements.length > 0, 'Should generate requirements');
     console.log(`   ✅ Generated ${instructions.requirements.length} requirements`);
     console.log(`   ✅ Generated ${instructions.deliverables.length} deliverables`);
-    console.log(`   - Sample requirement: ${instructions.requirements[0].description}`);
+    console.log(`   - Sample requirement: ${instructions.requirements[0]?.description || 'No requirements'}`);
 
     // Step 3: Validate instructions before execution
     console.log('\n   Step 3: Validating instructions...');
@@ -180,8 +180,8 @@ export class IntegrationTests {
     console.log('✅ Audit trail working correctly');
     console.log(`   - Planning logs: ${planningLogs.length}`);
     console.log(`   - Execution logs: ${executionLogs.length}`);
-    console.log(`   - Sample planning log: ${planningLogs[0].message}`);
-    console.log(`   - Sample execution log: ${executionLogs[0].message}`);
+    console.log(`   - Sample planning log: ${planningLogs[0]?.message || 'No planning logs'}`);
+    console.log(`   - Sample execution log: ${executionLogs[0]?.message || 'No execution logs'}`);
 
     // Generate audit report
     const auditReport = this.systemLogger.generateAuditReport(startTime, endTime);

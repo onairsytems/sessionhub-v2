@@ -69,7 +69,7 @@ export class RealTimeMonitor extends EventEmitter {
         .on('add', (filePath) => this.handleFileChange(filePath, 'add'))
         .on('change', (filePath) => this.handleFileChange(filePath, 'change'))
         .on('unlink', (filePath) => this.handleFileRemove(filePath))
-        .on('error', (error) => this.logger.error('Watcher error', { error }));
+        .on('error', (error) => this.logger.error('Watcher error', error as Error));
 
       // Wait for initial scan
       await new Promise<void>((resolve) => {
@@ -83,7 +83,7 @@ export class RealTimeMonitor extends EventEmitter {
       await this.performInitialScan();
 
     } catch (error) {
-      this.logger.error('Failed to start monitoring', { error });
+      this.logger.error('Failed to start monitoring', error as Error);
       throw error;
     }
   }
@@ -193,7 +193,7 @@ export class RealTimeMonitor extends EventEmitter {
       }
 
     } catch (error) {
-      this.logger.error('Error checking file', { filePath, error });
+      this.logger.error(`Error checking file: ${filePath}`, error as Error);
     } finally {
       this.activeChecks.delete(filePath);
     }
@@ -251,6 +251,8 @@ export class RealTimeMonitor extends EventEmitter {
     if (criticalErrors.length === 0) return;
 
     const firstError = criticalErrors[0];
+    if (!firstError) return;
+    
     const feedback = `
 ❌ Error in ${path.basename(filePath)}:${firstError.line}:${firstError.column}
 ${firstError.message}
@@ -318,7 +320,7 @@ ${firstError.suggestion ? `💡 ${firstError.suggestion}` : ''}
       }
 
     } catch (error) {
-      this.logger.error('Auto-fix failed', { filePath, error });
+      this.logger.error(`Auto-fix failed for ${filePath}`, error as Error);
     }
   }
 

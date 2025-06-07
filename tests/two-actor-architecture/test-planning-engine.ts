@@ -159,8 +159,8 @@ export class PlanningEngineTests {
       }
       
       console.log('✅ Instructions are properly descriptive');
-      console.log('   Sample requirement:', instructions.requirements[0].description);
-      console.log('   Sample objective:', instructions.objectives[0].primary);
+      console.log('   Sample requirement:', instructions.requirements[0]?.description || 'No requirements');
+      console.log('   Sample objective:', instructions.objectives[0]?.primary || 'No objectives');
     } catch (error) {
       console.error('❌ Failed descriptive instruction test:', error);
       throw error;

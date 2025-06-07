@@ -64,10 +64,10 @@ export const MAC_CONFIG = {
     hardenedRuntime: true,
     
     // Code signing identity
-    codeSigningIdentity: process.env.CODE_SIGN_IDENTITY || 'Developer ID Application',
+    codeSigningIdentity: process.env['CODE_SIGN_IDENTITY'] || 'Developer ID Application',
     
     // Notarization
-    notarize: process.env.NODE_ENV === 'production'
+    notarize: process.env['NODE_ENV'] === 'production'
   },
   
   // UI configuration
@@ -104,7 +104,7 @@ export const MAC_CONFIG = {
   autoUpdate: {
     enabled: true,
     checkInterval: 3600000, // 1 hour
-    updateUrl: process.env.UPDATE_URL || 'https://updates.sessionhub.app'
+    updateUrl: process.env['UPDATE_URL'] || 'https://updates.sessionhub.app'
   }
 };
 
@@ -112,7 +112,7 @@ export const MAC_CONFIG = {
 export async function ensureMacDirectories(): Promise<void> {
   const fs = await import('fs/promises');
   
-  for (const [key, dirPath] of Object.entries(MAC_CONFIG.paths)) {
+  for (const [_key, dirPath] of Object.entries(MAC_CONFIG.paths)) {
     if (typeof dirPath === 'string') {
       await fs.mkdir(dirPath, { recursive: true });
     }

@@ -339,7 +339,7 @@ export class ProductionMonitoringService {
   
   // Collect system metrics
   private collectMetrics(): void {
-    const timestamp = Date.now();
+    // const timestamp = Date.now(); // Commented out for future use
     
     // Mock metrics collection
     this.recordMetric('cpu_usage', Math.random() * 30 + 10); // 10-40%
@@ -402,7 +402,7 @@ export class ProductionMonitoringService {
   getMetricsSummary(): MetricsSummary {
     const getLatestMetric = (name: string): number => {
       const values = this.metrics.get(name) || [];
-      return values.length > 0 ? values[values.length - 1] : 0;
+      return values.length > 0 ? values[values.length - 1] || 0 : 0;
     };
     
     const getAverageMetric = (name: string): number => {

@@ -1,0 +1,41 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit quality checks..."
+
+# Run TypeScript compiler check
+echo "📘 Checking TypeScript compilation..."
+npx tsc --noEmit
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript compilation failed! Fix errors before committing."
+  exit 1
+fi
+
+# Run ESLint
+echo "🔧 Running ESLint..."
+npx eslint . --ext .ts,.tsx,.js,.jsx --max-warnings 0
+if [ $? -ne 0 ]; then
+  echo "❌ ESLint found errors! Fix them before committing."
+  exit 1
+fi
+
+# Run the error detection system
+echo "🛡️ Running SessionHub Error Detection..."
+npm run error:check
+if [ $? -ne 0 ]; then
+  echo "❌ Error detection found issues! Fix them before committing."
+  exit 1
+fi
+
+# Run tests
+echo "🧪 Running tests..."
+npm test -- --passWithNoTests
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed! Fix them before committing."
+  exit 1
+fi
+
+echo "✅ All quality checks passed! Proceeding with commit..."
+
+# Run lint-staged for formatting
+npx lint-staged

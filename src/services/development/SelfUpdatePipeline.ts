@@ -6,9 +6,8 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { createHash, createSign, createVerify } from 'crypto';
-import { spawn, ChildProcess } from 'child_process';
+import { spawn } from 'child_process';
 import { Logger } from '../../lib/logging/Logger';
-import { DevelopmentConfig, getConfig } from '../../config/development.config';
 
 export interface UpdateManifest {
   version: string;
@@ -37,7 +36,7 @@ export interface UpdateProgress {
 
 export class SelfUpdatePipeline {
   private logger: Logger;
-  private config: DevelopmentConfig;
+  // private config: DevelopmentConfig; // Commented out for future use
   private buildDir: string;
   private distDir: string;
   private privateKeyPath: string;
@@ -45,7 +44,7 @@ export class SelfUpdatePipeline {
 
   constructor() {
     this.logger = new Logger('SelfUpdatePipeline');
-    this.config = getConfig();
+    // this.config = getConfig(); // Commented out for future use
     this.buildDir = join(process.cwd(), '.build');
     this.distDir = join(process.cwd(), 'dist');
     this.privateKeyPath = join(process.cwd(), 'certs', 'update-signing.key');
@@ -158,11 +157,11 @@ export class SelfUpdatePipeline {
       this.reportProgress(progressCallback, {
         stage: 'failed',
         progress: 0,
-        message: `Build failed: ${error.message}`,
+        message: `Build failed: ${error instanceof Error ? error.message : String(error)}`,
         error: error as Error,
       });
 
-      this.logger.error('Self-update build failed', { error: error.message });
+      this.logger.error('Self-update build failed', error as Error);
       throw error;
     }
   }
@@ -237,11 +236,11 @@ export class SelfUpdatePipeline {
       this.reportProgress(progressCallback, {
         stage: 'failed',
         progress: 0,
-        message: `Deployment failed: ${error.message}`,
+        message: `Deployment failed: ${error instanceof Error ? error.message : String(error)}`,
         error: error as Error,
       });
 
-      this.logger.error('Update deployment failed', { error: error.message });
+      this.logger.error('Update deployment failed', error as Error);
       
       // Attempt rollback
       await this.rollbackUpdate();
@@ -268,14 +267,14 @@ export class SelfUpdatePipeline {
       await this.stopApplication();
 
       // Restore files from backup
-      await this.runCommand('cp', ['-r', join(backupDir, '*'), process.cwd()]);
+      await this.runCommand('cp', ['-r', join(backupDir, '*'), process.cwd()], process.cwd());
 
       // Restart application
       await this.startApplication();
 
       this.logger.info('Rollback completed successfully');
     } catch (error) {
-      this.logger.error('Rollback failed', { error: error.message });
+      this.logger.error('Rollback failed', error as Error);
       throw error;
     }
   }
@@ -298,7 +297,7 @@ export class SelfUpdatePipeline {
       this.logger.info('Manifest signature verification', { isValid });
       return isValid;
     } catch (error) {
-      this.logger.error('Manifest verification failed', { error: error.message });
+      this.logger.error('Manifest verification failed', error as Error);
       return false;
     }
   }
@@ -335,7 +334,8 @@ export class SelfUpdatePipeline {
       await this.runCommand('npm', ['test'], process.cwd());
       return true;
     } catch (error) {
-      this.logger.warn('Tests failed', { error: error.message });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.warn('Tests failed', { error: errorMessage });
       return false;
     }
   }
@@ -392,7 +392,7 @@ export class SelfUpdatePipeline {
   private async createBackup(): Promise<void> {
     const backupDir = join(process.cwd(), '.backup');
     await fs.rm(backupDir, { recursive: true, force: true });
-    await this.runCommand('cp', ['-r', process.cwd(), backupDir]);
+    await this.runCommand('cp', ['-r', process.cwd(), backupDir], process.cwd());
   }
 
   private async installFiles(manifest: UpdateManifest): Promise<void> {

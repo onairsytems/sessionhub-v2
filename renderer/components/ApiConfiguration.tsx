@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from './ui/Button';
-import { Card } from './ui/Card';
+import { Button } from '../../components/ui/Button';
+import { Card } from '../../components/ui/Card';
 import { Key, AlertCircle, CheckCircle, Loader } from 'lucide-react';
 
 interface ApiConfigurationProps {
@@ -71,7 +71,7 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
 
           <h1 className="text-2xl font-bold text-center mb-2">Welcome to SessionHub</h1>
           <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-            To get started, please enter your Claude API key. This will be stored securely in your Mac's Keychain.
+            To get started, please enter your Claude API key. This will be stored securely in your Mac&apos;s Keychain.
           </p>
 
           <div className="space-y-4">

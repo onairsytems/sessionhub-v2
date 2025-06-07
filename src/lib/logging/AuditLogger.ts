@@ -77,8 +77,8 @@ export class AuditLogger {
   startOperation(
     actor: AuditEvent['actor'],
     operationType: string,
-    description: string,
-    input?: any
+    _description: string,
+    _input?: any
   ): string {
     const correlationId = this.generateCorrelationId();
     

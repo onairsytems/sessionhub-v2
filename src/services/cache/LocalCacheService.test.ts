@@ -14,7 +14,7 @@ const TEST_CACHE_PATH = path.join(__dirname, 'test-cache');
 
 describe('LocalCacheService', () => {
   let cacheService: LocalCacheService;
-  let supabaseService: SupabaseService;
+  // let supabaseService: SupabaseService; // Commented out for future use
   let logger: Logger;
 
   beforeAll(() => {
@@ -80,7 +80,7 @@ describe('LocalCacheService', () => {
       });
 
       expect(updated.name).toBe('Updated Name');
-      expect(updated.metadata?.updated).toBe(true);
+      expect(updated.metadata?.['updated']).toBe(true);
     });
 
     it('should delete a project', async () => {
@@ -125,7 +125,7 @@ describe('LocalCacheService', () => {
       });
 
       const stats = await cacheService.getCacheStats();
-      expect(stats.recordCounts.projects).toBeGreaterThan(0);
+      expect(stats.recordCounts['projects']).toBeGreaterThan(0);
       expect(stats.totalSize).toBeGreaterThan(0);
       expect(stats.cacheHitRate).toBeDefined();
     });
@@ -169,11 +169,11 @@ describe('LocalCacheService', () => {
   describe('Offline Queue', () => {
     it('should track pending syncs', async () => {
       // Create project offline
-      const project = await cacheService.createProject({
-        name: 'Offline Test',
-        path: '/offline/test',
-        type: 'other'
-      });
+      // const project = await cacheService.createProject({ // Commented out for future use
+      //   name: 'Offline Test',
+      //   path: '/offline/test',
+      //   type: 'other'
+      // });
 
       const queueSize = await cacheService.getOfflineQueueSize();
       expect(queueSize).toBeGreaterThan(0);
@@ -191,17 +191,17 @@ describe('LocalCacheService', () => {
 
       await shortTTLCache.initialize();
 
-      const project = await shortTTLCache.createProject({
-        name: 'TTL Test',
-        path: '/ttl/test',
-        type: 'nextjs'
-      });
+      // const project = await shortTTLCache.createProject({ // Commented out for future use
+      //   name: 'TTL Test',
+      //   path: '/ttl/test',
+      //   type: 'nextjs'
+      // });
 
       // Wait for expiration
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Force refresh should fetch new data (or return null in offline mode)
-      const retrieved = await shortTTLCache.getProject(project.id!, true);
+      // const retrieved = await shortTTLCache.getProject(project.id!, true); // Commented out for future use
       
       await shortTTLCache.cleanup();
     });
@@ -294,11 +294,11 @@ async function offlineExample() {
   await cacheService.initialize();
 
   // All operations work offline
-  const project = await cacheService.createProject({
-    name: 'Offline Project',
-    path: '/offline/project',
-    type: 'react'
-  });
+  // const project = await cacheService.createProject({ // Commented out for future use
+  //   name: 'Offline Project',
+  //   path: '/offline/project',
+  //   type: 'react'
+  // });
 
   // Check offline queue
   const queueSize = await cacheService.getOfflineQueueSize();

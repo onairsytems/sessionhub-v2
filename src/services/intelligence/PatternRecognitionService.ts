@@ -94,8 +94,8 @@ export class PatternRecognitionService {
   private patternDecayRate = 0.95;
 
   constructor() {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'] || '';
+    const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || '';
     this.supabase = createClient(supabaseUrl, supabaseAnonKey);
     this.initializePatterns();
   }
@@ -110,7 +110,7 @@ export class PatternRecognitionService {
 
       if (error) throw error;
 
-      patterns?.forEach(pattern => {
+      patterns?.forEach((pattern: any) => {
         this.patterns.set(pattern.id, {
           ...pattern,
           lastSeen: new Date(pattern.last_seen),
@@ -126,7 +126,7 @@ export class PatternRecognitionService {
         .from('workflow_patterns')
         .select('*');
 
-      workflows?.forEach(workflow => {
+      workflows?.forEach((workflow: any) => {
         this.workflowPatterns.set(workflow.id, {
           ...workflow,
           steps: JSON.parse(workflow.steps || '[]'),
@@ -655,7 +655,7 @@ export class PatternRecognitionService {
       `Implement gradual migration with deprecation warnings`
     ];
     
-    return strategies[0]; // Could be more sophisticated based on pattern types
+    return strategies[0] || ''; // Could be more sophisticated based on pattern types
   }
 
   private generateInsights(patterns: CodePattern[], workflowPatterns: WorkflowPattern[]): string[] {
@@ -881,7 +881,7 @@ export class PatternRecognitionService {
             pattern,
             relevanceScore: 0.9,
             reason: `Direct solution for: ${pattern.description}`,
-            applicationStrategy: pattern.solutions[0].description,
+            applicationStrategy: pattern.solutions[0]?.description || '',
             estimatedImpact: {
               timeReduction: 30,
               errorReduction: 80,
@@ -939,7 +939,7 @@ export class PatternRecognitionService {
     let match;
     
     while ((match = codeBlockRegex.exec(content)) !== null) {
-      blocks.push(match[1]);
+      blocks.push(match[1] || '');
     }
     
     return blocks;
@@ -1035,11 +1035,11 @@ ${recommendations.slice(0, 5).map((r, i) => `${i + 1}. ${r}`).join('\n')}
   private generateRecommendations(patterns: CodePattern[], metrics: Record<string, number>): string[] {
     const recommendations: string[] = [];
     
-    if (metrics.errorPatterns > metrics.successPatterns) {
+    if ((metrics['errorPatterns'] || 0) > (metrics['successPatterns'] || 0)) {
       recommendations.push('Focus on implementing more success patterns to balance error-prone code');
     }
     
-    if (metrics.averageSuccessRate < 0.6) {
+    if ((metrics['averageSuccessRate'] || 0) < 0.6) {
       recommendations.push('Low success rate indicates need for better testing and validation');
     }
     
@@ -1056,7 +1056,7 @@ ${recommendations.slice(0, 5).map((r, i) => `${i + 1}. ${r}`).join('\n')}
       .sort((a, b) => b.frequency - a.frequency);
       
     if (highFrequencyErrors.length > 0) {
-      recommendations.push(`Address high-frequency error: "${highFrequencyErrors[0].description}"`);
+      recommendations.push(`Address high-frequency error: "${highFrequencyErrors[0]?.description || 'Unknown error'}"`);
     }
     
     const recentSuccessPatterns = patterns.filter(p => 
@@ -1065,7 +1065,7 @@ ${recommendations.slice(0, 5).map((r, i) => `${i + 1}. ${r}`).join('\n')}
     );
     
     if (recentSuccessPatterns.length > 0) {
-      recommendations.push(`Continue using successful pattern: "${recentSuccessPatterns[0].description}"`);
+      recommendations.push(`Continue using successful pattern: "${recentSuccessPatterns[0]?.description || 'Success pattern'}"`);
     }
     
     return recommendations;

@@ -7,7 +7,6 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 import { spawn } from 'child_process';
 import { Logger } from '../../lib/logging/Logger';
-import { DevelopmentConfig, getConfig } from '../../config/development.config';
 
 export interface QAResult {
   stage: string;
@@ -55,15 +54,15 @@ export interface SecurityScanResult {
 
 export class QualityAssurancePipeline {
   private logger: Logger;
-  private config: DevelopmentConfig;
+  // private config: DevelopmentConfig; // Commented out for future use
   private qaWorkspace: string;
-  private baselineMetrics: string;
+  // private baselineMetrics: string; // Commented out for future use
 
   constructor() {
     this.logger = new Logger('QualityAssurancePipeline');
-    this.config = getConfig();
+    // this.config = getConfig(); // Commented out for future use
     this.qaWorkspace = join(process.cwd(), '.qa-workspace');
-    this.baselineMetrics = join(process.cwd(), '.qa-baselines', 'metrics.json');
+    // this.baselineMetrics = join(process.cwd(), '.qa-baselines', 'metrics.json'); // Commented out for future use
   }
 
   /**
@@ -156,11 +155,11 @@ export class QualityAssurancePipeline {
       return result;
 
     } catch (error) {
-      this.logger.error('QA pipeline failed with error', { error: error.message });
+      this.logger.error('QA pipeline failed with error', error as Error);
       
       result.endTime = new Date();
       result.totalDuration = result.endTime.getTime() - result.startTime.getTime();
-      result.blockers.push(`Pipeline error: ${error.message}`);
+      result.blockers.push(`Pipeline error: ${error instanceof Error ? error.message : String(error)}`);
       
       return result;
     }
@@ -222,7 +221,7 @@ export class QualityAssurancePipeline {
         stage: 'Static Analysis',
         passed: false,
         score: 0,
-        details: `Static analysis failed: ${error.message}`,
+        details: `Static analysis failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -261,7 +260,7 @@ export class QualityAssurancePipeline {
         stage: 'Security Scan',
         passed: false,
         score: 0,
-        details: `Security scan failed: ${error.message}`,
+        details: `Security scan failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -301,7 +300,7 @@ export class QualityAssurancePipeline {
         stage: 'Unit Tests',
         passed: false,
         score: 0,
-        details: `Unit tests failed: ${error.message}`,
+        details: `Unit tests failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -339,7 +338,7 @@ export class QualityAssurancePipeline {
         stage: 'Integration Tests',
         passed: false,
         score: 0,
-        details: `Integration tests failed: ${error.message}`,
+        details: `Integration tests failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -386,7 +385,7 @@ export class QualityAssurancePipeline {
         stage: 'Architecture Validation',
         passed: false,
         score: 0,
-        details: `Architecture validation failed: ${error.message}`,
+        details: `Architecture validation failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -424,7 +423,7 @@ export class QualityAssurancePipeline {
         stage: 'Performance Benchmarks',
         passed: false,
         score: 50, // Performance issues are warnings, not blockers
-        details: `Performance benchmarks failed: ${error.message}`,
+        details: `Performance benchmarks failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -467,7 +466,7 @@ export class QualityAssurancePipeline {
         stage: 'Self-Development Capability',
         passed: false,
         score: 0,
-        details: `Self-development test failed: ${error.message}`,
+        details: `Self-development test failed: ${error instanceof Error ? error.message : String(error)}`,
         duration: Date.now() - startTime,
         artifacts: [],
       };
@@ -497,12 +496,12 @@ export class QualityAssurancePipeline {
     });
   }
 
-  private async analyzeCodeComplexity(changes: string[]): Promise<{ highComplexityFiles: string[] }> {
+  private async analyzeCodeComplexity(_changes: string[]): Promise<{ highComplexityFiles: string[] }> {
     // Placeholder for complexity analysis
     return { highComplexityFiles: [] };
   }
 
-  private async performSecurityScan(changes: string[]): Promise<SecurityScanResult> {
+  private async performSecurityScan(_changes: string[]): Promise<SecurityScanResult> {
     // Placeholder for security scanning
     return {
       vulnerabilities: [],
@@ -541,12 +540,12 @@ export class QualityAssurancePipeline {
     return violations;
   }
 
-  private async checkDependencyDirections(changes: string[]): Promise<string[]> {
+  private async checkDependencyDirections(_changes: string[]): Promise<string[]> {
     // Placeholder for dependency analysis
     return [];
   }
 
-  private async checkProhibitedPatterns(changes: string[]): Promise<string[]> {
+  private async checkProhibitedPatterns(_changes: string[]): Promise<string[]> {
     // Placeholder for pattern checking
     return [];
   }

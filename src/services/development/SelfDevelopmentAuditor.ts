@@ -87,14 +87,14 @@ export class SelfDevelopmentAuditor {
   private logger: Logger;
   private config: DevelopmentConfig;
   private auditLogPath: string;
-  private auditIndexPath: string;
+  // private auditIndexPath: string; // Commented out for future use
   private eventChain: string | null = null;
 
   constructor() {
     this.logger = new Logger('SelfDevelopmentAuditor');
     this.config = getConfig();
     this.auditLogPath = join(this.expandPath(this.config.dataDirectory), 'audit.log');
-    this.auditIndexPath = join(this.expandPath(this.config.dataDirectory), 'audit-index.json');
+    // this.auditIndexPath = join(this.expandPath(this.config.dataDirectory), 'audit-index.json'); // Commented out for future use
   }
 
   /**
@@ -121,6 +121,7 @@ export class SelfDevelopmentAuditor {
         instanceId: this.config.instanceId,
       },
       risk: 'low',
+      context: {}
     });
 
     this.logger.info('Self-development auditor initialized');
@@ -136,7 +137,7 @@ export class SelfDevelopmentAuditor {
       ...eventData,
       integrity: {
         hash: '',
-        previousHash: this.eventChain,
+        previousHash: this.eventChain || undefined,
       },
     };
 
@@ -372,7 +373,7 @@ export class SelfDevelopmentAuditor {
         .slice(offset, offset + limit);
 
     } catch (error) {
-      this.logger.error('Failed to query audit events', { error: error.message });
+      this.logger.error('Failed to query audit events', error as Error);
       return [];
     }
   }
@@ -433,6 +434,7 @@ export class SelfDevelopmentAuditor {
 
     for (let i = 0; i < events.length; i++) {
       const event = events[i];
+      if (!event) continue;
 
       // Verify event hash
       const expectedHash = this.calculateEventHash(event);
@@ -488,17 +490,17 @@ export class SelfDevelopmentAuditor {
     await fs.appendFile(this.auditLogPath, logLine);
   }
 
-  private async updateAuditIndex(event: AuditEvent): Promise<void> {
+  private async updateAuditIndex(_event: AuditEvent): Promise<void> {
     // Update index for fast queries
     // This is a simplified implementation
-    const indexEntry = {
-      id: event.id,
-      timestamp: event.timestamp,
-      type: event.type,
-      actor: event.actor,
-      risk: event.risk,
-      target: event.target,
-    };
+    // const indexEntry = { // Commented out for future use
+    //   id: event.id,
+    //   timestamp: event.timestamp,
+    //   type: event.type,
+    //   actor: event.actor,
+    //   risk: event.risk,
+    //   target: event.target,
+    // };
 
     // In a real implementation, this would update a proper index structure
   }
@@ -507,7 +509,10 @@ export class SelfDevelopmentAuditor {
     try {
       const events = await this.loadAllEvents();
       if (events.length > 0) {
-        this.eventChain = events[events.length - 1].integrity.hash;
+        const lastEvent = events[events.length - 1];
+        if (lastEvent) {
+          this.eventChain = lastEvent.integrity.hash;
+        }
       }
     } catch (error) {
       this.eventChain = null;
@@ -577,9 +582,11 @@ export class SelfDevelopmentAuditor {
       const current = highRiskEvents[i];
       const next = highRiskEvents[i + 1];
       
-      const timeDiff = current.timestamp.getTime() - next.timestamp.getTime();
-      if (timeDiff < 60000) { // Less than 1 minute apart
-        anomalies.push(current);
+      if (current && next) {
+        const timeDiff = current.timestamp.getTime() - next.timestamp.getTime();
+        if (timeDiff < 60000) { // Less than 1 minute apart
+          anomalies.push(current);
+        }
       }
     }
 

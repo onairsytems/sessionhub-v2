@@ -6,6 +6,8 @@
 import { Logger } from '@/src/lib/logging/Logger';
 import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { InstructionProtocol } from '@/src/models/Instruction';
+import { SessionVerificationEngine } from '../verification/SessionVerificationEngine';
+import { VerificationGates } from '../verification/VerificationGates';
 
 export interface Session {
   id: string;
@@ -55,10 +57,14 @@ export class SessionManager {
   private readonly sessions: Map<string, Session> = new Map();
   private readonly activeSessions: Set<string> = new Set();
   private readonly maxConcurrentSessions: number = 5;
+  private readonly verificationEngine: SessionVerificationEngine;
+  private readonly verificationGates: VerificationGates;
 
   constructor(logger: Logger, auditLogger: AuditLogger) {
     this.logger = logger;
     this.auditLogger = auditLogger;
+    this.verificationEngine = new SessionVerificationEngine(logger);
+    this.verificationGates = new VerificationGates(this.verificationEngine, logger, true);
   }
 
   /**
@@ -76,7 +82,7 @@ export class SessionManager {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       userId: request.userId,
-      projectId: request.context.projectId || 'default',
+      projectId: request.context['projectId'] || 'default',
       request: {
         ...request,
         id: this.generateRequestId(),
@@ -186,15 +192,32 @@ export class SessionManager {
   }
 
   /**
-   * Complete a session
+   * Complete a session - WITH VERIFICATION
    */
   async completeSession(
     sessionId: string,
     result: ExecutionResult
   ): Promise<void> {
+    const session = this.sessions.get(sessionId);
+    if (!session) {
+      throw new Error(`Session not found: ${sessionId}`);
+    }
+
+    // CRITICAL: Verify the session actually did what it promised
+    const verificationResult = await this.verificationEngine.verifySession(session, result);
+    
+    // Apply verification gate - this will throw if verification fails
+    await this.verificationGates.sessionCompletionGate(session, verificationResult);
+
+    // Only mark as completed if verification passed
     await this.updateSession(sessionId, {
-      status: result.status === 'success' ? 'completed' : 'failed',
-      result
+      status: verificationResult.verified ? 'completed' : 'failed',
+      result,
+      metadata: {
+        ...session.metadata,
+        verificationScore: verificationResult.verificationScore,
+        verified: verificationResult.verified
+      }
     });
 
     this.auditLogger.logEvent({
@@ -204,11 +227,14 @@ export class SessionManager {
       },
       operation: {
         type: 'session.complete',
-        description: 'Completed session',
-        output: result
+        description: 'Completed session with verification',
+        output: {
+          result,
+          verification: verificationResult
+        }
       },
       result: {
-        status: result.status === 'success' ? 'success' : 'failure',
+        status: verificationResult.verified ? 'success' : 'failure',
         duration: result.metrics.duration
       },
       metadata: {
@@ -216,6 +242,10 @@ export class SessionManager {
         correlationId: this.generateCorrelationId()
       }
     });
+
+    // Log verification report for transparency
+    const report = await this.verificationEngine.generateVerificationReport(sessionId);
+    this.logger.info('Session verification report', { sessionId, report });
   }
 
   /**

@@ -17,8 +17,8 @@ import { ErrorCatalog } from './ErrorCatalog';
 import { ErrorPattern, ErrorReport, ErrorSeverity, ValidationResult } from './types';
 
 export class ErrorDetectionEngine {
-  private tsConfig: ts.ParsedCommandLine;
-  private eslint: ESLint;
+  private tsConfig!: ts.ParsedCommandLine;
+  private eslint!: ESLint;
   private errorCatalog: ErrorCatalog;
   private logger: Logger;
   private watchers: Map<string, ts.FileWatcher> = new Map();
@@ -81,11 +81,6 @@ export class ErrorDetectionEngine {
   private initializeESLint(): void {
     this.eslint = new ESLint({
       overrideConfig: {
-        extends: [
-          'next/core-web-vitals',
-          'plugin:@typescript-eslint/recommended',
-          'plugin:@typescript-eslint/recommended-requiring-type-checking'
-        ],
         rules: {
           // TypeScript specific rules
           '@typescript-eslint/no-explicit-any': 'error',
@@ -152,7 +147,7 @@ export class ErrorDetectionEngine {
 
       return errors;
     } catch (error) {
-      this.logger.error('Error detection failed', { filePath, error });
+      this.logger.error(`Error detection failed for ${filePath}`, error as Error);
       throw error;
     }
   }
@@ -257,7 +252,7 @@ export class ErrorDetectionEngine {
           errors.push({
             filePath,
             line: lines.length,
-            column: lines[lines.length - 1].length + 1,
+            column: (lines.length > 0 && lines[lines.length - 1]?.length || 0) + 1,
             severity: 'error',
             category: 'Next.js',
             code: 'NEXT_SERVER_COMPONENT_CLIENT_CODE',
@@ -342,7 +337,7 @@ export class ErrorDetectionEngine {
       while ((match = pattern.exec(content)) !== null) {
         const lines = content.substring(0, match.index).split('\n');
         const line = lines.length;
-        const column = lines[lines.length - 1].length + 1;
+        const column = (lines.length > 0 && lines[lines.length - 1]?.length || 0) + 1;
 
         errors.push({
           filePath,
@@ -376,7 +371,7 @@ export class ErrorDetectionEngine {
             onError(errors);
           }
         } catch (error) {
-          this.logger.error('Real-time monitoring error', { filePath, error });
+          this.logger.error(`Real-time monitoring error for ${filePath}`, error as Error);
         }
       });
 
@@ -441,7 +436,7 @@ export class ErrorDetectionEngine {
 
       return result;
     } catch (error) {
-      this.logger.error('Project validation failed', { error });
+      this.logger.error('Project validation failed', error as Error);
       throw error;
     }
   }

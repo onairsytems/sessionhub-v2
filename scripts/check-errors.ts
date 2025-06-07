@@ -5,6 +5,7 @@
  */
 
 import { createErrorDetectionSystem } from '../src/core/error-detection';
+import { BuildValidation } from '../src/core/error-detection/types';
 
 async function checkErrors() {
   console.log('🔍 Starting error detection...\n');
@@ -16,31 +17,44 @@ async function checkErrors() {
   });
 
   try {
-    const result = await errorSystem.validate();
+    const startTime = Date.now();
+    const result: BuildValidation = await errorSystem.validate();
+    const duration = Date.now() - startTime;
     
     console.log('\n📊 Error Detection Summary');
     console.log('========================');
-    console.log(`Total Errors: ${result.totalErrors}`);
-    console.log(`Build Can Proceed: ${result.success ? '✅ YES' : '❌ NO'}`);
-    console.log(`Duration: ${result.duration}ms`);
+    console.log(`Total Errors: ${result.blockingErrors.length}`);
+    console.log(`Total Warnings: ${result.warnings.length}`);
+    console.log(`Build Can Proceed: ${result.canBuild ? '✅ YES' : '❌ NO'}`);
+    console.log(`Duration: ${duration}ms`);
     
-    if (result.errorsBySeverity) {
-      console.log('\n📈 Errors by Severity:');
-      Object.entries(result.errorsBySeverity).forEach(([severity, count]) => {
-        console.log(`  ${severity}: ${count}`);
-      });
-    }
+    // Count errors by severity
+    const errorsBySeverity = {
+      error: result.blockingErrors.length,
+      warning: result.warnings.length
+    };
     
-    if (result.errorsByCategory) {
+    console.log('\n📈 Errors by Severity:');
+    Object.entries(errorsBySeverity).forEach(([severity, count]) => {
+      console.log(`  ${severity}: ${count}`);
+    });
+    
+    // Count errors by category
+    const errorsByCategory: Record<string, number> = {};
+    [...result.blockingErrors, ...result.warnings].forEach(error => {
+      errorsByCategory[error.category] = (errorsByCategory[error.category] || 0) + 1;
+    });
+    
+    if (Object.keys(errorsByCategory).length > 0) {
       console.log('\n📁 Errors by Category:');
-      Object.entries(result.errorsByCategory).forEach(([category, count]) => {
+      Object.entries(errorsByCategory).forEach(([category, count]) => {
         console.log(`  ${category}: ${count}`);
       });
     }
     
-    if (!result.success && result.errors) {
+    if (!result.canBuild && result.blockingErrors.length > 0) {
       console.log('\n❌ Critical Errors (first 10):');
-      result.errors.slice(0, 10).forEach(error => {
+      result.blockingErrors.slice(0, 10).forEach((error: any) => {
         console.log(`\n  ${error.filePath}:${error.line}:${error.column}`);
         console.log(`  ${error.code}: ${error.message}`);
         if (error.suggestion) {
@@ -48,12 +62,12 @@ async function checkErrors() {
         }
       });
       
-      if (result.errors.length > 10) {
-        console.log(`\n  ... and ${result.errors.length - 10} more errors`);
+      if (result.blockingErrors.length > 10) {
+        console.log(`\n  ... and ${result.blockingErrors.length - 10} more errors`);
       }
     }
     
-    process.exit(result.success ? 0 : 1);
+    process.exit(result.canBuild ? 0 : 1);
     
   } catch (error) {
     console.error('❌ Error detection failed:', error);

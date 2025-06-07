@@ -34,7 +34,7 @@ export interface EncryptedCredential {
 export class CredentialManager {
   private readonly logger: Logger;
   private readonly credentialsPath: string;
-  private readonly encryptionKey: Buffer;
+  private encryptionKey: Buffer;
   private credentials: Map<string, EncryptedCredential> = new Map();
   private readonly algorithm = 'aes-256-gcm';
 
@@ -62,7 +62,7 @@ export class CredentialManager {
     
     // Use provided master key or generate from environment
     this.encryptionKey = this.deriveEncryptionKey(
-      masterKey || process.env.SESSIONHUB_MASTER_KEY || 'default-dev-key-change-in-production'
+      masterKey || process.env['SESSIONHUB_MASTER_KEY'] || 'default-dev-key-change-in-production'
     );
   }
 

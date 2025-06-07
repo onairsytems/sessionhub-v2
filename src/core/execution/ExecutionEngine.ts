@@ -14,6 +14,7 @@ import {
 import { Logger } from '@/src/lib/logging/Logger';
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
 import { SecuritySandbox } from './SecuritySandbox';
+import { ClaudeCodeAPIClient } from '@/src/lib/api/ClaudeCodeAPIClient';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface ExecutionContext {
@@ -35,16 +36,21 @@ export class ExecutionEngine {
   private readonly logger: Logger;
   private readonly validator: ProtocolValidator;
   private readonly sandbox: SecuritySandbox;
+  private readonly claudeCodeApi?: ClaudeCodeAPIClient;
   private executionHistory: Map<string, ExecutionResult> = new Map();
+  private readonly useRealApi: boolean;
 
   constructor(
     logger: Logger,
     validator: ProtocolValidator,
-    sandbox: SecuritySandbox
+    sandbox: SecuritySandbox,
+    claudeCodeApi?: ClaudeCodeAPIClient
   ) {
     this.logger = logger;
     this.validator = validator;
     this.sandbox = sandbox;
+    this.claudeCodeApi = claudeCodeApi;
+    this.useRealApi = !!claudeCodeApi;
   }
 
   /**
@@ -167,28 +173,75 @@ export class ExecutionEngine {
   ): Promise<ExecutionTask[]> {
     const tasks: ExecutionTask[] = [];
 
-    // Convert requirements into executable tasks
-    for (const requirement of instructions.requirements) {
+    if (this.useRealApi && this.claudeCodeApi) {
+      // When using real API, create a single task to generate and execute all code
       const task: ExecutionTask = {
         id: uuidv4(),
         type: 'code',
-        description: requirement.description,
+        description: 'Generate and execute code for all requirements',
         action: async () => {
-          // In a real implementation, this would generate and execute code
-          // based on the requirement description
-          this.logger.debug('Executing requirement', { requirement });
+          this.logger.info('Using Claude Code API to generate implementation');
           
-          // Simulate execution
-          if (context.dryRun) {
-            return { simulated: true, requirement: requirement.description };
+          // Generate code from instructions
+          const generatedCode = await this.claudeCodeApi.generateCode({
+            instruction: instructions,
+            context: {
+              projectType: context.environment['PROJECT_TYPE'] || 'web',
+              language: context.environment['LANGUAGE'] || 'typescript',
+              framework: context.environment['FRAMEWORK'],
+              existingCode: context.environment['EXISTING_CODE']
+            }
+          });
+          
+          this.logger.debug('Code generated, executing...');
+          
+          // Execute the generated code
+          const executionResult = await this.claudeCodeApi.executeCode(
+            generatedCode,
+            instructions
+          );
+          
+          if (!executionResult.success) {
+            throw new Error(`Execution failed: ${executionResult.error}`);
           }
           
-          // Real execution would happen here
-          return { executed: true, requirement: requirement.description };
+          return {
+            generated: true,
+            executed: true,
+            output: executionResult.output,
+            files: executionResult.files,
+            executionTime: executionResult.executionTime
+          };
+        },
+        rollback: async () => {
+          // Clean up workspace on failure
+          if (this.claudeCodeApi) {
+            await this.claudeCodeApi.cleanup(instructions.metadata.sessionId);
+          }
         }
       };
       
       tasks.push(task);
+    } else {
+      // Fallback to mock implementation
+      for (const requirement of instructions.requirements) {
+        const task: ExecutionTask = {
+          id: uuidv4(),
+          type: 'code',
+          description: requirement.description,
+          action: async () => {
+            this.logger.debug('Executing requirement (mock)', { requirement });
+            
+            if (context.dryRun) {
+              return { simulated: true, requirement: requirement.description };
+            }
+            
+            return { executed: true, requirement: requirement.description };
+          }
+        };
+        
+        tasks.push(task);
+      }
     }
 
     return tasks;

@@ -3,6 +3,8 @@ const nextConfig = {
   output: 'export',
   distDir: 'out',
   trailingSlash: false,
+  basePath: '',
+  assetPrefix: '',
   typescript: {
     ignoreBuildErrors: true,
   },

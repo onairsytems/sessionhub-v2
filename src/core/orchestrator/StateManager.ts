@@ -411,7 +411,7 @@ export class StateManager {
   }
 
   private startAutoSave(): void {
-    if (this.currentState.configuration.features.autoSave) {
+    if (this.currentState.configuration.features['autoSave']) {
       this.saveTimer = setInterval(async () => {
         try {
           await this.saveState();

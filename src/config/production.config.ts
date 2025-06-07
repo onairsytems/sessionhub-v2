@@ -163,7 +163,7 @@ export const PRODUCTION_CONFIG: ProductionConfig = {
 // Security validation for production environment
 export function validateProductionSecurity(): boolean {
   const checks = [
-    process.env.NODE_ENV === 'production',
+    process.env['NODE_ENV'] === 'production',
     PRODUCTION_CONFIG.security.certificates.notarization,
     PRODUCTION_CONFIG.security.certificates.hardenedRuntime,
     PRODUCTION_CONFIG.security.sandbox.enabled,

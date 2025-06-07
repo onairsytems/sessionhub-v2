@@ -14,7 +14,7 @@ export * from './types';
 import { ErrorDetectionEngine } from './ErrorDetectionEngine';
 import { RealTimeMonitor } from './RealTimeMonitor';
 import { BuildValidator } from './BuildValidator';
-import { CICDIntegration } from './CICDIntegration';
+// import { CICDIntegration } from './CICDIntegration'; // Commented out for future use
 import { ErrorDetectionConfig } from './types';
 
 /**

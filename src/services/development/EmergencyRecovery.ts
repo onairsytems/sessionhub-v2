@@ -73,7 +73,7 @@ export class EmergencyRecovery {
     await fs.mkdir(this.snapshotsDir, { recursive: true });
 
     // Create initial snapshot
-    await this.createSnapshot('initial', 'System initialization snapshot');
+    await this.createSnapshot('automatic', 'System initialization snapshot');
 
     // Set up emergency signal handlers
     this.setupSignalHandlers();
@@ -85,7 +85,7 @@ export class EmergencyRecovery {
    * Enter emergency mode
    */
   async enterEmergencyMode(reason: string): Promise<void> {
-    this.logger.error('ENTERING EMERGENCY MODE', { reason });
+    this.logger.error('ENTERING EMERGENCY MODE', undefined, { reason });
 
     const emergencyState: EmergencyState = {
       isEmergencyMode: true,
@@ -170,7 +170,8 @@ export class EmergencyRecovery {
             hash,
           });
         } catch (error) {
-          this.logger.warn('Failed to backup file', { filePath, error: error.message });
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.logger.warn('Failed to backup file', { filePath, error: errorMessage });
         }
       }
 
@@ -192,7 +193,7 @@ export class EmergencyRecovery {
       return snapshot;
 
     } catch (error) {
-      this.logger.error('Failed to create snapshot', { snapshotId, error: error.message });
+      this.logger.error('Failed to create snapshot', error as Error, { snapshotId });
       throw error;
     }
   }
@@ -215,7 +216,7 @@ export class EmergencyRecovery {
       await this.stopApplication();
 
       // Create backup of current state
-      await this.createSnapshot('pre-restore', `Backup before restoring ${snapshotId}`);
+      await this.createSnapshot('automatic', `Backup before restoring ${snapshotId}`);
 
       // Restore files
       for (const file of snapshot.files) {
@@ -225,7 +226,8 @@ export class EmergencyRecovery {
           
           this.logger.debug('Restored file', { path: file.path });
         } catch (error) {
-          this.logger.warn('Failed to restore file', { path: file.path, error: error.message });
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          this.logger.warn('Failed to restore file', { path: file.path, error: errorMessage });
         }
       }
 
@@ -243,7 +245,7 @@ export class EmergencyRecovery {
       this.logger.info('Snapshot restoration completed', { snapshotId });
 
     } catch (error) {
-      this.logger.error('Snapshot restoration failed', { snapshotId, error: error.message });
+      this.logger.error('Snapshot restoration failed', error as Error, { snapshotId });
       throw error;
     }
   }
@@ -277,14 +279,13 @@ export class EmergencyRecovery {
 
       return success;
     } catch (error) {
-      this.logger.error('Recovery command failed', { 
-        command: commandName, 
-        error: error.message 
+      this.logger.error('Recovery command failed', error as Error, { 
+        command: commandName
       });
 
       await this.logEmergencyEvent('RECOVERY_COMMAND_FAILED', {
         command: commandName,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date(),
       });
 
@@ -418,7 +419,7 @@ export class EmergencyRecovery {
 
     // Handle uncaught exceptions
     process.on('uncaughtException', async (error) => {
-      this.logger.error('Uncaught exception, entering emergency mode', { error: error.message });
+      this.logger.error('Uncaught exception, entering emergency mode', error);
       await this.enterEmergencyMode(`Uncaught exception: ${error.message}`);
     });
   }
@@ -485,7 +486,7 @@ export class EmergencyRecovery {
 
       // Get the most recent automatic snapshot
       const latestSnapshot = automaticSnapshots.sort().reverse()[0];
-      const metadataPath = join(this.snapshotsDir, latestSnapshot, 'metadata.json');
+      const metadataPath = join(this.snapshotsDir, latestSnapshot || '', 'metadata.json');
       const metadata = JSON.parse(await fs.readFile(metadataPath, 'utf-8'));
       
       return metadata;
@@ -512,7 +513,7 @@ export class EmergencyRecovery {
 
   private async notifyEmergency(reason: string): Promise<void> {
     // Implementation would send notifications via email, Slack, etc.
-    this.logger.error('EMERGENCY NOTIFICATION', { reason });
+    this.logger.error('EMERGENCY NOTIFICATION', undefined, { reason });
   }
 
   private async runCommand(command: string, args: string[]): Promise<{ stdout: string; stderr: string }> {
