@@ -331,8 +331,8 @@ export async function exampleUsage() {
   await dataService.initialize();
   
   // Check status
-  const status = await dataService.getStatus();
-  console.log('Service status:', status);
+  await dataService.getStatus();
+// REMOVED: console statement
   
   // Create a project - will be cached locally and synced
   const project = await dataService.createProject({
@@ -342,24 +342,24 @@ export async function exampleUsage() {
   });
   
   // Get project - will use cache for fast access
-  const retrieved = await dataService.getProject(project.id!);
-  console.log('Retrieved project:', retrieved);
+  await dataService.getProject(project.id!);
+// REMOVED: console statement
   
   // Force refresh from Supabase
-  const refreshed = await dataService.getProject(project.id!, true);
-  console.log('Refreshed project:', refreshed);
+  await dataService.getProject(project.id!, true);
+// REMOVED: console statement
   
   // Work offline - operations will be queued
   if (!dataService.isOnline()) {
-    console.log('Working offline - changes will sync when online');
+// REMOVED: console statement
     
     await dataService.updateProject(project.id!, {
       name: 'Updated Offline'
     });
     
     // Check offline queue
-    const queueStatus = await dataService.getStatus();
-    console.log('Offline queue size:', queueStatus.offlineQueueSize);
+    await dataService.getStatus();
+// REMOVED: console statement
   }
   
   // Force sync when back online

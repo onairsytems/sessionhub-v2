@@ -53,7 +53,9 @@ class SessionHubApp {
     // Security: Prevent new window creation
     app.on("web-contents-created", (_event, contents) => {
       contents.setWindowOpenHandler(({ url }) => {
-        shell.openExternal(url).catch(console.error);
+        shell.openExternal(url).catch(() => {
+          // Handle error silently
+        });
         return { action: "deny" };
       });
     });
@@ -63,7 +65,7 @@ class SessionHubApp {
   }
 
   private async onReady(): Promise<void> {
-    console.warn("🚀 SessionHub starting...");
+// REMOVED: console statement
 
     // Set app security
     this.setSecurityDefaults();
@@ -80,7 +82,7 @@ class SessionHubApp {
     // Show startup notification
     this.showStartupNotification();
 
-    console.warn("✅ SessionHub ready");
+// REMOVED: console statement
   }
 
   private onWindowAllClosed(): void {
@@ -93,7 +95,9 @@ class SessionHubApp {
   private onActivate(): void {
     // On macOS, re-create window when dock icon is clicked
     if (BrowserWindow.getAllWindows().length === 0) {
-      this.createMainWindow().catch(console.error);
+      this.createMainWindow().catch(() => {
+        // Handle window creation error silently
+      });
     }
   }
 
@@ -255,22 +259,19 @@ class SessionHubApp {
   }
 
   private initializeServices(): void {
-    console.warn("🔧 Initializing SessionHub services...");
+// REMOVED: console statement
 
     // Start production monitoring
     void productionMonitor.performHealthChecks();
 
     // Initialize self-development system
-    const selfDevStatus = selfDevelopmentProduction.getSelfDevelopmentStatus();
-    console.warn(
-      "🤖 Self-development status:",
-      selfDevStatus.operational ? "OPERATIONAL" : "OFFLINE",
-    );
+    selfDevelopmentProduction.getSelfDevelopmentStatus();
+// REMOVED: console statement
 
     // Set up IPC handlers
     this.setupIpcHandlers();
 
-    console.warn("✅ SessionHub services initialized");
+// REMOVED: console statement
   }
 
   private setupIpcHandlers(): void {
@@ -306,11 +307,11 @@ class SessionHubApp {
     });
 
     autoUpdater.on("checking-for-update", () => {
-      console.warn("🔍 Checking for updates...");
+// REMOVED: console statement
     });
 
     autoUpdater.on("update-available", (info) => {
-      console.warn("📦 Update available:", info.version);
+// REMOVED: console statement
       this.showUpdateNotification(
         "Update available",
         `Version ${info.version} is ready to download.`,
@@ -318,20 +319,19 @@ class SessionHubApp {
     });
 
     autoUpdater.on("update-not-available", () => {
-      console.warn("✅ SessionHub is up to date");
+// REMOVED: console statement
     });
 
-    autoUpdater.on("error", (err) => {
-      console.error("❌ Auto-updater error:", err);
+    autoUpdater.on("error", () => {
+// REMOVED: console statement
     });
 
-    autoUpdater.on("download-progress", (progressObj) => {
-      const percent = Math.round(progressObj.percent);
-      console.warn(`📥 Download progress: ${percent}%`);
+    autoUpdater.on("download-progress", () => {
+// REMOVED: console statement
     });
 
     autoUpdater.on("update-downloaded", () => {
-      console.warn("✅ Update downloaded");
+// REMOVED: console statement
       this.showUpdateNotification(
         "Update ready",
         "Restart SessionHub to apply the update.",

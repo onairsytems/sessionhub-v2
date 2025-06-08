@@ -52,7 +52,7 @@ export class SelfDevelopmentProductionService {
   
   private initializeProductionSelfDevelopment(): void {
     // Initialize with production-ready self-development
-    console.log('🚀 Initializing Self-Development for Production...');
+// REMOVED: console statement
     
     // Start monitoring for issues
     this.startIssueMonitoring();
@@ -63,7 +63,7 @@ export class SelfDevelopmentProductionService {
     // Set up emergency procedures
     this.setupEmergencyProcedures();
     
-    console.log('✅ Self-Development Production System Operational');
+// REMOVED: console statement
   }
   
   private startIssueMonitoring(): void {
@@ -98,7 +98,7 @@ export class SelfDevelopmentProductionService {
     issues.forEach(issue => {
       if (!this.issueQueue.find(existing => existing.id === issue.id)) {
         this.issueQueue.push(issue);
-        console.log(`📋 New production issue queued: ${issue.title}`);
+// REMOVED: console statement
       }
     });
   }
@@ -201,7 +201,7 @@ export class SelfDevelopmentProductionService {
   }
   
   private async processIssue(issue: ProductionIssue): Promise<void> {
-    console.log(`🔧 Processing production issue: ${issue.title}`);
+// REMOVED: console statement
     
     // Update status to processing
     issue.status = 'processing';
@@ -218,7 +218,7 @@ export class SelfDevelopmentProductionService {
         
         if (deploymentResult.success) {
           issue.status = 'completed';
-          console.log(`✅ Production issue resolved: ${issue.title}`);
+// REMOVED: console statement
           
           // Record successful deployment
           this.deploymentHistory.push({
@@ -228,15 +228,15 @@ export class SelfDevelopmentProductionService {
           });
         } else {
           issue.status = 'failed';
-          console.log(`❌ Deployment failed for issue: ${issue.title}`);
+// REMOVED: console statement
         }
       } else {
         issue.status = 'failed';
-        console.log(`❌ Session failed for issue: ${issue.title}`);
+// REMOVED: console statement
       }
     } catch (error: any) {
       issue.status = 'failed';
-      console.error(`💥 Error processing issue ${issue.title}:`, error);
+// REMOVED: console statement
     }
     
     // Move to history
@@ -250,7 +250,7 @@ export class SelfDevelopmentProductionService {
     changes?: string[];
   }> {
     // Mock session creation - in production, this would use actual Planning Actor
-    console.log(`📝 Creating session for: ${issue.title}`);
+// REMOVED: console statement
     
     // Simulate session processing time
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -276,11 +276,11 @@ export class SelfDevelopmentProductionService {
     }
   }
   
-  private async deployFix(sessionId: string, _changes: string[]): Promise<{
+  private async deployFix(_sessionId: string, _changes: string[]): Promise<{
     success: boolean;
     version: string;
   }> {
-    console.log(`🚀 Deploying fix from session: ${sessionId}`);
+// REMOVED: console statement
     
     // Simulate deployment process
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -291,9 +291,9 @@ export class SelfDevelopmentProductionService {
     const version = `1.0.${this.deploymentHistory.length + 1}`;
     
     if (success) {
-      console.log(`✅ Successfully deployed version: ${version}`);
+// REMOVED: console statement
     } else {
-      console.log(`❌ Deployment failed for version: ${version}`);
+// REMOVED: console statement
     }
     
     return { success, version };
@@ -312,9 +312,9 @@ export class SelfDevelopmentProductionService {
     const allPassed = checks.every(check => check);
     
     if (allPassed) {
-      console.log('✅ Self-Development Pipeline Integrity: VERIFIED');
+// REMOVED: console statement
     } else {
-      console.log('⚠️ Self-Development Pipeline Integrity: ISSUES DETECTED');
+// REMOVED: console statement
     }
     
     return allPassed;
@@ -347,7 +347,7 @@ export class SelfDevelopmentProductionService {
   
   private setupEmergencyProcedures(): void {
     // Set up emergency stop mechanism
-    console.log('🚨 Emergency procedures configured');
+// REMOVED: console statement
     
     // Monitor for critical failures
     setInterval(() => {
@@ -360,18 +360,18 @@ export class SelfDevelopmentProductionService {
     
     // Emergency conditions
     if (metrics.errorRate > 20) {
-      console.log('🚨 EMERGENCY: High error rate detected, engaging emergency protocols');
+// REMOVED: console statement
       this.triggerEmergencyStop();
     }
     
     if (metrics.successRate < 80) {
-      console.log('🚨 EMERGENCY: Low success rate detected, engaging emergency protocols');
+// REMOVED: console statement
       this.triggerEmergencyStop();
     }
   }
   
   private triggerEmergencyStop(): void {
-    console.log('🛑 EMERGENCY STOP: Self-development temporarily disabled');
+// REMOVED: console statement
     // In production, this would disable the self-development pipeline
     // and alert administrators
   }
@@ -426,7 +426,7 @@ export class SelfDevelopmentProductionService {
     };
     
     this.issueQueue.push(testIssue);
-    console.log('🧪 Test issue added to queue for processing');
+// REMOVED: console statement
   }
 }
 

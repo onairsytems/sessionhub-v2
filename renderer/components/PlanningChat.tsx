@@ -118,7 +118,7 @@ export function PlanningChat({
         setIsLoading(false);
       }
     } catch (error: unknown) {
-      console.error("Failed to import GitHub repository:", error);
+// REMOVED: console statement
     }
   };
 

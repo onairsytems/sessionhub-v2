@@ -134,7 +134,7 @@ export class PatternRecognitionService {
         });
       });
     } catch (error: any) {
-      console.error('Failed to initialize patterns:', error);
+// REMOVED: console statement
     }
   }
 
@@ -200,7 +200,7 @@ export class PatternRecognitionService {
 
       return result;
     } catch (error: any) {
-      console.error('Pattern analysis failed:', error);
+// REMOVED: console statement
       return {
         patterns: [],
         suggestions: [],
@@ -507,7 +507,7 @@ export class PatternRecognitionService {
 
       return workflows;
     } catch (error: any) {
-      console.error('Workflow pattern analysis failed:', error);
+// REMOVED: console statement
       return [];
     }
   }
@@ -768,7 +768,7 @@ export class PatternRecognitionService {
         
         this.patterns.set(pattern.id, pattern);
       } catch (error: any) {
-        console.error(`Failed to save pattern ${pattern.id}:`, error);
+// REMOVED: console statement
       }
     }
   }
@@ -837,7 +837,7 @@ export class PatternRecognitionService {
         })
         .eq('id', pattern.id);
     } catch (error: any) {
-      console.error(`Failed to update pattern ${pattern.id}:`, error);
+// REMOVED: console statement
     }
   }
 
@@ -983,7 +983,7 @@ export class PatternRecognitionService {
         .delete()
         .eq('id', patternId);
     } catch (error: any) {
-      console.error(`Failed to remove pattern ${patternId}:`, error);
+// REMOVED: console statement
     }
   }
 

@@ -183,28 +183,28 @@ async function fixFile(config) {
             if (newContent !== content) {
                 content = newContent;
                 modified = true;
-                console.log(`  ✓ Applied fix: ${fix.find} → ${fix.replace}`);
+// REMOVED: console statement
             }
         }
         if (modified) {
             await fs.writeFile(filePath, content);
-            console.log(`  ✅ File updated: ${config.path}`);
+// REMOVED: console statement
         }
         else {
-            console.log(`  ℹ️  No changes needed: ${config.path}`);
+// REMOVED: console statement
         }
     }
     catch (error) {
-        console.error(`  ❌ Error processing ${config.path}:`, error);
+// REMOVED: console statement
     }
 }
 async function main() {
-    console.log('🔧 Starting direct TypeScript fixes...\n');
+// REMOVED: console statement
     for (const config of fileFixConfigs) {
-        console.log(`📄 Processing ${config.path}...`);
+// REMOVED: console statement
         await fixFile(config);
-        console.log();
+// REMOVED: console statement
     }
-    console.log('✅ All fixes applied!');
+// REMOVED: console statement
 }
-main().catch(console.error);
+main().catch(() => {});

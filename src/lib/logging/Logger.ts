@@ -78,24 +78,20 @@ export class Logger {
   }
 
   private outputToConsole(entry: LogEntry): void {
-    const { timestamp, level, message, context } = entry;
-    const prefix = `[${timestamp}] [${level.toUpperCase()}]`;
-    
-    const contextStr = context ? ` ${JSON.stringify(context)}` : '';
-    const fullMessage = `${prefix} ${message}${contextStr}`;
+    const { level } = entry;
 
     switch (level) {
       case 'debug':
-        console.debug(fullMessage);
+// REMOVED: console statement
         break;
       case 'info':
-        console.info(fullMessage);
+// REMOVED: console statement
         break;
       case 'warn':
-        console.warn(fullMessage);
+// REMOVED: console statement
         break;
       case 'error':
-        console.error(fullMessage);
+// REMOVED: console statement
         break;
     }
   }

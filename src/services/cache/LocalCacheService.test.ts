@@ -231,15 +231,13 @@ describe('LocalCacheService', () => {
       const endTime = Date.now();
       const duration = endTime - startTime;
 
-      console.log(`Created ${recordCount} records in ${duration}ms`);
+// REMOVED: console statement
       expect(duration).toBeLessThan(5000); // Should complete in under 5 seconds
 
       // Test retrieval performance
-      const retrieveStart = Date.now();
       const projects = await cacheService.getProjects();
-      const retrieveEnd = Date.now();
 
-      console.log(`Retrieved ${projects.length} records in ${retrieveEnd - retrieveStart}ms`);
+// REMOVED: console statement
       expect(projects.length).toBe(recordCount);
     });
   });
@@ -266,15 +264,15 @@ async function exampleUsage() {
     }
   });
 
-  console.log('Created project:', project);
+// REMOVED: console statement
 
   // Get project - will use cache for fast access
-  const cached = await cacheService.getProject(project.id!);
-  console.log('Retrieved from cache:', cached);
+  await cacheService.getProject(project.id!);
+// REMOVED: console statement
 
   // Check cache statistics
-  const stats = await cacheService.getCacheStats();
-  console.log('Cache stats:', stats);
+  await cacheService.getCacheStats();
+// REMOVED: console statement
 
   // Force sync with Supabase
   await cacheService.forceSyncAll();
@@ -303,8 +301,8 @@ async function offlineExample() {
   // });
 
   // Check offline queue
-  const queueSize = await cacheService.getOfflineQueueSize();
-  console.log(`${queueSize} operations pending sync`);
+  await cacheService.getOfflineQueueSize();
+// REMOVED: console statement
 
   // Later, when online, initialize with Supabase
   const supabaseService = new SupabaseService(logger);

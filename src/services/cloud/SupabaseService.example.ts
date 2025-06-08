@@ -131,10 +131,10 @@ async function errorHandlingExample() {
     if (error instanceof Error) {
       if (error.message.includes('Missing Supabase credentials')) {
         // Prompt user to configure credentials
-        console.log('Please configure your Supabase credentials first');
+// REMOVED: console statement
       } else if (error.message.includes('Failed to connect')) {
         // Handle connection errors
-        console.log('Unable to connect to Supabase. Check your internet connection.');
+// REMOVED: console statement
       }
     }
   }
@@ -151,7 +151,7 @@ async function offlineModeExample() {
     });
   } catch (error: any) {
     if (error instanceof Error && error.message.includes('Offline mode')) {
-      console.log('Operation queued for when connection is restored');
+// REMOVED: console statement
     }
   }
 }

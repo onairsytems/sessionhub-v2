@@ -21,16 +21,16 @@ class BootstrapValidator {
 
   // Test helper
   test(name, fn) {
-    console.log(`\n🧪 Testing: ${name}`);
+// REMOVED: console statement
     try {
       fn();
       this.results.tests.push({ name, status: 'PASS', error: null });
       this.results.summary.passed++;
-      console.log('✅ PASS');
+// REMOVED: console statement
     } catch (error) {
       this.results.tests.push({ name, status: 'FAIL', error: error.message });
       this.results.summary.failed++;
-      console.log(`❌ FAIL: ${error.message}`);
+// REMOVED: console statement
     }
     this.results.summary.total++;
   }
@@ -83,10 +83,10 @@ class BootstrapValidator {
       try {
         const remote = execSync('git remote -v', { encoding: 'utf8' });
         if (!remote.trim()) {
-          console.log('  ℹ️  No remote configured (local only)');
+// REMOVED: console statement
         }
       } catch (error) {
-        console.log('  ℹ️  No remote configured (local only)');
+// REMOVED: console statement
       }
     });
   }
@@ -186,8 +186,8 @@ Bootstrap validation has ${this.results.summary.failed === 0 ? 'succeeded' : 'fa
   }
 
   run() {
-    console.log('🔍 SessionHub V2 Bootstrap Validator');
-    console.log('====================================\n');
+// REMOVED: console statement
+// REMOVED: console statement
 
     this.validateProjectStructure();
     this.validateGitIntegration();
@@ -196,7 +196,7 @@ Bootstrap validation has ${this.results.summary.failed === 0 ? 'succeeded' : 'fa
     this.validateFoundationIntegrity();
 
     const report = this.generateReport();
-    console.log('\n' + report);
+// REMOVED: console statement
     
     return this.results.summary.failed === 0;
   }

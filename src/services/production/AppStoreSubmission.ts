@@ -124,7 +124,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const certificateValid = true; // Mock validation
       return hasValidCertificate && certificateValid;
     } catch (error: any) {
-      console.error('Code signing validation failed:', error);
+// REMOVED: console statement
       return false;
     }
   }
@@ -136,7 +136,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const notarized = true; // Mock validation
       return notarized;
     } catch (error: any) {
-      console.error('Notarization validation failed:', error);
+// REMOVED: console statement
       return false;
     }
   }
@@ -148,7 +148,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const sandboxEnabled = true; // Mock validation
       return entitlementsValid && sandboxEnabled;
     } catch (error: any) {
-      console.error('Sandbox validation failed:', error);
+// REMOVED: console statement
       return false;
     }
   }
@@ -160,7 +160,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const manifestComplete = true; // Mock validation
       return privacyManifestExists && manifestComplete;
     } catch (error: any) {
-      console.error('Privacy manifest validation failed:', error);
+// REMOVED: console statement
       return false;
     }
   }
@@ -172,7 +172,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const voiceOverCompatible = true; // Mock validation
       return accessibilitySupported && voiceOverCompatible;
     } catch (error: any) {
-      console.error('Accessibility validation failed:', error);
+// REMOVED: console statement
       return false;
     }
   }
@@ -185,7 +185,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const noVulnerabilities = true; // Mock validation
       return secureDataHandling && encryptionImplemented && noVulnerabilities;
     } catch (error: any) {
-      console.error('Security validation failed:', error);
+// REMOVED: console statement
       return false;
     }
   }

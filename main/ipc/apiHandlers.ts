@@ -28,7 +28,7 @@ export function registerApiHandlers(): void {
       await client.sendMessage("Hello", "test-validation");
       return true;
     } catch (error: unknown) {
-      console.error("API key validation failed:", error);
+// REMOVED: console statement
       return false;
     }
   });
@@ -43,7 +43,7 @@ export function registerApiHandlers(): void {
       );
       return true;
     } catch (error: unknown) {
-      console.error("Failed to save API key:", error);
+// REMOVED: console statement
       throw error;
     }
   });
@@ -83,7 +83,7 @@ export function registerApiHandlers(): void {
 
         return response;
       } catch (error: unknown) {
-        console.error("Failed to send chat message:", error);
+// REMOVED: console statement
         throw error;
       }
     },
@@ -115,7 +115,7 @@ export function registerApiHandlers(): void {
         defaultBranch: "main",
       };
     } catch (error: unknown) {
-      console.error("Failed to select GitHub repo:", error);
+// REMOVED: console statement
       return null;
     }
   });
@@ -161,7 +161,7 @@ Provide a comprehensive analysis including:
 
         return response;
       } catch (error: unknown) {
-        console.error("Failed to analyze repository:", error);
+// REMOVED: console statement
         throw error;
       }
     },

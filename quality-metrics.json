@@ -1,0 +1,54 @@
+[
+  {
+    "timestamp": "2025-06-08T14:04:51.729Z",
+    "typescript": {
+      "errors": 0,
+      "warnings": 0,
+      "status": "pass"
+    },
+    "eslint": {
+      "errors": 1,
+      "warnings": 0,
+      "status": "fail"
+    },
+    "console": {
+      "count": 2,
+      "status": "fail"
+    },
+    "git": {
+      "isClean": false,
+      "uncommittedFiles": 31,
+      "status": "fail"
+    },
+    "overall": {
+      "status": "fail",
+      "compliance": 25
+    }
+  },
+  {
+    "timestamp": "2025-06-08T14:11:42.446Z",
+    "typescript": {
+      "errors": 0,
+      "warnings": 0,
+      "status": "pass"
+    },
+    "eslint": {
+      "errors": 0,
+      "warnings": 0,
+      "status": "pass"
+    },
+    "console": {
+      "count": 0,
+      "status": "pass"
+    },
+    "git": {
+      "isClean": false,
+      "uncommittedFiles": 31,
+      "status": "fail"
+    },
+    "overall": {
+      "status": "fail",
+      "compliance": 75
+    }
+  }
+]

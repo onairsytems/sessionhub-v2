@@ -45,7 +45,7 @@ class SessionHubApp {
           hardResetMethod: "exit",
         });
       } catch (error: unknown) {
-        console.warn("electron-reload not available, skipping hot reload");
+// REMOVED: console statement
       }
     }
 
@@ -68,7 +68,7 @@ class SessionHubApp {
   }
 
   private async onReady(): Promise<void> {
-    console.warn("🚀 SessionHub starting...");
+// REMOVED: console statement
 
     // Set app security
     this.setSecurityDefaults();
@@ -85,7 +85,7 @@ class SessionHubApp {
     // Show startup notification
     this.showStartupNotification();
 
-    console.warn("✅ SessionHub ready");
+// REMOVED: console statement
   }
 
   private onWindowAllClosed(): void {
@@ -120,7 +120,7 @@ class SessionHubApp {
   }
 
   private async createMainWindow(): Promise<void> {
-    console.warn("Creating main window...");
+// REMOVED: console statement
 
     // Create the browser window
     this.mainWindow = new BrowserWindow({
@@ -139,25 +139,25 @@ class SessionHubApp {
       },
     });
 
-    console.warn("Window created, loading content...");
+// REMOVED: console statement
 
     // Load the application
     try {
       if (isDev) {
-        console.warn("Loading development server...");
+// REMOVED: console statement
         await this.mainWindow.loadURL("http://localhost:3000");
         // Open DevTools in development
         this.mainWindow.webContents.openDevTools();
       } else {
-        console.warn("Loading production files...");
+// REMOVED: console statement
         // For production, load the Next.js static export
         const appPath = path.join(__dirname, "../../out/index.html");
-        console.warn("Loading production build from:", appPath);
+// REMOVED: console statement
         await this.mainWindow.loadFile(appPath);
       }
-      console.warn("Content loaded successfully");
+// REMOVED: console statement
     } catch (error: unknown) {
-      console.error("Failed to load content:", error);
+// REMOVED: console statement
       // Show proper error dialog
       void dialog.showErrorBox(
         "SessionHub Error",
@@ -286,12 +286,12 @@ class SessionHubApp {
   }
 
   private initializeServices(): void {
-    console.warn("🔧 Initializing SessionHub services...");
+// REMOVED: console statement
 
     // Set up IPC handlers
     this.setupIpcHandlers();
 
-    console.warn("✅ SessionHub services initialized");
+// REMOVED: console statement
   }
 
   private setupIpcHandlers(): void {

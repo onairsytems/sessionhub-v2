@@ -214,7 +214,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
           setIsConnected(false);
         };
       } catch (err) {
-        console.error("Failed to connect to progress stream:", err);
+// REMOVED: console statement
         setError("Failed to connect to progress updates");
       }
     };

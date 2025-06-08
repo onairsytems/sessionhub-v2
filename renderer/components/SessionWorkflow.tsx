@@ -36,7 +36,7 @@ export default function SessionWorkflow() {
       const hasKey = await window.electronAPI.checkApiKey();
       setHasApiKey(hasKey);
     } catch (error: unknown) {
-      console.error("Failed to check API key:", error);
+// REMOVED: console statement
     } finally {
       setIsCheckingApiKey(false);
     }

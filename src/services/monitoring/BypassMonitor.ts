@@ -35,7 +35,7 @@ export class BypassMonitor extends EventEmitter {
    * Start monitoring for bypass attempts
    */
   public startMonitoring(): void {
-    console.log('🔒 Starting bypass monitoring...');
+// REMOVED: console statement
     
     // Monitor git audit log
     this.watchGitAudit();

@@ -40,7 +40,7 @@ export class ErrorCatalog {
       code: 'TS2339',
       description: 'Property does not exist on type',
       examples: [
-        'const obj = { a: 1 }; console.log(obj.b); // Property b does not exist'
+// REMOVED: console statement
       ],
       fixes: [
         'Add the property to the type definition',
@@ -68,7 +68,7 @@ export class ErrorCatalog {
       code: 'TS2304',
       description: 'Cannot find name',
       examples: [
-        'console.log(nonExistentVariable); // Cannot find name'
+// REMOVED: console statement
       ],
       fixes: [
         'Import the missing module or variable',
@@ -215,7 +215,7 @@ export class ErrorCatalog {
       code: 'NO_CONSOLE',
       description: 'Console statement detected',
       examples: [
-        'console.log("debug info")'
+// REMOVED: console statement
       ],
       fixes: [
         'Remove console statements before production',

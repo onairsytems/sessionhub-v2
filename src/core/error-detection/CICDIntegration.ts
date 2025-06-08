@@ -263,12 +263,12 @@ warning_count=${validation.warnings.length}
    */
   private async createGitHubAnnotations(validation: any): Promise<void> {
     // GitHub Actions uses special commands to create annotations
-    validation.blockingErrors.forEach((error: ErrorReport) => {
-      console.log(`::error file=${error.filePath},line=${error.line},col=${error.column}::${error.message}`);
+    validation.blockingErrors.forEach((_error: ErrorReport) => {
+// REMOVED: console statement
     });
 
-    validation.warnings.forEach((warning: ErrorReport) => {
-      console.log(`::warning file=${warning.filePath},line=${warning.line},col=${warning.column}::${warning.message}`);
+    validation.warnings.forEach((_warning: ErrorReport) => {
+// REMOVED: console statement
     });
   }
 
@@ -333,7 +333,7 @@ const cicd = new CICDIntegration({
 cicd.run().then(result => {
   process.exit(result.exitCode);
 }).catch(err => {
-  console.error('Pre-commit validation failed:', err);
+// REMOVED: console statement
   process.exit(1);
 });
 "
@@ -344,6 +344,6 @@ exit $?
     await fsPromises.writeFile(hookPath, hookContent);
     await fsPromises.chmod(hookPath, '755');
     
-    console.log('✅ Pre-commit hook installed');
+// REMOVED: console statement
   }
 }

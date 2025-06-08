@@ -22,7 +22,7 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
         onComplete();
       }
     } catch (err) {
-      console.error("Error checking API key:", err);
+// REMOVED: console statement
     }
   }, [onComplete]);
 
