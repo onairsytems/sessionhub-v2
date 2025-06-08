@@ -20,8 +20,8 @@ export const FEATURES = {
   GIT_PROTECTION: true,
   
   // In-progress features (disabled until complete)
-  CLOUD_SYNC: false,           // TODO: [Session 0.2.0] Implement Supabase real-time sync
-  AI_ASSISTANT: false,         // TODO: [Session 0.2.1] Integrate Claude API for assistance
+  CLOUD_SYNC: true,            // ✅ Session 1.6: Real Supabase integration implemented
+  AI_ASSISTANT: true,          // ✅ Session 1.6: Real Claude API integration implemented
   VOICE_COMMANDS: false,       // TODO: [Session 0.2.2] Add voice command support
   GITHUB_INTEGRATION: false,   // TODO: [Session 0.2.3] Full GitHub integration
   SLACK_INTEGRATION: false,    // TODO: [Session 0.2.4] Slack notifications

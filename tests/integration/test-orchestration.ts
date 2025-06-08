@@ -8,7 +8,7 @@ import { SystemOrchestrator } from '@/src/core/orchestrator/SystemOrchestrator';
 
 // Test configuration
 const TEST_CONFIG = {
-  useRealApi: false, // Use mock for tests
+  useRealApi: true, // Using real APIs for integration tests
   dataDir: './test-data',
   masterKey: 'test-master-key'
 };

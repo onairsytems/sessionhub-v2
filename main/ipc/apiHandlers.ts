@@ -106,13 +106,21 @@ export function registerApiHandlers(): void {
         return null;
       }
 
-      // For demo purposes, return mock data
-      // In production, this would parse the URL and fetch repo details
+      // Parse the GitHub URL
+      const url = (result as any).inputValue || '';
+      const githubRegex = /^https?:\/\/github\.com\/([^\/]+)\/([^\/\s]+)/;
+      const match = url.match(githubRegex);
+      
+      if (!match) {
+        return null;
+      }
+      
+      const [, owner, repo] = match;
       return {
-        url: "https://github.com/example/project",
-        name: "project",
-        owner: "example",
-        defaultBranch: "main",
+        url: url.replace(/\.git$/, ''), // Remove .git suffix if present
+        name: repo.replace(/\.git$/, ''),
+        owner: owner,
+        defaultBranch: "main", // Could fetch this via GitHub API
       };
     } catch (error: unknown) {
 // REMOVED: console statement

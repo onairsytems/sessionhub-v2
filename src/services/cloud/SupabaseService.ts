@@ -1068,8 +1068,8 @@ export class SupabaseService {
           .from('sessions')
           .insert({
             id: sessionState.sessionId,
-            user_id: sessionState.context?.userId || '00000000-0000-0000-0000-000000000000', // Placeholder for system
-            project_id: sessionState.context?.projectId || '00000000-0000-0000-0000-000000000000', // Placeholder
+            user_id: sessionState.context?.userId || 'system-user', // System user for operations without user context
+            project_id: sessionState.context?.projectId || 'system-project', // System project for operations without project context
             status: sessionState.status || 'active',
             metadata: {
               ...sessionState,

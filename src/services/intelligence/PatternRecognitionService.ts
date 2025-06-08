@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { createClient } from '@supabase/supabase-js';
+import { SupabaseService } from '@/src/services/cloud/SupabaseService';
+import { Logger } from '@/src/lib/logging/Logger';
 
 interface CodePattern {
   id: string;
@@ -85,56 +85,76 @@ interface PatternAnalysisResult {
 }
 
 export class PatternRecognitionService {
-  private supabase: SupabaseClient;
+  private readonly logger: Logger;
+  private supabaseService: SupabaseService;
   private patterns: Map<string, CodePattern> = new Map();
-  private workflowPatterns: Map<string, WorkflowPattern> = new Map();
   private patternCache: Map<string, PatternAnalysisResult> = new Map();
   private learningRate = 0.1;
   private minPatternFrequency = 3;
   private patternDecayRate = 0.95;
+  public isInitialized = false;
 
-  constructor() {
-    const supabaseUrl = process.env['NEXT_PUBLIC_SUPABASE_URL'] || '';
-    const supabaseAnonKey = process.env['NEXT_PUBLIC_SUPABASE_ANON_KEY'] || '';
-    this.supabase = createClient(supabaseUrl, supabaseAnonKey);
+  constructor(supabaseService?: SupabaseService) {
+    this.logger = new Logger('PatternRecognitionService');
+    this.supabaseService = supabaseService || new SupabaseService(this.logger);
     this.initializePatterns();
   }
 
   private async initializePatterns(): Promise<void> {
     try {
-      // Load existing patterns from database
-      const { data: patterns, error } = await this.supabase
-        .from('code_patterns')
-        .select('*')
-        .order('score', { ascending: false });
+      // Initialize Supabase service if not already initialized
+      if (!this.supabaseService.isInitialized()) {
+        await this.supabaseService.initialize();
+      }
 
-      if (error) throw error;
-
-      patterns?.forEach((pattern: any) => {
-        this.patterns.set(pattern.id, {
-          ...pattern,
-          lastSeen: new Date(pattern.last_seen),
-          examples: JSON.parse(pattern.examples || '[]'),
-          solutions: JSON.parse(pattern.solutions || '[]'),
-          tags: JSON.parse(pattern.tags || '[]'),
-          projectTypes: JSON.parse(pattern.project_types || '[]')
-        });
+      // Load existing patterns from Supabase
+      const patterns = await this.supabaseService.getPatterns();
+      
+      patterns.forEach((pattern: any) => {
+        // Convert Supabase pattern to CodePattern format
+        const codePattern: CodePattern = {
+          id: pattern.id || '',
+          type: this.mapPatternType(pattern.pattern_type),
+          pattern: pattern.metadata?.pattern || '',
+          description: pattern.description,
+          frequency: pattern.frequency || 0,
+          successRate: (pattern.success_rate || 0) / 100, // Convert from percentage
+          lastSeen: new Date(pattern.last_used_at || pattern.updated_at || Date.now()),
+          examples: pattern.metadata?.examples || [],
+          solutions: pattern.metadata?.solutions || [],
+          tags: pattern.metadata?.tags || [],
+          score: pattern.metadata?.score || 50,
+          projectTypes: pattern.metadata?.projectTypes || ['all'],
+          language: pattern.metadata?.language,
+          framework: pattern.metadata?.framework
+        };
+        
+        this.patterns.set(codePattern.id, codePattern);
       });
 
-      // Load workflow patterns
-      const { data: workflows } = await this.supabase
-        .from('workflow_patterns')
-        .select('*');
-
-      workflows?.forEach((workflow: any) => {
-        this.workflowPatterns.set(workflow.id, {
-          ...workflow,
-          steps: JSON.parse(workflow.steps || '[]'),
-          bottlenecks: JSON.parse(workflow.bottlenecks || '[]')
-        });
+      this.isInitialized = true;
+      this.logger.info('Pattern Recognition Service initialized', {
+        patternsLoaded: this.patterns.size
       });
     } catch (error: any) {
-// REMOVED: console statement
+      this.logger.error('Failed to initialize patterns', error);
+      // Continue with empty patterns - service can still analyze and create new patterns
+      this.isInitialized = true;
+    }
+  }
+
+  private mapPatternType(dbType: string): 'success' | 'error' | 'workflow' | 'optimization' {
+    switch (dbType) {
+      case 'code_pattern':
+        return 'success';
+      case 'error_resolution':
+        return 'error';
+      case 'workflow':
+        return 'workflow';
+      case 'optimization':
+        return 'optimization';
+      default:
+        return 'success';
     }
   }
 
@@ -146,21 +166,14 @@ export class PatternRecognitionService {
     }
 
     try {
-      // Fetch project sessions and code
-      const { data: sessions, error } = await this.supabase
-        .from('sessions')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
+      // Fetch project sessions using Supabase service
+      const sessions = await this.supabaseService.getProjectSessions(projectId);
 
       const patterns: CodePattern[] = [];
       const newPatterns: CodePattern[] = [];
 
       // Analyze code patterns in sessions
-      for (const session of sessions || []) {
+      for (const session of sessions) {
         const sessionPatterns = await this.extractPatternsFromSession(session);
         patterns.push(...sessionPatterns);
         
@@ -447,26 +460,24 @@ export class PatternRecognitionService {
 
   private async analyzeWorkflowPatterns(projectId: string): Promise<WorkflowPattern[]> {
     try {
-      const { data: sessions, error } = await this.supabase
-        .from('sessions')
-        .select('*')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
+      const sessions = await this.supabaseService.getProjectSessions(projectId);
 
       const workflowSteps: Map<string, WorkflowStep> = new Map();
       const workflows: WorkflowPattern[] = [];
 
       // Analyze session sequences
-      for (let i = 0; i < (sessions?.length || 0) - 1; i++) {
+      for (let i = 0; i < sessions.length - 1; i++) {
         const currentSession = sessions[i];
         const nextSession = sessions[i + 1];
         
-        const timeDiff = new Date(nextSession.created_at).getTime() - 
-                        new Date(currentSession.created_at).getTime();
+        if (!currentSession || !nextSession) continue;
         
-        const stepId = `${currentSession.type}-to-${nextSession.type}`;
+        const timeDiff = new Date(nextSession.created_at || '').getTime() - 
+                        new Date(currentSession.created_at || '').getTime();
+        
+        const currentType = currentSession.metadata?.['type'] || 'unknown';
+        const nextType = nextSession.metadata?.['type'] || 'unknown';
+        const stepId = `${currentType}-to-${nextType}`;
         const existing = workflowSteps.get(stepId);
         
         if (existing) {
@@ -474,7 +485,7 @@ export class PatternRecognitionService {
         } else {
           workflowSteps.set(stepId, {
             id: stepId,
-            name: `${currentSession.type} → ${nextSession.type}`,
+            name: `${currentType} → ${nextType}`,
             averageDuration: timeDiff,
             failureRate: 0.1,
             dependencies: []
@@ -547,11 +558,7 @@ export class PatternRecognitionService {
     const suggestions: PatternSuggestion[] = [];
     
     // Get project context
-    const { data: project } = await this.supabase
-      .from('projects')
-      .select('*')
-      .eq('id', projectId)
-      .single();
+    const project = await this.supabaseService.getProject(projectId);
 
     // Analyze current patterns and suggest improvements
     const errorPatterns = patterns.filter(p => p.type === 'error');
@@ -749,26 +756,29 @@ export class PatternRecognitionService {
   private async updatePatternDatabase(newPatterns: CodePattern[]): Promise<void> {
     for (const pattern of newPatterns) {
       try {
-        await this.supabase.from('code_patterns').insert({
-          id: pattern.id,
-          type: pattern.type,
-          pattern: pattern.pattern,
+        // Convert to Supabase pattern format
+        await this.supabaseService.createPattern({
+          pattern_type: this.mapToSupabasePatternType(pattern.type) as any,
           description: pattern.description,
           frequency: pattern.frequency,
-          success_rate: pattern.successRate,
-          last_seen: pattern.lastSeen.toISOString(),
-          examples: JSON.stringify(pattern.examples),
-          solutions: JSON.stringify(pattern.solutions || []),
-          tags: JSON.stringify(pattern.tags),
-          score: pattern.score,
-          project_types: JSON.stringify(pattern.projectTypes),
-          language: pattern.language,
-          framework: pattern.framework
+          success_rate: pattern.successRate * 100, // Convert to percentage
+          metadata: {
+            id: pattern.id,
+            pattern: pattern.pattern,
+            examples: pattern.examples,
+            solutions: pattern.solutions || [],
+            tags: pattern.tags,
+            score: pattern.score,
+            projectTypes: pattern.projectTypes,
+            language: pattern.language,
+            framework: pattern.framework
+          },
+          last_used_at: pattern.lastSeen.toISOString()
         });
         
         this.patterns.set(pattern.id, pattern);
       } catch (error: any) {
-// REMOVED: console statement
+        this.logger.error('Failed to update pattern database', error);
       }
     }
   }
@@ -826,18 +836,22 @@ export class PatternRecognitionService {
 
   private async updatePatternInDatabase(pattern: CodePattern): Promise<void> {
     try {
-      await this.supabase
-        .from('code_patterns')
-        .update({
+      // Find the pattern in database first
+      const dbPattern = await this.findPatternInDatabase(pattern.id);
+      if (dbPattern) {
+        await this.supabaseService.updatePattern(dbPattern.id, {
           frequency: pattern.frequency,
-          success_rate: pattern.successRate,
-          last_seen: pattern.lastSeen.toISOString(),
-          examples: JSON.stringify(pattern.examples),
-          score: pattern.score
-        })
-        .eq('id', pattern.id);
+          success_rate: pattern.successRate * 100, // Convert to percentage
+          metadata: {
+            ...dbPattern.metadata,
+            examples: pattern.examples,
+            score: pattern.score
+          },
+          last_used_at: pattern.lastSeen.toISOString()
+        });
+      }
     } catch (error: any) {
-// REMOVED: console statement
+      this.logger.error('Failed to update pattern in database', error);
     }
   }
 
@@ -933,6 +947,26 @@ export class PatternRecognitionService {
     return suggestions.sort((a, b) => b.relevanceScore - a.relevanceScore);
   }
 
+  private mapToSupabasePatternType(type: 'success' | 'error' | 'workflow' | 'optimization'): string {
+    switch (type) {
+      case 'success':
+        return 'code_pattern';
+      case 'error':
+        return 'error_resolution';
+      case 'workflow':
+        return 'workflow';
+      case 'optimization':
+        return 'optimization';
+      default:
+        return 'code_pattern';
+    }
+  }
+
+  private async findPatternInDatabase(patternId: string): Promise<any> {
+    const patterns = await this.supabaseService.getPatterns();
+    return patterns.find(p => p.metadata?.['id'] === patternId);
+  }
+
   private extractCodeBlocks(content: string): string[] {
     const codeBlockRegex = /```[\w]*\n([\s\S]*?)```/g;
     const blocks: string[] = [];
@@ -978,12 +1012,12 @@ export class PatternRecognitionService {
 
   private async removePatternFromDatabase(patternId: string): Promise<void> {
     try {
-      await this.supabase
-        .from('code_patterns')
-        .delete()
-        .eq('id', patternId);
+      const dbPattern = await this.findPatternInDatabase(patternId);
+      if (dbPattern) {
+        await this.supabaseService.deletePattern(dbPattern.id);
+      }
     } catch (error: any) {
-// REMOVED: console statement
+      this.logger.error('Failed to remove pattern from database', error);
     }
   }
 

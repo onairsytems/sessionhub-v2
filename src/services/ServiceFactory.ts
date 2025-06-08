@@ -1,13 +1,15 @@
 import { FEATURES } from '../config/features';
 import { Logger } from '../lib/logging/Logger';
 
-// Mock implementations
-import { MockCloudSyncService, ICloudSyncService } from './mocks/MockCloudSyncService';
-import { MockAIAssistant, IAIAssistant } from './mocks/MockAIAssistant';
+// Interfaces
+import { ICloudSyncService } from '../interfaces/ICloudSyncService';
+import { IAIAssistant } from '../interfaces/IAIAssistant';
 
-// TODO: [Session 0.2.0] Import real implementations when ready
-// import { SupabaseCloudSync } from './cloud/SupabaseCloudSync';
-// import { ClaudeAIAssistant } from './ai/ClaudeAIAssistant';
+// Mock adapters - REMOVED in Session 1.6
+
+// Real implementations
+import { ClaudeAIAssistant } from './ai/ClaudeAIAssistant';
+import { SupabaseCloudSync } from './cloud/SupabaseCloudSync';
 
 /**
  * Service Factory
@@ -27,28 +29,16 @@ export class ServiceFactory {
    * Create a cloud sync service instance
    */
   static createCloudSyncService(): ICloudSyncService {
-    if (FEATURES.CLOUD_SYNC) {
-      // TODO: [Session 0.2.0] Return real SupabaseCloudSync instance
-      this.logger.error('Real cloud sync not yet implemented');
-      throw new Error('Real CloudSyncService not yet implemented. Enable feature flag only when ready.');
-    }
-    
-    this.logger.info('Creating mock cloud sync service (feature disabled)');
-    return new MockCloudSyncService();
+    this.logger.info('Creating real Supabase cloud sync service');
+    return new SupabaseCloudSync();
   }
 
   /**
    * Create an AI assistant instance
    */
   static createAIAssistant(): IAIAssistant {
-    if (FEATURES.AI_ASSISTANT) {
-      // TODO: [Session 0.2.1] Return real ClaudeAIAssistant instance
-      this.logger.error('Real AI assistant not yet implemented');
-      throw new Error('Real AI Assistant not yet implemented. Enable feature flag only when ready.');
-    }
-    
-    this.logger.info('Creating mock AI assistant (feature disabled)');
-    return new MockAIAssistant();
+    this.logger.info('Creating real Claude AI assistant');
+    return new ClaudeAIAssistant();
   }
 
   /**
@@ -65,14 +55,14 @@ export class ServiceFactory {
   }
 
   /**
-   * Check if a service is available (real implementation)
+   * Check if a service is available (all real implementations now)
    */
   static isServiceAvailable(service: 'cloudSync' | 'ai' | 'github' | 'slack'): boolean {
     switch (service) {
       case 'cloudSync':
-        return FEATURES.CLOUD_SYNC;
+        return true; // Real Supabase implementation
       case 'ai':
-        return FEATURES.AI_ASSISTANT;
+        return true; // Real Claude API implementation
       case 'github':
         return FEATURES.GITHUB_INTEGRATION;
       case 'slack':

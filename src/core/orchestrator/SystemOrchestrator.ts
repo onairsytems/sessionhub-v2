@@ -24,6 +24,8 @@ import { SecuritySandbox } from '@/src/core/execution/SecuritySandbox';
 import { MacKeychainService } from '@/src/lib/security/MacKeychainService';
 import { MAC_CONFIG } from '@/src/config/mac.config';
 import { SupabaseService } from '@/src/services/cloud/SupabaseService';
+import { ConnectionMonitor } from '@/src/services/monitoring/ConnectionMonitor';
+import { PatternRecognitionService } from '@/src/services/intelligence/PatternRecognitionService';
 
 export interface SystemConfig {
   apiKey?: string;
@@ -62,6 +64,8 @@ export class SystemOrchestrator {
   private claudeCodeApiClient?: ClaudeCodeAPIClient;
   private keychainService?: MacKeychainService;
   private supabaseService?: SupabaseService;
+  private patternService?: PatternRecognitionService;
+  private connectionMonitor: ConnectionMonitor;
   
   private readonly requestQueue: RequestQueueItem[] = [];
   private isProcessing: boolean = false;
@@ -116,6 +120,9 @@ export class SystemOrchestrator {
       this.logger,
       this.supabaseService
     );
+    
+    // Initialize connection monitor
+    this.connectionMonitor = new ConnectionMonitor();
   }
 
   /**
@@ -131,6 +138,17 @@ export class SystemOrchestrator {
       // Initialize state manager
       await this.stateManager.initialize();
       
+      // Initialize Supabase service
+      try {
+        this.supabaseService = new SupabaseService(this.logger);
+        await this.supabaseService.initialize();
+      } catch (error) {
+        this.logger.warn('Supabase initialization failed, continuing without cloud sync', error as Error);
+      }
+      
+      // Initialize pattern recognition service
+      this.patternService = new PatternRecognitionService(this.supabaseService);
+      
       // Setup API client if configured
       if (this.config.useRealApi) {
         await this.setupClaudeAPI();
@@ -138,6 +156,9 @@ export class SystemOrchestrator {
       
       // Initialize actor engines
       await this.initializeActors();
+      
+      // Setup connection monitoring
+      this.setupConnectionMonitoring();
       
       // Start request processing
       this.startRequestProcessor();
@@ -232,20 +253,40 @@ export class SystemOrchestrator {
   async getHealthStatus(): Promise<any> {
     const actorHealth = await this.actorCoordinator.healthCheck();
     const metrics = this.stateManager.getState().metrics;
+    const connectionHealth = this.connectionMonitor.getHealth();
+    const connectionStats = this.connectionMonitor.getStatistics();
+    
     const queueStatus = {
       length: this.requestQueue.length,
       processing: this.requestQueue.filter(item => item.status === 'processing').length,
       queued: this.requestQueue.filter(item => item.status === 'queued').length
     };
 
+    // Determine overall status based on actors and connections
+    let overallStatus: 'healthy' | 'degraded' | 'offline';
+    if (actorHealth.healthy && connectionHealth.overall === 'healthy') {
+      overallStatus = 'healthy';
+    } else if (connectionHealth.overall === 'offline') {
+      overallStatus = 'offline';
+    } else {
+      overallStatus = 'degraded';
+    }
+
     return {
-      status: actorHealth.healthy ? 'healthy' : 'degraded',
+      status: overallStatus,
       uptime: metrics.uptime,
       actors: actorHealth.actors,
+      connections: {
+        status: connectionHealth.overall,
+        services: Object.fromEntries(connectionHealth.services),
+        statistics: connectionStats
+      },
       queue: queueStatus,
       metrics: {
         totalRequests: metrics.totalRequests,
-        successRate: metrics.successfulRequests / metrics.totalRequests * 100,
+        successRate: metrics.totalRequests > 0 
+          ? (metrics.successfulRequests / metrics.totalRequests * 100).toFixed(2)
+          : 0,
         averageResponseTime: metrics.averageResponseTime
       }
     };
@@ -294,11 +335,19 @@ export class SystemOrchestrator {
     // Stop processing new requests
     this.isProcessing = false;
     
+    // Stop connection monitoring
+    this.connectionMonitor.stop();
+    
     // Wait for active operations to complete
     const activeSessions = this.sessionManager.getActiveSessions();
     if (activeSessions.length > 0) {
       this.logger.info(`Waiting for ${activeSessions.length} active sessions to complete`);
       // In production, would wait with timeout
+    }
+    
+    // Cleanup services
+    if (this.supabaseService) {
+      await this.supabaseService.cleanup();
     }
     
     // Save state
@@ -362,11 +411,12 @@ export class SystemOrchestrator {
   }
 
   private async initializeActors(): Promise<void> {
-    // Initialize Planning Engine
+    // Initialize Planning Engine with pattern service
     this.planningEngine = new PlanningEngine(
       this.logger,
       this.protocolValidator,
-      this.claudeApiClient
+      this.claudeApiClient,
+      this.patternService
     );
     
     // Initialize Execution Engine
@@ -383,6 +433,27 @@ export class SystemOrchestrator {
       this.planningEngine,
       this.executionEngine
     );
+  }
+
+  private setupConnectionMonitoring(): void {
+    // Register services for monitoring
+    this.connectionMonitor.registerStandardServices({
+      claudeApi: this.claudeApiClient,
+      supabaseService: this.supabaseService,
+      patternService: this.patternService
+    });
+
+    // Listen for connection events
+    this.connectionMonitor.on('statusChange', (service: string, status: any) => {
+      this.logger.info('Service connection status changed', { service, status: status.status });
+    });
+
+    this.connectionMonitor.on('error', (service: string, error: Error) => {
+      this.logger.error('Service connection error', error, { service });
+    });
+
+    // Start monitoring
+    this.connectionMonitor.start();
   }
 
   private startRequestProcessor(): void {

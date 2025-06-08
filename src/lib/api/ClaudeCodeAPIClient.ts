@@ -9,6 +9,7 @@ import { InstructionProtocol } from '@/src/models/Instruction';
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
 
 export interface ClaudeCodeAPIConfig {
@@ -46,6 +47,12 @@ export class ClaudeCodeAPIClient {
 
   constructor(config: ClaudeCodeAPIConfig, logger?: Logger) {
     this.logger = logger || new Logger('ClaudeCodeAPIClient');
+    
+    // Use proper workspace directory based on platform
+    const defaultWorkspaceDir = process.platform === 'darwin'
+      ? path.join(os.homedir(), 'Library', 'Application Support', 'SessionHub', 'workspaces')
+      : path.join(os.tmpdir(), 'sessionhub', 'execution');
+    
     this.config = {
       apiKey: config.apiKey,
       apiUrl: config.apiUrl || 'https://api.anthropic.com/v1/messages',
@@ -53,7 +60,7 @@ export class ClaudeCodeAPIClient {
       maxTokens: config.maxTokens || 8000,
       temperature: config.temperature || 0.3,
       timeout: config.timeout || 60000,
-      workspaceDir: config.workspaceDir || '/tmp/sessionhub/execution'
+      workspaceDir: config.workspaceDir || defaultWorkspaceDir
     };
     
     this.workspaceDir = this.config.workspaceDir;
