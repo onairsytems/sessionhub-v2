@@ -158,6 +158,14 @@ class PostBuildValidator {
       {
         name: 'Session Management',
         files: ['src/core/orchestrator/SessionStateManager.ts']
+      },
+      {
+        name: 'Feature Flags',
+        files: ['src/config/features.ts']
+      },
+      {
+        name: 'Session Completion Rules',
+        files: ['docs/SESSION_COMPLETION_RULES.md']
       }
     ];
 

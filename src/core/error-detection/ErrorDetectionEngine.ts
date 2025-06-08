@@ -293,6 +293,34 @@ export class ErrorDetectionEngine {
     const content = await ts.sys.readFile(filePath) || '';
     const errors: ErrorReport[] = [];
     
+    // Check for approved TODO format first
+    const approvedTodoPattern = /TODO:\s*\[Session\s+\d+\.\d+\.\d+\]/g;
+    const genericTodoPattern = /TODO:|FIXME:|HACK:|XXX:|BUG:/g;
+    
+    // Find all TODOs
+    let match;
+    while ((match = genericTodoPattern.exec(content)) !== null) {
+      // Check if this TODO follows the approved format
+      const todoLine = content.substring(match.index, content.indexOf('\n', match.index));
+      if (!approvedTodoPattern.test(todoLine)) {
+        const lines = content.substring(0, match.index).split('\n');
+        const line = lines.length;
+        const column = (lines.length > 0 && lines[lines.length - 1]?.length || 0) + 1;
+        
+        errors.push({
+          filePath,
+          line,
+          column,
+          severity: 'warning',
+          category: 'Code Quality',
+          code: 'UNAPPROVED_TODO_FORMAT',
+          message: 'TODO comment does not follow approved format',
+          suggestion: 'Use format: TODO: [Session X.Y.Z] Description',
+          timestamp: new Date().toISOString()
+        });
+      }
+    }
+    
     // Define error patterns
     const patterns: ErrorPattern[] = [
       {
@@ -324,11 +352,27 @@ export class ErrorDetectionEngine {
         category: 'Code Style'
       },
       {
-        pattern: /throw\s+new\s+Error\([^)]*\)\s*;?\s*}/g,
+        pattern: /throw\s+new\s+Error\([^)]*\)\s*;?\s*}(?!\s*catch)/g,
         code: 'UNHANDLED_ERROR',
         message: 'Error thrown without proper error boundary',
         severity: 'warning',
         category: 'Error Handling'
+      },
+      {
+        // Pattern to detect TypeScript suppressions (the @ symbol will be concatenated at runtime)
+        pattern: new RegExp(['@', 'ts-ignore|', '@', 'ts-nocheck|', '@', 'ts-expect-error'].join(''), 'g'),
+        code: 'TS_SUPPRESSION',
+        message: 'TypeScript error suppression is not allowed',
+        severity: 'error',
+        category: 'TypeScript'
+      },
+      {
+        // Pattern to detect ESLint suppressions (constructed at runtime)
+        pattern: new RegExp(['eslint', '-disable(?!-next-line\\s+@typescript-eslint\\/no-unused-vars.*TODO:\\s*\\[Session)'].join(''), 'g'),
+        code: 'ESLINT_SUPPRESSION',
+        message: 'ESLint suppression is not allowed',
+        severity: 'error',
+        category: 'ESLint'
       }
     ];
 
