@@ -13,7 +13,15 @@ import {
 } from '@/src/services/cloud/SupabaseService';
 import * as path from 'path';
 import * as fs from 'fs';
-import { app } from 'electron';
+import * as os from 'os';
+
+// Conditional electron import for test compatibility
+let electronApp: any;
+try {
+  electronApp = require('electron').app;
+} catch (e) {
+  // Not in electron environment
+}
 
 // Cache configuration
 export interface CacheConfig {
@@ -93,7 +101,14 @@ export class LocalCacheService {
 
   constructor(logger: Logger, config?: CacheConfig) {
     this.logger = logger;
-    this.defaultCachePath = path.join(app.getPath('userData'), 'cache');
+    // Use electron userData path if available, otherwise use os temp dir
+    try {
+      this.defaultCachePath = electronApp && electronApp.getPath
+        ? path.join(electronApp.getPath('userData'), 'cache')
+        : path.join(os.tmpdir(), 'sessionhub-cache');
+    } catch (e) {
+      this.defaultCachePath = path.join(os.tmpdir(), 'sessionhub-cache');
+    }
     this.config = {
       ...LocalCacheService.DEFAULT_CONFIG,
       ...config,
@@ -1064,5 +1079,5 @@ export class LocalCacheService {
   }
 }
 
-// Export singleton instance
-export const localCacheService = new LocalCacheService(new Logger('LocalCacheService'));
+// Export singleton instance (commented out for test compatibility)
+// export const localCacheService = new LocalCacheService(new Logger('LocalCacheService'));

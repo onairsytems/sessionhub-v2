@@ -70,7 +70,7 @@ export class RealTimeMonitor extends EventEmitter {
         .on('add', (filePath) => this.handleFileChange(filePath, 'add'))
         .on('change', (filePath) => this.handleFileChange(filePath, 'change'))
         .on('unlink', (filePath) => this.handleFileRemove(filePath))
-        .on('error', (error) => this.logger.error('Watcher error', error));
+        .on('error', (error) => this.logger.error('Watcher error', error as Error));
 
       // Wait for initial scan
       await new Promise<void>((resolve) => {

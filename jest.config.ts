@@ -23,7 +23,8 @@ const config: Config = {
         baseUrl: '.',
         paths: {
           '@/*': ['./*']
-        }
+        },
+        isolatedModules: true
       }
     }]
   },
@@ -43,12 +44,7 @@ const config: Config = {
     '/out/',
     '/.next/'
   ],
-  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
-  globals: {
-    'ts-jest': {
-      isolatedModules: true
-    }
-  }
+  setupFilesAfterEnv: ['<rootDir>/tests/setup.ts']
 };
 
 export default config;
