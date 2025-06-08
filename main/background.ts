@@ -13,7 +13,11 @@ import serve from "electron-serve";
 // Import SessionHub services
 import { productionMonitor } from "../src/services/production/ProductionMonitor";
 import { selfDevelopmentProduction } from "../src/services/production/SelfDevelopmentProduction";
-import { PRODUCTION_CONFIG } from "../src/config/production.config";
+import { claudeAutoAcceptService } from "./services/ClaudeAutoAcceptService";
+import { autoUpdateService } from "./services/AutoUpdateService";
+import { menuBarService } from "./services/mac/MenuBarService";
+import { appLifecycleService } from "./services/AppLifecycleService";
+import { fileAssociationService } from "./services/mac/FileAssociationService";
 
 // Configure auto-updater for production
 if (!isDev) {
@@ -60,12 +64,14 @@ class SessionHubApp {
       });
     });
 
-    // Configure auto-updater
-    this.setupAutoUpdater();
+    // Auto-updater will be initialized after window creation
   }
 
   private async onReady(): Promise<void> {
 // REMOVED: console statement
+
+    // Initialize app lifecycle service
+    await appLifecycleService.initialize();
 
     // Set app security
     this.setSecurityDefaults();
@@ -78,6 +84,12 @@ class SessionHubApp {
 
     // Initialize SessionHub services
     this.initializeServices();
+
+    // Initialize Mac-specific features
+    this.initializeMacFeatures();
+
+    // Initialize auto-updater after window is ready
+    this.setupAutoUpdater();
 
     // Show startup notification
     this.showStartupNotification();
@@ -119,10 +131,15 @@ class SessionHubApp {
   }
 
   private async createMainWindow(): Promise<void> {
+    // Check for saved window state
+    const savedState = appLifecycleService.getWindowState('main');
+    
     // Create the browser window
     this.mainWindow = new BrowserWindow({
-      width: 1200,
-      height: 800,
+      width: savedState?.bounds.width || 1200,
+      height: savedState?.bounds.height || 800,
+      x: savedState?.bounds.x,
+      y: savedState?.bounds.y,
       minWidth: 800,
       minHeight: 600,
       show: false,
@@ -135,6 +152,9 @@ class SessionHubApp {
         preload: path.join(__dirname, "preload.js"),
       },
     });
+
+    // Register window with lifecycle service
+    appLifecycleService.registerWindow(this.mainWindow);
 
     // Load the application
     if (isDev) {
@@ -268,10 +288,88 @@ class SessionHubApp {
     selfDevelopmentProduction.getSelfDevelopmentStatus();
 // REMOVED: console statement
 
+    // Initialize Claude auto-accept service
+    void claudeAutoAcceptService.initialize();
+
     // Set up IPC handlers
     this.setupIpcHandlers();
 
 // REMOVED: console statement
+  }
+
+  private initializeMacFeatures(): void {
+    if (process.platform !== 'darwin') return;
+
+    // Initialize menu bar
+    menuBarService.initialize(this.mainWindow!);
+
+    // Initialize file associations
+    fileAssociationService.initialize(this.mainWindow!);
+
+    // Set up menu bar event handlers
+    menuBarService.on('check-updates', () => {
+      autoUpdateService.checkForUpdates();
+    });
+
+    menuBarService.on('force-sync', () => {
+      this.mainWindow?.webContents.send('force-sync');
+    });
+
+    menuBarService.on('toggle-auto-accept', async (enabled: boolean) => {
+      if (enabled) {
+        await claudeAutoAcceptService.enable();
+      } else {
+        await claudeAutoAcceptService.disable();
+      }
+    });
+
+    menuBarService.on('open-project', (projectPath: string) => {
+      this.mainWindow?.webContents.send('open-project', { projectPath });
+    });
+
+    // Set up file association handlers
+    fileAssociationService.on('open-project', (data) => {
+      this.mainWindow?.webContents.send('file-opened', data);
+    });
+
+    fileAssociationService.on('open-session', (data) => {
+      this.mainWindow?.webContents.send('file-opened', data);
+    });
+
+    fileAssociationService.on('open-template', (data) => {
+      this.mainWindow?.webContents.send('file-opened', data);
+    });
+
+    // Set up lifecycle handlers
+    appLifecycleService.on('should-create-window', () => {
+      this.createMainWindow();
+    });
+
+    appLifecycleService.on('open-file', (filePath: string) => {
+      fileAssociationService.openFile(filePath);
+    });
+
+    appLifecycleService.on('open-url', (url: string) => {
+      fileAssociationService.handleDeepLink(url);
+    });
+
+    appLifecycleService.on('crash-recovery-needed', (lastSession) => {
+      if (this.mainWindow) {
+        this.mainWindow.webContents.send('restore-session', lastSession);
+      }
+    });
+
+    // Energy efficiency handlers
+    appLifecycleService.on('on-battery', () => {
+      // Reduce update check frequency
+      autoUpdateService.destroy();
+      menuBarService.updateStatus({ syncStatus: 'idle' });
+    });
+
+    appLifecycleService.on('on-ac', () => {
+      // Resume normal operations
+      autoUpdateService.initialize(this.mainWindow!);
+    });
   }
 
   private setupIpcHandlers(): void {
@@ -295,47 +393,66 @@ class SessionHubApp {
     ipcMain.handle("get-production-metrics", () => {
       return productionMonitor.getMetricsSummary();
     });
+
+    // Update handlers
+    ipcMain.handle("check-for-updates", async () => {
+      await autoUpdateService.checkForUpdates();
+      return autoUpdateService.getStatus();
+    });
+
+    ipcMain.handle("download-update", async () => {
+      await autoUpdateService.downloadUpdate();
+    });
+
+    ipcMain.handle("install-update", () => {
+      autoUpdateService.quitAndInstall();
+    });
+
+    // File association handlers
+    ipcMain.handle("save-project-file", async (_event, projectData, savePath) => {
+      return await fileAssociationService.saveProjectFile(projectData, savePath);
+    });
+
+    // Preferences handlers
+    ipcMain.handle("set-preference", async (_event, key, value) => {
+      await appLifecycleService.setPreference(key, value);
+    });
+
+    ipcMain.handle("get-preference", (_event, key) => {
+      return appLifecycleService.getPreference(key);
+    });
+
+    // Session state handlers
+    ipcMain.handle("save-session", async (_event, sessionData) => {
+      await appLifecycleService.saveSession(sessionData);
+    });
+
+    // Menu bar status handlers
+    ipcMain.handle("update-menu-bar-status", (_event, status) => {
+      menuBarService.updateStatus(status);
+    });
   }
 
   private setupAutoUpdater(): void {
     if (isDev) return;
 
-    // Configure auto-updater
-    autoUpdater.setFeedURL({
-      provider: "generic",
-      url: PRODUCTION_CONFIG.deployment.autoUpdater.updateServer,
+    // Initialize auto-update service when window is ready
+    if (this.mainWindow) {
+      autoUpdateService.initialize(this.mainWindow);
+    }
+
+    // Handle update events
+    autoUpdateService.on('update-available', () => {
+      menuBarService.updateStatus({ updateAvailable: true });
     });
 
-    autoUpdater.on("checking-for-update", () => {
-// REMOVED: console statement
+    autoUpdateService.on('update-downloaded', () => {
+      menuBarService.showStatusMessage('Update ready - restart to apply');
     });
 
-    autoUpdater.on("update-available", (info) => {
-// REMOVED: console statement
-      this.showUpdateNotification(
-        "Update available",
-        `Version ${info.version} is ready to download.`,
-      );
-    });
-
-    autoUpdater.on("update-not-available", () => {
-// REMOVED: console statement
-    });
-
-    autoUpdater.on("error", () => {
-// REMOVED: console statement
-    });
-
-    autoUpdater.on("download-progress", () => {
-// REMOVED: console statement
-    });
-
-    autoUpdater.on("update-downloaded", () => {
-// REMOVED: console statement
-      this.showUpdateNotification(
-        "Update ready",
-        "Restart SessionHub to apply the update.",
-      );
+    autoUpdateService.on('error', (_error) => {
+      // Log but don't show to user unless critical
+      // console.error('Update error:', error);
     });
   }
 
@@ -351,17 +468,6 @@ class SessionHubApp {
     }
   }
 
-  private showUpdateNotification(title: string, body: string): void {
-    const { Notification } = eval("require('electron')") as { Notification: typeof ElectronNotification };
-    if (Notification.isSupported()) {
-      const notification = new Notification({
-        title,
-        body,
-        icon: path.join(__dirname, "../resources/icon.png"),
-      });
-      notification.show();
-    }
-  }
 
   private newSession(): void {
     // Send message to renderer to create new session

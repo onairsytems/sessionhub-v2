@@ -32,6 +32,11 @@
     "console:remove": "ts-node --project tsconfig.node.json scripts/remove-console-statements.ts",
     "console:check": "ts-node --project tsconfig.node.json scripts/check-console-statements.ts",
     "quality:metrics": "ts-node --project tsconfig.node.json scripts/quality-metrics.ts",
+    "claude:setup": "./scripts/setup-claude-auto-accept.sh",
+    "claude:enable": "ts-node --project tsconfig.node.json scripts/claude-auto-accept.ts enable",
+    "claude:disable": "ts-node --project tsconfig.node.json scripts/claude-auto-accept.ts disable",
+    "claude:status": "ts-node --project tsconfig.node.json scripts/claude-auto-accept.ts status",
+    "claude:full-access": "./scripts/claude-full-access.sh",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
     "electron:build": "npm run git:clean-check && npm run validate:strict && npm run build && npm run electron:compile",
     "electron:compile": "tsc -p tsconfig.electron.json",
@@ -93,10 +98,12 @@
     "node": ">=20.0.0"
   },
   "build": {
-    "appId": "com.sessionhub.desktop",
+    "appId": "com.sessionhub.app",
     "productName": "SessionHub",
+    "copyright": "Copyright © 2025 SessionHub",
     "directories": {
-      "output": "dist-electron"
+      "output": "dist-electron",
+      "buildResources": "resources"
     },
     "files": [
       "dist/main/**/*",
@@ -106,13 +113,44 @@
       "!node_modules/typescript/**/*",
       "!node_modules/eslint/**/*"
     ],
+    "fileAssociations": [
+      {
+        "ext": "shub",
+        "name": "SessionHub Project",
+        "description": "SessionHub Project File",
+        "icon": "resources/icon.icns",
+        "role": "Editor"
+      },
+      {
+        "ext": "shubsession",
+        "name": "SessionHub Session",
+        "description": "SessionHub Session File",
+        "icon": "resources/icon.icns",
+        "role": "Editor"
+      },
+      {
+        "ext": "shubtemplate",
+        "name": "SessionHub Template",
+        "description": "SessionHub Template File",
+        "icon": "resources/icon.icns",
+        "role": "Viewer"
+      }
+    ],
+    "protocols": [
+      {
+        "name": "SessionHub Protocol",
+        "schemes": ["sessionhub"]
+      }
+    ],
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": [
-            "universal"
-          ]
+          "arch": ["universal"]
+        },
+        {
+          "target": "zip",
+          "arch": ["universal"]
         }
       ],
       "category": "public.app-category.developer-tools",
@@ -120,10 +158,29 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "resources/entitlements.mac.plist",
-      "entitlementsInherit": "resources/entitlements.mac.plist"
+      "entitlementsInherit": "resources/entitlements.mac.plist",
+      "extendInfo": {
+        "NSUserNotificationAlertStyle": "alert",
+        "LSUIElement": false,
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": ["sessionhub"],
+            "CFBundleURLName": "SessionHub Protocol"
+          }
+        ],
+        "NSSupportsAutomaticTermination": false,
+        "NSSupportsSuddenTermination": false
+      },
+      "icon": "resources/icon.icns",
+      "bundleVersion": "100",
+      "type": "distribution",
+      "identity": null,
+      "notarize": false
     },
     "dmg": {
       "title": "SessionHub ${version}",
+      "icon": "resources/icon.icns",
+      "background": "resources/dmg-background.png",
       "window": {
         "width": 600,
         "height": 400
@@ -142,6 +199,12 @@
         }
       ]
     },
-    "publish": null
+    "afterSign": "scripts/notarize.js",
+    "publish": [
+      {
+        "provider": "generic",
+        "url": "https://update.sessionhub.com"
+      }
+    ]
   }
 }

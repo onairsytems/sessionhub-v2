@@ -104,7 +104,43 @@ interface SessionHubAPI {
 
   // Event listeners
   onNewSession: (callback: () => void) => void;
-  removeAllListeners: () => void;
+  removeAllListeners: (channel: string) => void;
+
+  // Auto-updater
+  checkForUpdates: () => Promise<{
+    checking: boolean;
+    available: boolean;
+    downloading: boolean;
+    downloaded: boolean;
+    error: Error | null;
+    progress: any | null;
+    updateInfo: any | null;
+  }>;
+  downloadUpdate: () => Promise<void>;
+  installUpdate: () => void;
+
+  // File associations
+  saveProjectFile: (projectData: any, savePath?: string) => Promise<string>;
+
+  // Preferences
+  setPreference: (key: string, value: any) => Promise<void>;
+  getPreference: (key: string) => Promise<any>;
+
+  // Session state
+  saveSession: (sessionData: any) => Promise<void>;
+
+  // Menu bar
+  updateMenuBarStatus: (status: any) => void;
+
+  // Event handlers for navigation and file operations
+  onNavigate: (callback: (path: string) => void) => void;
+  onOpenProject: (callback: (data: any) => void) => void;
+  onFileOpened: (callback: (data: any) => void) => void;
+  onRestoreSession: (callback: (sessionData: any) => void) => void;
+  onForceSync: (callback: () => void) => void;
+  onUpdateAvailable: (callback: (info: any) => void) => void;
+  onUpdateDownloaded: (callback: (info: any) => void) => void;
+  onDownloadProgress: (callback: (progress: any) => void) => void;
 }
 
 // Expose protected methods that allow the renderer process to use
@@ -173,10 +209,66 @@ contextBridge.exposeInMainWorld("sessionhub", {
   removeAllListeners: (channel: string) => {
     ipcRenderer.removeAllListeners(channel);
   },
+
+  // Auto-updater
+  checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
+  downloadUpdate: () => ipcRenderer.invoke("download-update"),
+  installUpdate: () => ipcRenderer.invoke("install-update"),
+
+  // File associations
+  saveProjectFile: (projectData: any, savePath?: string) => 
+    ipcRenderer.invoke("save-project-file", projectData, savePath),
+
+  // Preferences
+  setPreference: (key: string, value: any) => 
+    ipcRenderer.invoke("set-preference", key, value),
+  getPreference: (key: string) => 
+    ipcRenderer.invoke("get-preference", key),
+
+  // Session state
+  saveSession: (sessionData: any) => 
+    ipcRenderer.invoke("save-session", sessionData),
+
+  // Menu bar
+  updateMenuBarStatus: (status: any) => 
+    ipcRenderer.invoke("update-menu-bar-status", status),
+
+  // Event handlers
+  onNavigate: (callback: (path: string) => void) => {
+    ipcRenderer.on("navigate", (_event, path) => callback(path));
+  },
+  onOpenProject: (callback: (data: any) => void) => {
+    ipcRenderer.on("open-project", (_event, data) => callback(data));
+  },
+  onFileOpened: (callback: (data: any) => void) => {
+    ipcRenderer.on("file-opened", (_event, data) => callback(data));
+  },
+  onRestoreSession: (callback: (sessionData: any) => void) => {
+    ipcRenderer.on("restore-session", (_event, sessionData) => callback(sessionData));
+  },
+  onForceSync: (callback: () => void) => {
+    ipcRenderer.on("force-sync", callback);
+  },
+  onUpdateAvailable: (callback: (info: any) => void) => {
+    ipcRenderer.on("update-available", (_event, info) => callback(info));
+  },
+  onUpdateDownloaded: (callback: (info: any) => void) => {
+    ipcRenderer.on("update-downloaded", (_event, info) => callback(info));
+  },
+  onDownloadProgress: (callback: (progress: any) => void) => {
+    ipcRenderer.on("download-progress", (_event, progress) => callback(progress));
+  },
 } as SessionHubAPI);
 
 // Also expose electronAPI for compatibility
 contextBridge.exposeInMainWorld("electronAPI", {
+  // Claude Auto-Accept API
+  claude: {
+    getAutoAcceptSettings: () => ipcRenderer.invoke('claude:get-auto-accept-settings'),
+    setAutoAcceptSettings: (settings: any) => ipcRenderer.invoke('claude:set-auto-accept-settings', settings),
+    enableForSession: (sessionId: string) => ipcRenderer.invoke('claude:enable-for-session', sessionId),
+  },
+  
   // API Configuration
   checkApiKey: () => ipcRenderer.invoke("check-api-key"),
   validateApiKey: (apiKey: string) => ipcRenderer.invoke("validate-api-key", apiKey),

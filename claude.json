@@ -1,0 +1,136 @@
+{
+  "$schema": "https://claude.ai/schemas/claude-config.json",
+  "version": "2.0",
+  "projectName": "SessionHub",
+  "autoAccept": {
+    "enabled": true,
+    "masterOverride": true,
+    "fileOperations": {
+      "createFiles": true,
+      "editFiles": true,
+      "deleteFiles": true,
+      "moveFiles": true,
+      "createDirectories": true,
+      "deleteDirectories": true,
+      "changePermissions": true,
+      "symlinkCreation": true
+    },
+    "packageManagement": {
+      "npmInstall": true,
+      "npmUpdate": true,
+      "npmAuditFix": true,
+      "yarnAdd": true,
+      "yarnInstall": true,
+      "pipInstall": true,
+      "brewInstall": true,
+      "aptGetInstall": true,
+      "globalPackages": true,
+      "devDependencies": true
+    },
+    "shellOperations": {
+      "executeCommands": true,
+      "runScripts": true,
+      "systemCommands": true,
+      "sudoCommands": false,
+      "backgroundProcesses": true,
+      "killProcesses": true,
+      "environmentVariables": true
+    },
+    "gitOperations": {
+      "add": true,
+      "commit": true,
+      "push": true,
+      "pull": true,
+      "branch": true,
+      "merge": true,
+      "rebase": true,
+      "reset": true,
+      "stash": true,
+      "tag": true,
+      "submodules": true
+    },
+    "buildOperations": {
+      "compile": true,
+      "build": true,
+      "test": true,
+      "lint": true,
+      "format": true,
+      "clean": true,
+      "watch": true,
+      "serve": true
+    },
+    "dockerOperations": {
+      "build": true,
+      "run": true,
+      "compose": true,
+      "pull": true,
+      "push": true
+    },
+    "databaseOperations": {
+      "migrations": true,
+      "seeds": true,
+      "backups": true,
+      "restores": true
+    },
+    "networkOperations": {
+      "apiCalls": true,
+      "downloads": true,
+      "uploads": true,
+      "webhooks": true
+    },
+    "systemIntegration": {
+      "modifyPath": true,
+      "installTools": true,
+      "configureEnvironment": true,
+      "updateConfigs": true
+    },
+    "specialFiles": {
+      "foundationMd": true,
+      "envFiles": true,
+      "configFiles": true,
+      "secretsFiles": true,
+      "systemFiles": true
+    },
+    "suppressAllConfirmations": true,
+    "neverAskAgain": true,
+    "bypassAllPrompts": true
+  },
+  "session": {
+    "autoStart": true,
+    "defaultBehavior": "accept-all",
+    "requireConfirmation": [],
+    "trustLevel": "full"
+  },
+  "development": {
+    "autoAcceptInDevDirectory": true,
+    "devPaths": [
+      "/Users/jonathanhoggard/Development/sessionhub-v2",
+      "/Users/jonathanhoggard/Development/sessionhub-desktop",
+      "/Users/jonathanhoggard/Development"
+    ],
+    "allowRiskyOperations": true
+  },
+  "production": {
+    "autoAcceptInProduction": true,
+    "productionPaths": [
+      "/Applications/SessionHub.app"
+    ],
+    "productionSafeguards": false
+  },
+  "security": {
+    "allowSudoWithoutPrompt": false,
+    "allowSystemModifications": true,
+    "trustAllOperations": true,
+    "skipSecurityChecks": false
+  },
+  "performance": {
+    "parallelOperations": true,
+    "skipConfirmationDelays": true,
+    "instantExecution": true
+  },
+  "logging": {
+    "logAutoAcceptDecisions": true,
+    "logPath": "~/.sessionhub/claude-auto-accept.log",
+    "verboseLogging": false
+  }
+}

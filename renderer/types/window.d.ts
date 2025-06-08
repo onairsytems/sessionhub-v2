@@ -91,6 +91,25 @@ declare global {
       ) => Promise<{ state: string } | null>;
     };
     electronAPI: {
+      claude: {
+        getAutoAcceptSettings: () => Promise<{
+          enabled: boolean;
+          sessionId?: string;
+          acceptFileEdits: boolean;
+          acceptGitOperations: boolean;
+          acceptFoundationUpdates: boolean;
+          acceptAllPrompts: boolean;
+        }>;
+        setAutoAcceptSettings: (settings: {
+          enabled: boolean;
+          sessionId?: string;
+          acceptFileEdits: boolean;
+          acceptGitOperations: boolean;
+          acceptFoundationUpdates: boolean;
+          acceptAllPrompts: boolean;
+        }) => Promise<{ success: boolean }>;
+        enableForSession: (sessionId: string) => Promise<{ success: boolean }>;
+      };
       checkApiKey: () => Promise<boolean>;
       validateApiKey: (apiKey: string) => Promise<boolean>;
       saveApiKey: (apiKey: string) => Promise<void>;
