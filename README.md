@@ -33,7 +33,7 @@ SessionHub is an advanced AI-powered development platform that fundamentally tra
 git clone https://github.com/onairsytems/sessionhub-v2.git
 cd sessionhub-v2
 
-# Install dependencies
+# Install dependencies (automatically installs quality gates)
 npm install
 
 # Run validation
@@ -42,6 +42,48 @@ npm run validate
 # Start development
 npm run dev
 ```
+
+## Quality Gates (MANDATORY)
+
+SessionHub enforces strict quality standards through automated gates that **cannot be disabled**:
+
+### Automatic Installation
+Quality gates are automatically installed when you run `npm install`. This includes:
+- Git hooks for pre-commit and post-commit validation
+- TypeScript strict mode enforcement
+- ESLint zero-tolerance configuration
+- Security scanning for hardcoded secrets
+- File size limits (1MB max)
+- Commit message standards
+
+### Manual Installation
+If you need to reinstall the quality gates:
+```bash
+./scripts/install-quality-gates.sh
+```
+
+### What Gets Checked
+1. **TypeScript Compilation** - All code must compile without errors
+2. **ESLint Validation** - Zero warnings or errors allowed
+3. **No Error Suppression** - @ts-ignore, @ts-nocheck, eslint-disable are forbidden
+4. **Security Scanning** - No hardcoded secrets or credentials
+5. **File Size Limits** - All source files must be under 1MB
+6. **Commit Standards** - Meaningful commit messages required
+
+### Bypass Prevention
+- The `--no-verify` flag is **blocked and logged**
+- All bypass attempts are recorded to `~/.sessionhub/bypass-attempts.log`
+- Git commands are wrapped to enforce quality checks
+- TypeScript configuration changes are monitored and prevented
+
+### Audit Trail
+All git operations are logged for security and compliance:
+- Commit history: `~/.sessionhub/commit-audit.log`
+- Quality violations: `~/.sessionhub/quality-violations.log`
+- Bypass attempts: `~/.sessionhub/bypass-attempts.log`
+
+### Zero Tolerance Policy
+SessionHub implements a **Zero Tolerance Policy** for code quality. See [`docs/ZERO_TOLERANCE_POLICY.md`](docs/ZERO_TOLERANCE_POLICY.md) for details.
 
 ## Architecture
 

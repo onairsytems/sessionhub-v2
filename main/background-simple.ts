@@ -4,6 +4,7 @@
  */
 
 import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from "electron";
+import type { Notification as ElectronNotification } from "electron";
 // import { autoUpdater } from 'electron-updater'; // Commented out for future use
 import * as path from "path";
 // Simple dev detection without external dependencies
@@ -26,8 +27,13 @@ class SessionHubApp {
     // Enable live reload for development (only if electron-reload is available)
     if (isDev) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-        const electronReload = require("electron-reload");
+        const electronReload = require("electron-reload") as (
+          watchPath: string,
+          options: {
+            electron: string;
+            hardResetMethod: string;
+          },
+        ) => void;
         electronReload(__dirname, {
           electron: path.join(
             __dirname,
@@ -346,20 +352,16 @@ class SessionHubApp {
     );
 
     // Register API handlers
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const {
-      registerApiHandlers,
-    }: { registerApiHandlers: () => void } = require("./ipc/apiHandlers");
-    registerApiHandlers();
+    const apiHandlers = require("./ipc/apiHandlers") as {
+      registerApiHandlers: () => void;
+    };
+    apiHandlers.registerApiHandlers();
 
     // Register Supabase handlers
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const {
-      registerSupabaseHandlers,
-    }: {
+    const supabaseHandlers = require("./ipc/supabaseHandlers") as {
       registerSupabaseHandlers: () => void;
-    } = require("./ipc/supabaseHandlers");
-    registerSupabaseHandlers();
+    };
+    supabaseHandlers.registerSupabaseHandlers();
 
     // Trigger test issue (for demo purposes)
     ipcMain.handle(
@@ -403,14 +405,9 @@ class SessionHubApp {
   // }
 
   private showStartupNotification(): void {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const {
-      Notification,
-    }: {
-      Notification: typeof import("electron").Notification;
-    } = require("electron");
+    const { Notification } = require("electron") as { Notification: typeof ElectronNotification };
     if (Notification.isSupported()) {
-      const notification: import("electron").Notification = new Notification({
+      const notification = new Notification({
         title: "SessionHub Ready",
         body: "AI-powered development platform is now running",
         icon: path.join(__dirname, "../resources/icon.png"),

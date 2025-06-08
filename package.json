@@ -9,6 +9,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run zero-tolerance:enforce && npm run validate:strict && next build",
+    "build:check": "tsc --noEmit",
     "start": "next start",
     "lint": "next lint",
     "validate": "npm run tsconfig:validate && tsc --noEmit && echo '✅ TypeScript validation passed!'",
@@ -34,7 +35,7 @@
     "electron:dist:mac": "npm run electron:build && electron-builder --mac",
     "dist": "npm run electron:dist:mac",
     "pack": "npm run electron:pack",
-    "postinstall": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps && ./scripts/install-quality-gates.sh",
     "prepare": "husky",
     "test": "jest",
     "test:watch": "jest --watch",

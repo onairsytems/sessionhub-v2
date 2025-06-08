@@ -4,6 +4,7 @@
  */
 
 import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from "electron";
+import type { Notification as ElectronNotification } from "electron";
 import { autoUpdater } from "electron-updater";
 import * as path from "path";
 import isDev from "electron-is-dev";
@@ -31,7 +32,6 @@ class SessionHubApp {
   private initializeApp(): void {
     // Enable live reload for development
     if (isDev) {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
       require("electron-reload")(__dirname, {
         electron: path.join(
           __dirname,
@@ -341,14 +341,9 @@ class SessionHubApp {
   }
 
   private showStartupNotification(): void {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const {
-      Notification,
-    }: {
-      Notification: typeof import("electron").Notification;
-    } = require("electron");
+    const { Notification } = require("electron") as { Notification: typeof ElectronNotification };
     if (Notification.isSupported()) {
-      const notification: import("electron").Notification = new Notification({
+      const notification = new Notification({
         title: "SessionHub Ready",
         body: "AI-powered development platform is now running",
         icon: path.join(__dirname, "../resources/icon.png"),
@@ -358,14 +353,9 @@ class SessionHubApp {
   }
 
   private showUpdateNotification(title: string, body: string): void {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-    const {
-      Notification,
-    }: {
-      Notification: typeof import("electron").Notification;
-    } = require("electron");
+    const { Notification } = require("electron") as { Notification: typeof ElectronNotification };
     if (Notification.isSupported()) {
-      const notification: import("electron").Notification = new Notification({
+      const notification = new Notification({
         title,
         body,
         icon: path.join(__dirname, "../resources/icon.png"),

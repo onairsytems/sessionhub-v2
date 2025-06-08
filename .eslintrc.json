@@ -49,6 +49,12 @@
       "rules": {
         "@typescript-eslint/explicit-module-boundary-types": "off"
       }
+    },
+    {
+      "files": ["main/**/*.ts"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": "off"
+      }
     }
   ]
 }

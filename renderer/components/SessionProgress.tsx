@@ -2,7 +2,7 @@
  * Progress tracking UI component for real-time session monitoring
  */
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Card } from "../../components/ui/Card";
 
 export interface SessionProgressProps {
@@ -44,6 +44,138 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const updateStep = useCallback(
+    (
+      stepId: string,
+      status: ProgressStep["status"],
+      details?: string,
+    ) => {
+      setSteps((prevSteps) =>
+        prevSteps.map((step) => {
+          if (step.id === stepId) {
+            const updated = { ...step, status };
+
+            if (status === "active" && !step.startTime) {
+              updated.startTime = new Date().toISOString();
+            }
+
+            if (
+              (status === "completed" || status === "failed") &&
+              !step.endTime
+            ) {
+              updated.endTime = new Date().toISOString();
+            }
+
+            if (details) {
+              updated.details = details;
+            }
+
+            return updated;
+          }
+          return step;
+        }),
+      );
+    },
+    [],
+  );
+
+  const determineFailedStep = useCallback(
+    (data: {
+      actor?: string;
+      stage?: string;
+    }): string => {
+      if (data.actor === "planning") return "planning";
+      if (data.actor === "execution") return "execution";
+      if (data.stage === "validation") return "validation";
+      return "queue";
+    },
+    [],
+  );
+
+  const handleProgressEvent = useCallback(
+    (event: {
+      type: string;
+      data: {
+        position?: number;
+        status?: string;
+        metrics?: SessionMetrics;
+        error?: string;
+        retryCount?: number;
+        actor?: string;
+        stage?: string;
+      };
+    }) => {
+      switch (event.type) {
+        case "queued":
+          updateStep(
+            "queue",
+            "active",
+            "Position in queue: " + event.data.position,
+          );
+          setCurrentMessage(`Queued at position ${event.data.position}`);
+          break;
+
+        case "started":
+          updateStep("queue", "completed");
+          updateStep("planning", "active", "Analyzing request...");
+          setCurrentMessage("Planning Actor is analyzing your request...");
+          break;
+
+        case "progress":
+          if (event.data.status === "planning") {
+            updateStep("planning", "active", "Generating instructions...");
+            setCurrentMessage("Generating detailed instructions...");
+          } else if (event.data.status === "executing") {
+            updateStep("planning", "completed");
+            updateStep("validation", "completed");
+            updateStep("execution", "active", "Implementing solution...");
+            setCurrentMessage("Execution Actor is implementing the solution...");
+          }
+          break;
+
+        case "completed":
+          updateStep("execution", "completed");
+          updateStep("complete", "completed", "Success!");
+          setCurrentMessage("Session completed successfully!");
+
+          // Update metrics if available
+          if (event.data.metrics) {
+            setMetrics(event.data.metrics);
+          }
+          break;
+
+        case "failed":
+          const failedStep = determineFailedStep(event.data);
+          updateStep(failedStep, "failed", event.data.error);
+          setCurrentMessage(`Failed: ${event.data.error || "Unknown error"}`);
+          setError(event.data.error || null);
+          break;
+
+        case "retrying":
+          setCurrentMessage(`Retrying (attempt ${event.data.retryCount})...`);
+          break;
+      }
+    },
+    [updateStep, determineFailedStep],
+  );
+
+  const updateStepsFromStatus = useCallback(
+    (status: { state: string }) => {
+      if (status.state === "planning") {
+        updateStep("queue", "completed");
+        updateStep("planning", "active");
+      } else if (status.state === "executing") {
+        updateStep("queue", "completed");
+        updateStep("planning", "completed");
+        updateStep("validation", "completed");
+        updateStep("execution", "active");
+      } else if (status.state === "completed") {
+        steps.forEach((step) => updateStep(step.id, "completed"));
+      }
+    },
+    [steps, updateStep],
+  );
 
   useEffect(() => {
     // Connect to real-time progress updates
@@ -92,128 +224,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
     return () => {
       cleanup?.();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionId]);
-
-  const handleProgressEvent = (event: {
-    type: string;
-    data: {
-      position?: number;
-      status?: string;
-      metrics?: SessionMetrics;
-      error?: string;
-      retryCount?: number;
-      actor?: string;
-      stage?: string;
-    };
-  }) => {
-    switch (event.type) {
-      case "queued":
-        updateStep(
-          "queue",
-          "active",
-          "Position in queue: " + event.data.position,
-        );
-        setCurrentMessage(`Queued at position ${event.data.position}`);
-        break;
-
-      case "started":
-        updateStep("queue", "completed");
-        updateStep("planning", "active", "Analyzing request...");
-        setCurrentMessage("Planning Actor is analyzing your request...");
-        break;
-
-      case "progress":
-        if (event.data.status === "planning") {
-          updateStep("planning", "active", "Generating instructions...");
-          setCurrentMessage("Generating detailed instructions...");
-        } else if (event.data.status === "executing") {
-          updateStep("planning", "completed");
-          updateStep("validation", "completed");
-          updateStep("execution", "active", "Implementing solution...");
-          setCurrentMessage("Execution Actor is implementing the solution...");
-        }
-        break;
-
-      case "completed":
-        updateStep("execution", "completed");
-        updateStep("complete", "completed", "Success!");
-        setCurrentMessage("Session completed successfully!");
-
-        // Update metrics if available
-        if (event.data.metrics) {
-          setMetrics(event.data.metrics);
-        }
-        break;
-
-      case "failed":
-        const failedStep = determineFailedStep(event.data);
-        updateStep(failedStep, "failed", event.data.error);
-        setCurrentMessage(`Failed: ${event.data.error || "Unknown error"}`);
-        setError(event.data.error || null);
-        break;
-
-      case "retrying":
-        setCurrentMessage(`Retrying (attempt ${event.data.retryCount})...`);
-        break;
-    }
-  };
-
-  const updateStep = (
-    stepId: string,
-    status: ProgressStep["status"],
-    details?: string,
-  ) => {
-    setSteps((prevSteps) =>
-      prevSteps.map((step) => {
-        if (step.id === stepId) {
-          const updated = { ...step, status };
-
-          if (status === "active" && !step.startTime) {
-            updated.startTime = new Date().toISOString();
-          }
-
-          if (
-            (status === "completed" || status === "failed") &&
-            !step.endTime
-          ) {
-            updated.endTime = new Date().toISOString();
-          }
-
-          if (details) {
-            updated.details = details;
-          }
-
-          return updated;
-        }
-        return step;
-      }),
-    );
-  };
-
-  const updateStepsFromStatus = (status: { state: string }) => {
-    if (status.state === "planning") {
-      updateStep("queue", "completed");
-      updateStep("planning", "active");
-    } else if (status.state === "executing") {
-      updateStep("queue", "completed");
-      updateStep("planning", "completed");
-      updateStep("validation", "completed");
-      updateStep("execution", "active");
-    } else if (status.state === "completed") {
-      steps.forEach((step) => updateStep(step.id, "completed"));
-    }
-  };
-
-  const determineFailedStep = (data: {
-    actor?: string;
-    stage?: string;
-  }): string => {
-    if (data.actor === "planning") return "planning";
-    if (data.actor === "execution") return "execution";
-    if (data.stage === "validation") return "validation";
-    return "queue";
-  };
+  }, [sessionId, handleProgressEvent, updateStepsFromStatus]);
 
   const getStepIcon = (status: ProgressStep["status"]) => {
     switch (status) {

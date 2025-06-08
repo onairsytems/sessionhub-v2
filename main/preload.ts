@@ -3,15 +3,7 @@
  * Provides secure bridge between main process and renderer
  */
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const {
-  contextBridge,
-  ipcRenderer,
-}: {
-  contextBridge: typeof import("electron").contextBridge;
-  ipcRenderer: typeof import("electron").ipcRenderer;
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-} = require("electron");
+import { contextBridge, ipcRenderer } from "electron";
 
 // Define the API interface
 interface SessionHubAPI {

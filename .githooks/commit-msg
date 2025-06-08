@@ -1,0 +1,104 @@
+#!/bin/bash
+
+# SessionHub Commit Message Hook
+# Enforces commit message standards
+# This hook is version-controlled and automatically installed
+
+set -euo pipefail
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+# Get the commit message file
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+echo -e "${BLUE}SessionHub Quality Gates - Commit Message${NC}"
+echo -e "${BLUE}=======================================${NC}"
+
+# Function to check commit message
+check_commit_message() {
+    local msg="$1"
+    
+    # Check minimum length
+    if [ ${#msg} -lt 10 ]; then
+        echo -e "${RED}✗ Commit message too short (minimum 10 characters)${NC}"
+        return 1
+    fi
+    
+    # Check maximum length for first line
+    FIRST_LINE=$(echo "$msg" | head -n1)
+    if [ ${#FIRST_LINE} -gt 72 ]; then
+        echo -e "${RED}✗ First line of commit message too long (maximum 72 characters)${NC}"
+        echo "Current length: ${#FIRST_LINE}"
+        return 1
+    fi
+    
+    # Check for conventional commit format (optional but recommended)
+    if [[ "$FIRST_LINE" =~ ^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\(.+\))?:\ .+ ]]; then
+        echo -e "${GREEN}✓ Conventional commit format detected${NC}"
+    else
+        echo -e "${YELLOW}ℹ️  Consider using conventional commit format:${NC}"
+        echo "  feat: A new feature"
+        echo "  fix: A bug fix"
+        echo "  docs: Documentation changes"
+        echo "  style: Code style changes"
+        echo "  refactor: Code refactoring"
+        echo "  test: Test changes"
+        echo "  chore: Build process or auxiliary tool changes"
+    fi
+    
+    # Check for issue references
+    if [[ "$msg" =~ \#[0-9]+ ]]; then
+        echo -e "${GREEN}✓ Issue reference detected${NC}"
+    fi
+    
+    # Check for WIP commits
+    if [[ "$msg" =~ (WIP|wip|work in progress) ]]; then
+        echo -e "${YELLOW}⚠️  WIP commit detected${NC}"
+        echo "Consider completing the work before committing."
+    fi
+    
+    # Check for common bad messages
+    BAD_MESSAGES=("fix" "update" "change" "modify" "edit" "commit" "save" "test" "tmp" "temp" "asdf" "foo" "bar")
+    LOWER_MSG=$(echo "$FIRST_LINE" | tr '[:upper:]' '[:lower:]' | sed 's/[[:punct:]]//g' | xargs)
+    
+    for bad in "${BAD_MESSAGES[@]}"; do
+        if [ "$LOWER_MSG" = "$bad" ]; then
+            echo -e "${RED}✗ Commit message is too generic: '$FIRST_LINE'${NC}"
+            echo "Please provide a more descriptive message."
+            return 1
+        fi
+    done
+    
+    return 0
+}
+
+# Check the commit message
+if check_commit_message "$COMMIT_MSG"; then
+    echo -e "${GREEN}✓ Commit message passed quality checks${NC}"
+    
+    # Log good commit message
+    echo "[$(date)] Good commit message: ${COMMIT_MSG:0:50}..." >> "$HOME/.sessionhub/commit-messages.log"
+    
+    exit 0
+else
+    echo ""
+    echo -e "${RED}Commit message does not meet quality standards.${NC}"
+    echo ""
+    echo "Tips for good commit messages:"
+    echo "- Be specific about what changed"
+    echo "- Use present tense ('Add feature' not 'Added feature')"
+    echo "- Reference issue numbers when applicable"
+    echo "- Keep first line under 72 characters"
+    echo "- Add detailed description after blank line if needed"
+    
+    # Log rejected message
+    echo "[$(date)] Rejected commit message: $COMMIT_MSG" >> "$HOME/.sessionhub/rejected-commits.log"
+    
+    exit 1
+fi

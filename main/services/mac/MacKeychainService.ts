@@ -1,8 +1,5 @@
 import { execSync } from "child_process";
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const {
-  safeStorage,
-}: { safeStorage: typeof import("electron").safeStorage } = require("electron");
+import { safeStorage } from "electron";
 
 export class MacKeychainService {
   private serviceName: string;
