@@ -53,7 +53,8 @@ extract_sessions() {
 is_session_in_git() {
     local session_num="$1"
     # Check if any commit message contains the session number
-    git log --oneline | grep -q "Session $session_num:" && return 0 || return 1
+    # Handle variations like "Session 1.1:" and "Session 1.1 Added:"
+    git log --oneline | grep -E "Session $session_num(:| )" && return 0 || return 1
 }
 
 # Function to run quality gates
