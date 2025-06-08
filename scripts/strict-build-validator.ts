@@ -43,8 +43,8 @@ class StrictBuildValidator {
     try {
       const output = execSync(command, { encoding: 'utf8', stdio: 'pipe' });
       return { success: true, output };
-    } catch (error) {
-      return { success: false, output: error.stdout || error.message };
+    } catch (error: any) {
+      return { success: false, output: (error as any).stdout || (error as Error).message };
     }
   }
 
@@ -140,7 +140,7 @@ class StrictBuildValidator {
             errors.push(`${config}: ${option} is disabled`);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         errors.push(`${config}: Failed to parse - ${error}`);
       }
     }
@@ -318,7 +318,7 @@ class StrictBuildValidator {
           details: `Package version: ${packageJson.version}`
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       this.addResult({
         step: 'Version Integrity',
         success: false,
@@ -371,7 +371,7 @@ async function main() {
   const validator = new StrictBuildValidator();
   try {
     await validator.validate();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`${colors.red}Unexpected error: ${error}${colors.reset}`);
     process.exit(1);
   }

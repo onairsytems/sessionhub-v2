@@ -4,7 +4,7 @@
  * Provides secure bridge between main process and renderer
  */
 
-import { contextBridge, ipcRenderer } from 'electron';
+const { contextBridge, ipcRenderer } = require('electron');
 
 // Define the API interface
 interface SessionHubAPI {
@@ -115,23 +115,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getProjects: () => ipcRenderer.invoke('get-projects'),
 });
 
-// Also expose to window for TypeScript
-declare global {
-  interface Window {
-    sessionhub: SessionHubAPI;
-    electronAPI: {
-      checkApiKey: () => Promise<boolean>;
-      validateApiKey: (apiKey: string) => Promise<boolean>;
-      saveApiKey: (apiKey: string) => Promise<void>;
-      sendChatMessage: (sessionId: string, message: string) => Promise<string>;
-      selectGitHubRepo: () => Promise<any>;
-      analyzeRepository: (sessionId: string, repoInfo: any) => Promise<string>;
-      configureSupabase: (config: { url: string; anonKey: string; serviceKey?: string }) => Promise<any>;
-      checkSupabaseConnection: () => Promise<any>;
-      getSupabaseConfig: () => Promise<any>;
-      initSupabase: () => Promise<any>;
-      createProject: (project: any) => Promise<any>;
-      getProjects: () => Promise<any>;
-    };
-  }
-}
+// Expose electron API for session progress
+contextBridge.exposeInMainWorld('electron', {
+  onSessionProgress: (callback: () => void) => {
+    return new Promise<() => void>((resolve) => {
+      ipcRenderer.on('session-progress', callback);
+      resolve(() => ipcRenderer.removeAllListeners('session-progress'));
+    });
+  },
+  getSessionStatus: (sessionId: string) => ipcRenderer.invoke('get-session-status', sessionId)
+});
+
+// Export empty object to make this a module
+export {};

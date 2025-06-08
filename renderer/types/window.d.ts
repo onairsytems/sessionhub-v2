@@ -26,9 +26,23 @@ declare global {
       onNewSession: (callback: () => void) => void;
       removeAllListeners: (channel: string) => void;
     };
-    Electron: {
-      onSessionProgress: (callback: () => void) => Promise<() => void>;
+    electron: {
+      onSessionProgress: (callback: (event: any) => void) => Promise<() => void>;
       getSessionStatus: (sessionId: string) => Promise<any>;
+    };
+    electronAPI: {
+      checkApiKey: () => Promise<boolean>;
+      validateApiKey: (apiKey: string) => Promise<boolean>;
+      saveApiKey: (apiKey: string) => Promise<void>;
+      sendChatMessage: (sessionId: string, message: string) => Promise<string>;
+      selectGitHubRepo: () => Promise<any>;
+      analyzeRepository: (sessionId: string, repoInfo: any) => Promise<string>;
+      configureSupabase: (config: { url: string; anonKey: string; serviceKey?: string }) => Promise<any>;
+      checkSupabaseConnection: () => Promise<any>;
+      getSupabaseConfig: () => Promise<any>;
+      initSupabase: () => Promise<any>;
+      createProject: (project: any) => Promise<any>;
+      getProjects: () => Promise<any>;
     };
   }
 }

@@ -154,7 +154,7 @@ export class SelfUpdatePipeline {
 
       return signedManifest;
 
-    } catch (error) {
+    } catch (error: any) {
       this.reportProgress(progressCallback, {
         stage: 'failed',
         progress: 0,
@@ -233,7 +233,7 @@ export class SelfUpdatePipeline {
         fileCount: manifest.files.length,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.reportProgress(progressCallback, {
         stage: 'failed',
         progress: 0,
@@ -274,7 +274,7 @@ export class SelfUpdatePipeline {
       await this.startApplication();
 
       this.logger.info('Rollback completed successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Rollback failed', error as Error);
       throw error;
     }
@@ -297,7 +297,7 @@ export class SelfUpdatePipeline {
 
       this.logger.info('Manifest signature verification', { isValid });
       return isValid;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Manifest verification failed', error as Error);
       return false;
     }
@@ -334,7 +334,7 @@ export class SelfUpdatePipeline {
     try {
       await this.runCommand('npm', ['test'], process.cwd());
       return true;
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.logger.warn('Tests failed', { error: errorMessage });
       return false;
@@ -457,7 +457,7 @@ export class SelfUpdatePipeline {
     try {
       const commit = await this.runCommand('git', ['rev-parse', 'HEAD'], process.cwd());
       return commit.trim();
-    } catch (error) {
+    } catch (error: any) {
       return 'unknown';
     }
   }
@@ -466,7 +466,7 @@ export class SelfUpdatePipeline {
     try {
       const branch = await this.runCommand('git', ['rev-parse', '--abbrev-ref', 'HEAD'], process.cwd());
       return branch.trim();
-    } catch (error) {
+    } catch (error: any) {
       return 'unknown';
     }
   }
@@ -482,7 +482,7 @@ export class SelfUpdatePipeline {
       parts[2] = (parseInt(parts[2]) + 1).toString();
       
       return parts.join('.');
-    } catch (error) {
+    } catch (error: any) {
       return '0.9.1';
     }
   }

@@ -72,7 +72,7 @@ export class BoundaryEnforcementTests {
       
       this.boundaryEnforcer.validateOperation(validExecutionOp);
       console.log('✅ Valid execution operation accepted');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to validate valid operations:', error);
       throw error;
     }
@@ -95,7 +95,7 @@ export class BoundaryEnforcementTests {
     try {
       this.boundaryEnforcer.validateOperation(invalidPlanningOp);
       console.error('❌ Failed to reject planning actor executing');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Correctly rejected planning actor attempting execution');
       console.log(`   - Error: ${(error as Error).message}`);
     }
@@ -103,7 +103,7 @@ export class BoundaryEnforcementTests {
     try {
       this.boundaryEnforcer.validateOperation(invalidExecutionOp);
       console.error('❌ Failed to reject execution actor planning');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Correctly rejected execution actor attempting planning');
       console.log(`   - Error: ${(error as Error).message}`);
     }
@@ -124,7 +124,7 @@ export class BoundaryEnforcementTests {
     try {
       this.boundaryEnforcer.validateContent(planningContentWithCode, 'planning');
       console.error('❌ Failed to detect code in planning content');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Correctly detected code in planning content');
       console.log(`   - Violations found: ${(error as Error).message.split('\n').length - 1}`);
     }
@@ -140,7 +140,7 @@ export class BoundaryEnforcementTests {
     try {
       this.boundaryEnforcer.validateContent(executionContentWithStrategy, 'execution');
       console.error('❌ Failed to detect strategic planning in execution content');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Correctly detected strategic planning in execution content');
       console.log(`   - Violations found: ${(error as Error).message.split('\n').length - 1}`);
     }
@@ -167,7 +167,7 @@ export class BoundaryEnforcementTests {
       
       this.boundaryEnforcer.validateContent(validExecutionContent, 'execution');
       console.log('✅ Valid execution content accepted');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to accept valid content:', error);
       throw error;
     }
@@ -200,7 +200,7 @@ export class BoundaryEnforcementTests {
       console.log(`   Planner.analyze: ${proxiedPlanner.analyze()}`);
       console.log(`   Planner.plan: ${proxiedPlanner.plan()}`);
       console.log('✅ Planning proxy allows valid methods');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Planning proxy blocked valid method:', error);
     }
 
@@ -208,7 +208,7 @@ export class BoundaryEnforcementTests {
       console.log(`   Executor.execute: ${proxiedExecutor.execute()}`);
       console.log(`   Executor.implement: ${proxiedExecutor.implement()}`);
       console.log('✅ Execution proxy allows valid methods');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Execution proxy blocked valid method:', error);
     }
 
@@ -216,7 +216,7 @@ export class BoundaryEnforcementTests {
     try {
       proxiedPlanner.execute();
       console.error('❌ Planning proxy failed to block execute method');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Planning proxy correctly blocked execute method');
       console.log(`   - Error: ${(error as Error).message}`);
     }
@@ -224,7 +224,7 @@ export class BoundaryEnforcementTests {
     try {
       proxiedExecutor.plan();
       console.error('❌ Execution proxy failed to block plan method');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Execution proxy correctly blocked plan method');
       console.log(`   - Error: ${(error as Error).message}`);
     }
@@ -274,7 +274,7 @@ export class BoundaryEnforcementTests {
     try {
       this.protocolValidator.validate(instructionWithCode);
       console.error('❌ Failed to detect code in instructions');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Protocol validator detected code patterns');
       console.log(`   - Error: ${(error as Error).message}`);
     }
@@ -326,7 +326,7 @@ export class BoundaryEnforcementTests {
     try {
       this.protocolValidator.validate(validInstruction);
       console.log('✅ Valid instruction protocol accepted');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to accept valid instruction:', error);
       throw error;
     }
@@ -364,7 +364,7 @@ export class BoundaryEnforcementTests {
     for (const violation of violations) {
       try {
         this.boundaryEnforcer.validateOperation(violation);
-      } catch (error) {
+      } catch (error: any) {
         violationCount++;
       }
     }

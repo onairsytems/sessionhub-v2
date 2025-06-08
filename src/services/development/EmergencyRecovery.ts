@@ -5,8 +5,10 @@
  */
 
 import { promises as fs } from 'fs';
+import * as crypto from 'crypto';
 import { join } from 'path';
 import { spawn } from 'child_process';
+import * as os from 'os';
 import { Logger } from '../../lib/logging/Logger';
 import { DevelopmentConfig, getConfig } from '../../config/development.config';
 
@@ -42,7 +44,7 @@ export interface EmergencyState {
 export interface RecoveryCommand {
   name: string;
   description: string;
-  execute: ($1) => Promise<boolean>;
+  execute: () => Promise<boolean>;
   requiresConfirmation: boolean;
   riskLevel: 'low' | 'medium' | 'high' | 'critical';
 }
@@ -163,7 +165,7 @@ export class EmergencyRecovery {
           const backupPath = join(snapshotDir, filePath.replace(/[\/\\]/g, '_'));
           await fs.writeFile(backupPath, content);
 
-          const hash = createHash('sha256').update(content).digest('hex');
+          const hash = crypto.createHash('sha256').update(content).digest('hex');
           
           snapshot.files.push({
             path: filePath,
@@ -406,20 +408,20 @@ export class EmergencyRecovery {
 
   private setupSignalHandlers(): void {
     // Handle SIGTERM gracefully
-    process.on('SIGTERM', () => {
+    process.on('SIGTERM', async () => {
       this.logger.info('Received SIGTERM, creating emergency snapshot');
       await this.createSnapshot('automatic', 'Emergency shutdown snapshot');
     });
 
     // Handle SIGINT (Ctrl+C)
-    process.on('SIGINT', () => {
+    process.on('SIGINT', async () => {
       this.logger.info('Received SIGINT, entering emergency mode');
       await this.enterEmergencyMode('Manual interrupt (SIGINT)');
       process.exit(0);
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', async (error) => {
       this.logger.error('Uncaught exception, entering emergency mode', error);
       await this.enterEmergencyMode(`Uncaught exception: ${error.message}`);
     });
@@ -501,7 +503,7 @@ export class EmergencyRecovery {
     await fs.writeFile(statePath, JSON.stringify(state, null, 2));
   }
 
-  private async logEmergencyEvent(event: string, data: any): Promise<void> {
+  private async logEmergencyEvent(event: string, data: unknown): Promise<void> {
     const logEntry = {
       timestamp: new Date().toISOString(),
       event,
@@ -537,6 +539,6 @@ export class EmergencyRecovery {
   }
 
   private expandPath(path: string): string {
-    return path.replace(/^~/, require('os').homedir());
+    return path.replace(/^~/, os.homedir());
   }
 }

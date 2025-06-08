@@ -19,7 +19,7 @@ export class SecuritySandbox {
    * Execute a function in a sandboxed environment with resource limits
    */
   async executeSecurely<T>(
-    fn: ($1) => Promise<T>,
+    fn: (context?: any) => Promise<T>,
     timeoutMs: number
   ): Promise<T> {
     this.logger.debug('SecuritySandbox: Executing function securely', { timeoutMs });
@@ -40,13 +40,13 @@ export class SecuritySandbox {
 
       this.logger.debug('SecuritySandbox: Execution completed successfully');
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('SecuritySandbox: Execution failed', error as Error);
       throw error;
     }
   }
 
-  private async wrapWithResourceLimits<T>(fn: ($1) => Promise<T>): Promise<T> {
+  private async wrapWithResourceLimits<T>(fn: (context?: any) => Promise<T>): Promise<T> {
     // In a real implementation, this would:
     // 1. Create a separate process or worker
     // 2. Set resource limits (memory, CPU, file access)
@@ -56,7 +56,7 @@ export class SecuritySandbox {
     // For now, we'll just execute with basic error handling
     try {
       const startMemory = process.memoryUsage();
-      const result = await fn();
+      const result = await fn({});
       const endMemory = process.memoryUsage();
 
       // Check memory usage
@@ -66,7 +66,7 @@ export class SecuritySandbox {
       }
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       throw error;
     }
   }

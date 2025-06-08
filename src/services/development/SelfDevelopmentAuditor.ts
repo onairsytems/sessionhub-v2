@@ -373,7 +373,7 @@ export class SelfDevelopmentAuditor {
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
         .slice(offset, offset + limit);
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to query audit events', error as Error);
       return [];
     }
@@ -515,7 +515,7 @@ export class SelfDevelopmentAuditor {
           this.eventChain = lastEvent.integrity.hash;
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       this.eventChain = null;
     }
   }
@@ -530,7 +530,7 @@ export class SelfDevelopmentAuditor {
         event.timestamp = new Date(event.timestamp);
         return event;
       });
-    } catch (error) {
+    } catch (error: any) {
       return [];
     }
   }

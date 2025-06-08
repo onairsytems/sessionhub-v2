@@ -116,7 +116,7 @@ export class SelfDevelopmentCycleTest {
         stagesTotal: result.stages.length,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Self-development cycle test failed', error as Error);
       
       result.totalDuration = Date.now() - startTime;
@@ -169,7 +169,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'environment_setup',
         passed: false,
@@ -200,7 +200,7 @@ export class SelfDevelopmentCycleTest {
       }
 
       // Log to auditor
-      await this.auditor.logSessionCreated(sessionInstruction.sessionId, mockIssue.number, mockIssue.title);
+      await this.auditor.logSessionCreated(sessionInstruction.sessionId, (mockIssue as any).number, (mockIssue as any).title);
 
       return {
         stage: 'issue_processing',
@@ -213,7 +213,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'issue_processing',
         passed: false,
@@ -260,7 +260,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'update_pipeline',
         passed: false,
@@ -297,7 +297,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'quality_assurance',
         passed: false,
@@ -341,7 +341,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'performance_validation',
         passed: false,
@@ -387,7 +387,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'audit_trail',
         passed: false,
@@ -437,7 +437,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'emergency_recovery',
         passed: false,
@@ -476,7 +476,7 @@ export class SelfDevelopmentCycleTest {
         },
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'architecture_boundaries',
         passed: false,
@@ -500,7 +500,7 @@ export class SelfDevelopmentCycleTest {
   private async cleanupTestEnvironment(): Promise<void> {
     try {
       await fs.rm(this.testWorkspace, { recursive: true, force: true });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Failed to cleanup test environment', { error: (error as Error).message });
     }
   }
@@ -518,7 +518,7 @@ export class SelfDevelopmentCycleTest {
     };
   }
 
-  private async simulateIssueProcessing(issue): Promise<any> {
+  private async simulateIssueProcessing(issue: any): Promise<any> {
     // Simulate the GitHub session generator processing
     return {
       sessionId: `session-${Date.now()}-${issue.number}`,
@@ -548,7 +548,7 @@ export class SelfDevelopmentCycleTest {
     };
   }
 
-  private validateInstruction(instruction): boolean {
+  private validateInstruction(instruction: any): boolean {
     return !!(
       instruction.sessionId &&
       instruction.objectives?.length > 0 &&
@@ -565,7 +565,7 @@ export class SelfDevelopmentCycleTest {
       // This should be caught by boundary enforcement
       await this.auditor.logActorBoundaryViolation('planning', 'Attempted to execute file system operation');
       return true; // Violation was properly logged
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -576,7 +576,7 @@ export class SelfDevelopmentCycleTest {
       // This should be caught by boundary enforcement
       await this.auditor.logActorBoundaryViolation('execution', 'Attempted to modify planning strategy');
       return true; // Violation was properly logged
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -612,7 +612,7 @@ if (require.main === module) {
       
       process.exit(result.overallPassed ? 0 : 1);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Test execution failed:', (error as Error).message);
       process.exit(1);
     }

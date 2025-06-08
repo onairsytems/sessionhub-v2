@@ -8,37 +8,41 @@
 import { SupabaseService } from '../src/services/cloud/SupabaseService';
 import { Logger } from '../src/lib/logging/Logger';
 import * as readline from 'readline';
-import { promisify } from 'util';
-
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-const question = promisify(rl.question).bind(rl);
+const question = (prompt: string): Promise<string> => {
+  return new Promise((resolve) => {
+    rl.question(prompt, (answer) => {
+      resolve(answer);
+    });
+  });
+};
 
 async function main() {
   console.log('🚀 SessionHub Supabase Configuration\n');
 
   try {
     // Get Supabase URL
-    const url = await question('Enter your Supabase project URL: ') as unknown as string;
+    const url = await question('Enter your Supabase project URL: ');
     if (!url.startsWith('https://') || !url.includes('.supabase.co')) {
       throw new Error('Invalid Supabase URL. It should look like: https://your-project.supabase.co');
     }
 
     // Get Anon Key
-    const anonKey = await question('Enter your Supabase Anon Key (starts with eyJ...): ') as unknown as string;
+    const anonKey = await question('Enter your Supabase Anon Key (starts with eyJ...): ');
     if (!anonKey.startsWith('eyJ')) {
       throw new Error('Invalid Anon Key. It should start with "eyJ"');
     }
 
     // Optional Service Key
-    const hasServiceKey = await question('Do you have a Service Key? (y/n): ') as unknown as string;
+    const hasServiceKey = await question('Do you have a Service Key? (y/n): ');
     let serviceKey: string | undefined;
     
     if (hasServiceKey.toLowerCase() === 'y') {
-      serviceKey = await question('Enter your Supabase Service Key: ') as unknown as string;
+      serviceKey = await question('Enter your Supabase Service Key: ');
     }
 
     console.log('\n📝 Configuring Supabase...');
@@ -69,7 +73,7 @@ async function main() {
       console.log('⚠️  Connection test failed. Please check your credentials and try again.\n');
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n❌ Configuration failed:', error instanceof Error ? error.message : error);
     console.log('\nPlease check your credentials and try again.');
     process.exit(1);

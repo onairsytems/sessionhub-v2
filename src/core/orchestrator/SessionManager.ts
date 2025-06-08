@@ -30,7 +30,7 @@ export interface UserRequest {
   id: string;
   sessionId: string;
   userId: string;
-  request: string;
+  content: string;
   context: Record<string, any>;
   timestamp: string;
 }
@@ -78,7 +78,7 @@ export class SessionManager {
     const session: Session = {
       id: sessionId,
       name: `Session ${new Date().toISOString()}`,
-      description: request.request.substring(0, 100),
+      description: request.content.substring(0, 100),
       status: 'pending',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

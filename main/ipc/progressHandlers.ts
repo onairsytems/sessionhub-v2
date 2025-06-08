@@ -65,7 +65,7 @@ export class ProgressHandlers {
       try {
         const status = await this.orchestrator.getSessionStatus(sessionId);
         return { success: true, data: status };
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to get session status', error as Error);
         return { success: false, error: (error as Error).message };
       }
@@ -77,7 +77,7 @@ export class ProgressHandlers {
         const sessionStateManager = this.orchestrator.getSessionStateManager();
         const history = await sessionStateManager.getHistory(sessionId);
         return { success: true, data: history };
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to get session history', error as Error);
         return { success: false, error: (error as Error).message };
       }
@@ -88,7 +88,7 @@ export class ProgressHandlers {
       try {
         const metrics = this.orchestrator.getQueueMetrics();
         return { success: true, data: metrics };
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to get queue metrics', error as Error);
         return { success: false, error: (error as Error).message };
       }

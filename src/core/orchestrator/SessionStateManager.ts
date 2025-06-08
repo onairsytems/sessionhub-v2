@@ -106,19 +106,19 @@ export class SessionStateManager {
   /**
    * Get session state
    */
-  async getSession(sessionId: string): Promise<SessionState | null> {
+  async getSession(sessionId: string): Promise<SessionState | null | undefined> {
     // Check local cache first
     let session = this.sessions.get(sessionId);
     
     if (!session && this.persistence.cloud && this.supabaseService) {
       // Try to load from cloud
-      session = await this.loadFromCloud(sessionId);
+      session = await this.loadFromCloud(sessionId) || undefined;
       if (session) {
         this.sessions.set(sessionId, session);
       }
     }
 
-    return session || null;
+    return session;
   }
 
   /**
@@ -221,7 +221,7 @@ export class SessionStateManager {
         status: result.status,
         startTime: new Date(Date.now() - (result.metrics?.duration || 0)).toISOString(),
         endTime: new Date().toISOString(),
-        outputs: result.deliverables.map((d) => ({
+        outputs: result.deliverables.map((d: any) => ({
           type: d.type === 'file' ? 'file' : 'artifact',
           path: d.path,
           description: `${d.type} ${d.status}`,
@@ -430,17 +430,21 @@ export class SessionStateManager {
 
   private async persistToCloud(session: SessionState): Promise<void> {
     try {
-      await this.supabaseService!.upsertSessionState(session);
-    } catch (error) {
+      // Store session state in metadata field of sessions table
+      await this.supabaseService!.updateSession(session.sessionId, {
+        metadata: { ...session, _type: 'session_state' },
+        status: (session.status === 'failed' ? 'cancelled' : session.status) as any
+      });
+    } catch (error: any) {
       this.logger.error('Failed to persist session to cloud', error as Error);
     }
   }
 
   private async loadFromCloud(sessionId: string): Promise<SessionState | undefined> {
     try {
-      const session = await this.supabaseService!.getSessionState(sessionId);
-      return session || undefined;
-    } catch (error) {
+      const sessionState = await this.supabaseService!.getSessionState(sessionId);
+      return sessionState as SessionState | undefined;
+    } catch (error: any) {
       this.logger.error('Failed to load session from cloud', error as Error);
       return undefined;
     }
@@ -449,16 +453,17 @@ export class SessionStateManager {
   private async fetchActiveSessionsFromCloud(): Promise<SessionState[]> {
     try {
       return await this.supabaseService!.getActiveSessionStates();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to fetch active sessions from cloud', error as Error);
       return [];
     }
   }
 
-  private async cleanupCloudSessions(cutoffDate: Date): Promise<void> {
+  private async cleanupCloudSessions(_cutoffDate: Date): Promise<void> {
     try {
-      await this.supabaseService!.cleanupOldSessions(cutoffDate);
-    } catch (error) {
+      // TODO: Implement cloud session cleanup
+      // await this.supabaseService!.cleanupOldSessions(cutoffDate);
+    } catch (error: any) {
       this.logger.error('Failed to cleanup cloud sessions', error as Error);
     }
   }

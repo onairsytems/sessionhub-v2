@@ -56,7 +56,7 @@ export class MacKeychainService {
       await execAsync(command);
       
       this.logger.info('Credential stored in Mac Keychain', { account });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to store credential in Keychain', error as Error);
       throw error;
     }
@@ -71,7 +71,7 @@ export class MacKeychainService {
       const { stdout } = await execAsync(command);
       
       return stdout.trim();
-    } catch (error) {
+    } catch (error: any) {
       // Item not found is not an error
       if ((error).code === 44) {
         return null;
@@ -91,7 +91,7 @@ export class MacKeychainService {
       await execAsync(command);
       
       this.logger.info('Credential deleted from Mac Keychain', { account });
-    } catch (error) {
+    } catch (error: any) {
       // Item not found is not an error
       if ((error).code !== 44) {
         this.logger.error('Failed to delete credential from Keychain', error as Error);
@@ -112,7 +112,7 @@ export class MacKeychainService {
         .split('\n')
         .filter(line => line.trim())
         .filter((value, index, self) => self.indexOf(value) === index); // unique
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to list credentials from Keychain', error as Error);
       return [];
     }
@@ -134,7 +134,7 @@ export class MacKeychainService {
       // Try to access keychain to trigger permission dialog
       await this.getCredential('test-access');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       // If we get a permission error, user needs to grant access
       if ((error).code === 1) {
         this.logger.warn('Keychain access denied - user needs to grant permission');
@@ -178,7 +178,7 @@ export class MacKeychainService {
       try {
         await this.setCredential(cred.name, cred.value);
         this.logger.info('Migrated credential to Keychain', { name: cred.name });
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to migrate credential', error as Error, { 
           name: cred.name 
         });

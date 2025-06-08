@@ -75,7 +75,7 @@ async function finalFix() {
         console.log(`✅ Fixed ${file}`);
         totalFixes++;
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ Error processing ${file}:`, error);
     }
   }

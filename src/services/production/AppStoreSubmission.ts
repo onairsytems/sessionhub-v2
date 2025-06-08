@@ -123,7 +123,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const hasValidCertificate = process.env['CODE_SIGNING_IDENTITY'] !== undefined;
       const certificateValid = true; // Mock validation
       return hasValidCertificate && certificateValid;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Code signing validation failed:', error);
       return false;
     }
@@ -135,7 +135,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       // In production, this would check notarization status
       const notarized = true; // Mock validation
       return notarized;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Notarization validation failed:', error);
       return false;
     }
@@ -147,7 +147,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const entitlementsValid = true; // Mock validation
       const sandboxEnabled = true; // Mock validation
       return entitlementsValid && sandboxEnabled;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Sandbox validation failed:', error);
       return false;
     }
@@ -159,7 +159,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const privacyManifestExists = true; // Mock validation
       const manifestComplete = true; // Mock validation
       return privacyManifestExists && manifestComplete;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Privacy manifest validation failed:', error);
       return false;
     }
@@ -171,7 +171,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const accessibilitySupported = true; // Mock validation
       const voiceOverCompatible = true; // Mock validation
       return accessibilitySupported && voiceOverCompatible;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Accessibility validation failed:', error);
       return false;
     }
@@ -184,7 +184,7 @@ This is the beginning of perfect development. Welcome to SessionHub.`
       const encryptionImplemented = true; // Mock validation
       const noVulnerabilities = true; // Mock validation
       return secureDataHandling && encryptionImplemented && noVulnerabilities;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Security validation failed:', error);
       return false;
     }

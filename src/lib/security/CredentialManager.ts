@@ -6,6 +6,7 @@
 import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 import { Logger } from '@/src/lib/logging/Logger';
 
 export interface Credential {
@@ -48,8 +49,6 @@ export class CredentialManager {
     
     // Use Mac app directory if not specified
     if (!credentialsPath) {
-      import os from 'os';
-      import path from 'path';
       this.credentialsPath = path.join(
         os.homedir(),
         'Library',
@@ -82,7 +81,7 @@ export class CredentialManager {
         credentialsPath: this.credentialsPath,
         credentialCount: this.credentials.size
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize CredentialManager', error as Error);
       throw error;
     }
@@ -264,7 +263,7 @@ export class CredentialManager {
         // Try to decrypt
         this.decryptCredential(encrypted);
         valid++;
-      } catch (error) {
+      } catch (error: any) {
         errors++;
         this.logger.error('Failed to validate credential', error as Error, { id });
       }
@@ -340,11 +339,11 @@ export class CredentialManager {
           const content = await fs.readFile(filePath, 'utf-8');
           const encrypted = JSON.parse(content) as EncryptedCredential;
           this.credentials.set(encrypted.id, encrypted);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Failed to load credential file', error as Error, { file });
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       if ((error).code === 'ENOENT') {
         this.logger.info('No credentials directory found, starting fresh');
       } else {
@@ -382,7 +381,7 @@ export class CredentialManager {
         this.decryptCredential(encrypted);
         this.credentials.set(encrypted.id, encrypted);
         await this.saveCredential(encrypted);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Failed to import credential', error as Error, {
           id: encrypted.id,
           name: encrypted.name

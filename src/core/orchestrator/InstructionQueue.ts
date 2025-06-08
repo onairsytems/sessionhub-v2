@@ -160,7 +160,7 @@ export class InstructionQueue extends EventEmitter {
 
       // Maintain history size
       if (this.completed.size > this.maxCompletedHistory) {
-        const oldestKey = this.completed.keys().next().value;
+        const oldestKey = this.completed.keys().next().value as string | undefined;
         if (oldestKey !== undefined) {
           this.completed.delete(oldestKey);
         }

@@ -16,7 +16,7 @@ interface Message {
 interface PlanningChatProps {
   sessionId: string;
   sessionName: string;
-  onPlanComplete: () => void;
+  onPlanComplete: (plan: string) => void;
 }
 
 export function PlanningChat({ sessionId, sessionName, onPlanComplete }: PlanningChatProps) {
@@ -65,7 +65,7 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -103,15 +103,15 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
         setMessages((prev) => [...prev, assistantMessage]);
         setIsLoading(false);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to import GitHub repository:', error);
     }
   };
 
   const finalizePlan = () => {
     const plan = messages
-      .filter((m) => m.role === 'assistant')
-      .map((m) => m.content)
+      .filter((m: any) => m.role === 'assistant')
+      .map((m: any) => m.content)
       .join('\n\n');
     onPlanComplete(plan);
   };
@@ -140,7 +140,7 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
+          {messages.map((message: any) => (
             <div
               key={message.id}
               className={`flex gap-3 ${

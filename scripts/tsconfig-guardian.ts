@@ -95,7 +95,7 @@ class TSConfigGuardian {
       }
 
       return valid;
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ ${configPath}: Failed to parse - ${error}`);
       this.logViolation(`Parse error in ${configPath}: ${error}`);
       return false;
@@ -130,7 +130,7 @@ class TSConfigGuardian {
       
       console.log(`✅ ${configPath}: Strict settings enforced`);
       this.logViolation(`Enforced strict settings in ${configPath}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`❌ Failed to enforce ${configPath}: ${error}`);
     }
   }

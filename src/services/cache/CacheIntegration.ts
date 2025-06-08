@@ -54,7 +54,7 @@ export class CachedDataService {
       
       this.initialized = true;
       this.logger.info('Cached data service initialized');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize cached data service', error as Error);
       
       // Try to initialize cache in offline mode
@@ -102,12 +102,12 @@ export class CachedDataService {
       cacheEnabled: this.config.enableCache !== false && this.cacheService.isInitialized()
     };
 
-    if (status.cacheEnabled) {
-      status.cacheStats = await this.cacheService.getCacheStats();
-      status.offlineQueueSize = await this.cacheService.getOfflineQueueSize();
+    if ((status as any).cacheEnabled) {
+      (status as any).cacheStats = await this.cacheService.getCacheStats();
+      (status as any).offlineQueueSize = await this.cacheService.getOfflineQueueSize();
     }
 
-    return status;
+    return status as any;
   }
 
   // Project operations
@@ -273,7 +273,7 @@ export class CachedDataService {
   /**
    * Import cache data
    */
-  async importCache(data): Promise<void> {
+  async importCache(data: any): Promise<void> {
     if (!this.cacheService.isInitialized()) {
       throw new Error('Cache not initialized');
     }

@@ -19,7 +19,7 @@ interface Repository {
 }
 
 interface GitHubRepoSelectorProps {
-  onSelect: () => void;
+  onSelect: (repo: Repository) => void;
   onClose: () => void;
 }
 
@@ -113,7 +113,7 @@ export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProp
           )}
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {repositories.map((repo) => (<button
+            {repositories.map((repo: any) => (<button
                 key={repo.id}
                 onClick={() => handleSelect(repo)}
                 className="w-full p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-left transition-colors"

@@ -78,7 +78,7 @@ export class GitHubSessionGenerator {
     const monitor = async () => {
       try {
         await this.checkForNewIssues();
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Issue monitoring error', error as Error);
       }
     };
@@ -123,7 +123,7 @@ export class GitHubSessionGenerator {
 
         await this.processIssue(issue);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to check for new issues', error as Error);
     }
   }
@@ -199,7 +199,7 @@ export class GitHubSessionGenerator {
 
       return progress;
 
-    } catch (error) {
+    } catch (error: any) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       progress.status = 'failed';
       progress.currentStage = `Failed: ${errorMessage}`;
@@ -329,7 +329,7 @@ export class GitHubSessionGenerator {
         comment.body?.includes('<!-- sessionhub-processed -->') &&
         comment.user?.type === 'Bot'
       );
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }
@@ -443,7 +443,7 @@ The issue could not be automatically processed. Manual intervention may be requi
   //     });
 
   //     return branchName;
-  //   } catch (error) {
+  //   } catch (error: any) {
   //     this.logger.warn('Failed to create session branch', { error: error.message });
   //     return 'main'; // Fallback to main branch
   //   }

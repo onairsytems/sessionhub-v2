@@ -10,6 +10,7 @@ import { Workflow } from './WorkflowEngine';
 import { ActorState } from './ActorCoordinator';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import * as os from 'os';
 
 export interface SystemState {
   version: string;
@@ -88,7 +89,7 @@ export class StateManager {
         stateFile: this.stateFilePath,
         snapshotDir: this.snapshotDir
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize StateManager', error as Error);
       throw error;
     }
@@ -161,7 +162,7 @@ export class StateManager {
         file: this.stateFilePath,
         size: stateJson.length
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to save state', error as Error);
       throw error;
     }
@@ -192,7 +193,7 @@ export class StateManager {
         sessions: Object.keys(loadedState.sessions).length,
         workflows: Object.keys(loadedState.workflows).length
       });
-    } catch (error) {
+    } catch (error: any) {
       if ((error).code === 'ENOENT') {
         this.logger.info('No existing state file found, using initial state');
       } else {
@@ -232,7 +233,7 @@ export class StateManager {
       });
       
       return snapshot;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to create snapshot', error as Error);
       throw error;
     }
@@ -258,7 +259,7 @@ export class StateManager {
         id: snapshotId,
         timestamp: snapshot.timestamp
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to restore snapshot', error as Error);
       throw error;
     }
@@ -281,7 +282,7 @@ export class StateManager {
             'utf-8'
           );
           snapshots.push(JSON.parse(content));
-        } catch (error) {
+        } catch (error: any) {
           this.logger.warn('Failed to read snapshot file', { file });
         }
       }
@@ -289,7 +290,7 @@ export class StateManager {
       return snapshots.sort((a, b) => 
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to list snapshots', error as Error);
       return [];
     }
@@ -314,7 +315,7 @@ export class StateManager {
           );
           await fs.unlink(snapshotPath);
           cleaned++;
-        } catch (error) {
+        } catch (error: any) {
           this.logger.warn('Failed to delete snapshot', {
             id: snapshot.id,
             error
@@ -353,7 +354,7 @@ export class StateManager {
       await this.saveState();
       
       this.logger.info('State imported successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to import state', error as Error);
       throw error;
     }
@@ -416,7 +417,7 @@ export class StateManager {
       this.saveTimer = setInterval(async () => {
         try {
           await this.saveState();
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error('Auto-save failed', error as Error);
         }
       }, this.saveInterval);
@@ -428,7 +429,6 @@ export class StateManager {
   }
 
   private getMacAppDataDir(): string {
-    import os from 'os';
     return path.join(
       os.homedir(),
       'Library',

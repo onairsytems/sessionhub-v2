@@ -10,7 +10,7 @@ import { ErrorDetectionEngine } from './ErrorDetectionEngine';
 import { ErrorReport, ErrorSeverity } from './types';
 import { Logger } from '../../lib/logging/Logger';
 import * as path from 'path';
-import * as fs from 'fs/promises';
+import { promises as fsPromises } from 'fs';
 
 interface MonitoringOptions {
   debounceMs: number;
@@ -83,7 +83,7 @@ export class RealTimeMonitor extends EventEmitter {
       // Perform initial validation
       await this.performInitialScan();
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to start monitoring', error as Error);
       throw error;
     }
@@ -193,7 +193,7 @@ export class RealTimeMonitor extends EventEmitter {
         await this.attemptAutoFix(filePath, errors);
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error checking file: ${filePath}`, error as Error);
     } finally {
       this.activeChecks.delete(filePath);
@@ -282,7 +282,7 @@ ${firstError.suggestion ? `💡 ${firstError.suggestion}` : ''}
     if (fixableErrors.length === 0) return;
 
     try {
-      let content = await fs.readFile(filePath, 'utf-8');
+      let content = await fsPromises.readFile(filePath, 'utf-8');
       let modified = false;
 
       for (const error of fixableErrors) {
@@ -315,12 +315,12 @@ ${firstError.suggestion ? `💡 ${firstError.suggestion}` : ''}
       }
 
       if (modified) {
-        await fs.writeFile(filePath, content);
+        await fsPromises.writeFile(filePath, content);
         this.logger.info(`Auto-fixed ${fixableErrors.length} errors in ${path.basename(filePath)}`);
         this.emit('auto-fix', { filePath, fixedCount: fixableErrors.length });
       }
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Auto-fix failed for ${filePath}`, error as Error);
     }
   }

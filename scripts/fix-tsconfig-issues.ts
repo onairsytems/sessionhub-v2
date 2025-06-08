@@ -58,7 +58,7 @@ function fixTsConfig() {
   
   // Add Next.js plugin if not present
   const hasNextPlugin = tsconfig.compilerOptions.plugins.some(
-    (p) => p.name === 'next'
+    (p: any) => p.name === 'next'
   );
   
   if (!hasNextPlugin) {
@@ -168,7 +168,7 @@ function fixTsConfig() {
 try {
   fixTsConfig();
   console.log('\n✅ TypeScript configuration fixed successfully!');
-} catch (error) {
+} catch (error: any) {
   console.error('❌ Failed to fix TypeScript configuration:', error);
   process.exit(1);
 }

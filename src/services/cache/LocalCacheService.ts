@@ -142,7 +142,7 @@ export class LocalCacheService {
         path: dbPath,
         config: this.config 
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize local cache', error as Error);
       throw error;
     }
@@ -347,7 +347,7 @@ export class LocalCacheService {
       'SELECT version FROM schema_migrations ORDER BY version'
     );
     const appliedVersions = new Set(
-      getAppliedVersions.all().map((row) => row.version)
+      getAppliedVersions.all().map((row: any) => row.version)
     );
 
     const insertMigration = this.db.prepare(
@@ -360,7 +360,7 @@ export class LocalCacheService {
           this.db.exec(migration.up);
           insertMigration.run(migration.version, migration.name);
           this.logger.info(`Applied migration: ${migration.name}`);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(`Failed to apply migration ${migration.name}`, error as Error);
           throw error;
         }
@@ -379,7 +379,7 @@ export class LocalCacheService {
     this.syncInterval = setInterval(async () => {
       try {
         await this.syncWithSupabase();
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Sync interval failed', error as Error);
       }
     }, this.config.syncIntervalSeconds * 1000);
@@ -413,7 +413,7 @@ export class LocalCacheService {
     if (!this.db) return 0;
     
     const result = this.db.prepare('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()').get();
-    return result?.size || 0;
+    return (result as any)?.size || 0;
   }
 
   /**
@@ -445,7 +445,7 @@ export class LocalCacheService {
           
           // Delete 10% of records at a time
           const recordCount = this.db!.prepare(`SELECT COUNT(*) as count FROM ${table}`).get();
-          const deleteCount = Math.floor(recordCount.count * 0.1);
+          const deleteCount = Math.floor((recordCount as any).count * 0.1);
           if (deleteCount > 0) {
             deleteOldest.run(deleteCount);
           }
@@ -456,8 +456,8 @@ export class LocalCacheService {
       const tables = ['projects', 'sessions', 'instructions', 'execution_results', 'patterns'];
       for (const table of tables) {
         const countResult = this.db!.prepare(`SELECT COUNT(*) as count FROM ${table}`).get();
-        if (countResult.count > this.config.maxRecords) {
-          const deleteCount = countResult.count - this.config.maxRecords;
+        if ((countResult as any).count > this.config.maxRecords) {
+          const deleteCount = (countResult as any).count - this.config.maxRecords;
           const deleteOldest = this.db!.prepare(
             `DELETE FROM ${table} 
              WHERE id IN (
@@ -546,7 +546,7 @@ export class LocalCacheService {
     const cached = getStmt.get(id);
 
     // Check if we have a valid cached version
-    if (cached && !forceRefresh && !this.isExpired(cached.ttl_expires_at)) {
+    if (cached && !forceRefresh && !this.isExpired((cached as any).ttl_expires_at)) {
       this.cacheHits++;
       return this.deserializeProject(cached);
     }
@@ -561,7 +561,7 @@ export class LocalCacheService {
           await this.cacheProject(project);
           return project;
         }
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to fetch project from Supabase', error as Error);
         // Fall back to cached version if available
         if (cached) {
@@ -639,7 +639,7 @@ export class LocalCacheService {
           this.updateSyncStatus(remoteProject.id, 'projects', 'synced');
           return remoteProject;
         }
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to sync project creation', error as Error);
         this.updateSyncStatus(id, 'projects', 'error', (error as Error).message);
       }
@@ -663,7 +663,7 @@ export class LocalCacheService {
 
     // Track for sync
     const versionStmt = this.db.prepare('SELECT version FROM projects WHERE id = ?');
-    const version = (versionStmt.get(id))?.version || 1;
+    const version = (versionStmt.get(id) as { version?: number })?.version || 1;
     this.trackSync(id, 'projects', 'update', version);
 
     // Try to sync immediately if online
@@ -672,7 +672,7 @@ export class LocalCacheService {
         const remoteProject = await this.supabaseService.updateProject(id, updates);
         this.updateSyncStatus(id, 'projects', 'synced');
         return remoteProject;
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to sync project update', error as Error);
         this.updateSyncStatus(id, 'projects', 'error', (error as Error).message);
       }
@@ -699,7 +699,7 @@ export class LocalCacheService {
       try {
         await this.supabaseService.deleteProject(id);
         this.updateSyncStatus(id, 'projects', 'synced');
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to sync project deletion', error as Error);
         this.updateSyncStatus(id, 'projects', 'error', (error as Error).message);
       }
@@ -721,7 +721,7 @@ export class LocalCacheService {
           await this.cacheProject(project);
         }
         return projects;
-      } catch (error) {
+      } catch (error: any) {
         this.logger.warn('Failed to fetch projects from Supabase', error as Error);
       }
     }
@@ -729,7 +729,7 @@ export class LocalCacheService {
     // Fall back to cache
     const getAll = this.db.prepare('SELECT * FROM projects ORDER BY last_accessed DESC');
     const cached = getAll.all();
-    return cached.map(row => this.deserializeProject(row));
+    return cached.map((row: any) => this.deserializeProject(row));
   }
 
   // Similar implementations for Sessions, Instructions, ExecutionResults, and Patterns...
@@ -757,7 +757,7 @@ export class LocalCacheService {
     for (const sync of pending) {
       try {
         await this.syncRecord(sync);
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(`Failed to sync record ${sync.id}`, error as Error);
         this.updateSyncStatus(sync.id, sync.table_name, 'error', (error as Error).message);
       }
@@ -877,21 +877,21 @@ export class LocalCacheService {
     const tables = ['projects', 'sessions', 'instructions', 'execution_results', 'patterns'];
     for (const table of tables) {
       const count = this.db.prepare(`SELECT COUNT(*) as count FROM ${table}`).get();
-      stats.recordCounts[table] = count.count;
+      stats.recordCounts[table] = (count as any).count;
     }
 
     // Get pending syncs
     const pendingSyncs = this.db.prepare(
       `SELECT COUNT(*) as count FROM sync_queue WHERE sync_status IN ('pending', 'error')`
     ).get();
-    stats.pendingSyncs = pendingSyncs.count;
+    stats.pendingSyncs = (pendingSyncs as any).count;
 
     // Get last sync time
     const lastSync = this.db.prepare(
       `SELECT value FROM cache_metadata WHERE key = 'last_sync'`
     ).get();
     if (lastSync) {
-      stats.lastSync = lastSync.value;
+      stats.lastSync = (lastSync as any).value;
     }
 
     // Get oldest record
@@ -904,8 +904,8 @@ export class LocalCacheService {
         UNION SELECT MIN(cached_at) FROM patterns
       )
     `).get();
-    if (oldestRecord?.oldest) {
-      stats.oldestRecord = oldestRecord.oldest;
+    if ((oldestRecord as any)?.oldest) {
+      (stats as any).oldestRecord = (oldestRecord as any).oldest;
     }
 
     return stats;
@@ -934,7 +934,7 @@ export class LocalCacheService {
   async exportCache(): Promise<any> {
     if (!this.db) throw new Error('Cache not initialized');
 
-    const data: unknown = {
+    const data: any = {
       exportedAt: new Date().toISOString(),
       stats: await this.getCacheStats(),
       tables: {}
@@ -952,7 +952,7 @@ export class LocalCacheService {
   /**
    * Import cache data
    */
-  async importCache(data): Promise<void> {
+  async importCache(data: any): Promise<void> {
     if (!this.db) throw new Error('Cache not initialized');
 
     const transaction = this.db.transaction(() => {
@@ -1007,7 +1007,7 @@ export class LocalCacheService {
   /**
    * Deserialize a project from cache
    */
-  private deserializeProject(row): Project {
+  private deserializeProject(row: any): Project {
     return {
       id: row.id,
       name: row.name,
@@ -1036,7 +1036,7 @@ export class LocalCacheService {
       `SELECT COUNT(*) as count FROM sync_queue WHERE sync_status IN ('pending', 'error')`
     ).get();
 
-    return count?.count || 0;
+    return (count as any)?.count || 0;
   }
 
   /**

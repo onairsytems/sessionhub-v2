@@ -7,10 +7,10 @@
 import { ErrorDetectionEngine } from './ErrorDetectionEngine';
 import { BuildValidation, ErrorReport } from './types';
 import { Logger } from '../../lib/logging/Logger';
-import * as fs from 'fs/promises';
 // import * as path from 'path'; // Commented out for future use
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { promises as fs } from 'fs';
 
 const execAsync = promisify(exec);
 
@@ -89,7 +89,7 @@ export class BuildValidator {
               this.logger.error(`${step.name} has ${stepWarnings.length} warnings (failOnWarning enabled)`);
             }
           }
-        } catch (error) {
+        } catch (error: any) {
           canBuild = false;
           this.logger.error(`${step.name} failed: ${error}`);
           
@@ -132,7 +132,7 @@ export class BuildValidator {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Build validation failed with unexpected error', error as Error);
       
       return {

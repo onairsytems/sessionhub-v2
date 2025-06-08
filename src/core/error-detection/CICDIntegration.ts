@@ -8,7 +8,7 @@ import { BuildValidator } from './BuildValidator';
 import { ErrorDetectionEngine } from './ErrorDetectionEngine';
 import { CICDIntegration as CICDConfig, ErrorReport } from './types';
 import { Logger } from '../../lib/logging/Logger';
-import * as fs from 'fs/promises';
+import { promises as fsPromises } from 'fs';
 import * as path from 'path';
 
 interface CICDResult {
@@ -90,7 +90,7 @@ export class CICDIntegration {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('CI/CD validation failed', error as Error);
       
       return {
@@ -120,7 +120,7 @@ export class CICDIntegration {
   ): Promise<string> {
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const reportDir = '.sessionhub/reports';
-    await fs.mkdir(reportDir, { recursive: true });
+    await fsPromises.mkdir(reportDir, { recursive: true });
 
     let reportPath: string;
     let content: string;
@@ -142,7 +142,7 @@ export class CICDIntegration {
         content = JSON.stringify(validation, null, 2);
     }
 
-    await fs.writeFile(reportPath, content);
+    await fsPromises.writeFile(reportPath, content);
     this.logger.info(`Generated ${format} report: ${reportPath}`);
 
     return reportPath;
@@ -254,7 +254,7 @@ validation_passed=${validation.canBuild}
 error_count=${validation.blockingErrors.length}
 warning_count=${validation.warnings.length}
 `;
-      await fs.appendFile(process.env['GITHUB_OUTPUT'], output);
+      await fsPromises.appendFile(process.env['GITHUB_OUTPUT'], output);
     }
   }
 
@@ -341,8 +341,8 @@ cicd.run().then(result => {
 exit $?
 `;
 
-    await fs.writeFile(hookPath, hookContent);
-    await fs.chmod(hookPath, '755');
+    await fsPromises.writeFile(hookPath, hookContent);
+    await fsPromises.chmod(hookPath, '755');
     
     console.log('✅ Pre-commit hook installed');
   }

@@ -93,7 +93,7 @@ export class VerificationGates {
     
     // Extract score from report (this is a simple implementation)
     const scoreMatch = report.match(/Score: (\d+)\/100/);
-    const score = scoreMatch && scoreMatch[1] ? parseInt(scoreMatch[1], 10) : 0;
+    const score = scoreMatch ? parseInt(scoreMatch[1] || "0", 10) : 0;
 
     if (score < minScore) {
       const error = new Error(
@@ -135,7 +135,7 @@ export class VerificationGates {
             action: 'Session may need re-verification or correction'
           });
         }
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error('Error during continuous verification', error as Error, {
           sessionId
         });
@@ -157,7 +157,7 @@ export class VerificationGates {
     try {
       await this.verificationEngine.enforceVerification(sessionId);
       return false; // No rollback needed
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Rollback gate triggered - verification failed post-deployment', error as Error, {
         sessionId,
         deploymentId

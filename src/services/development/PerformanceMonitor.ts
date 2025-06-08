@@ -7,6 +7,7 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
 import { performance } from 'perf_hooks';
+import * as os from 'os';
 import { Logger } from '../../lib/logging/Logger';
 import { DevelopmentConfig, getConfig } from '../../config/development.config';
 
@@ -236,7 +237,7 @@ export class PerformanceMonitor {
   /**
    * Measure instruction generation performance
    */
-  async measureInstructionGeneration(_instruction): Promise<number> {
+  async measureInstructionGeneration(_instruction: any): Promise<number> {
     const startTime = performance.now();
     
     try {
@@ -267,7 +268,7 @@ export class PerformanceMonitor {
   /**
    * Measure session execution performance
    */
-  async measureSessionExecution(sessionId: string, operation: ($1) => Promise<any>): Promise<{ duration: number; result: unknown }> {
+  async measureSessionExecution(sessionId: string, operation: () => Promise<any>): Promise<{ duration: number; result: unknown }> {
     const startTime = performance.now();
     let result: unknown;
 
@@ -432,8 +433,6 @@ export class PerformanceMonitor {
    * Private helper methods
    */
   private async getCurrentResources(): Promise<SystemResource> {
-    import os from 'os';
-    // import process from 'process'; // Commented out for future use
 
     // Get CPU usage
     const cpus = os.cpus();
@@ -472,8 +471,6 @@ export class PerformanceMonitor {
   }
 
   private async getCPUUsage(): Promise<number> {
-    // import os from 'os'; // Commented out for future use
-    
     return new Promise((resolve) => {
       const startMeasure = this.cpuAverage();
       
@@ -489,16 +486,18 @@ export class PerformanceMonitor {
   }
 
   private cpuAverage(): { idle: number; total: number } {
-    import os from 'os';
     let totalIdle = 0;
     let totalTick = 0;
     const cpus = os.cpus();
 
     for (let i = 0; i < cpus.length; i++) {
-      for (const type in cpus[i].times) {
-        totalTick += cpus[i].times[type];
+      const cpu = cpus[i];
+      if (cpu && cpu.times) {
+        for (const type in cpu.times) {
+          totalTick += (cpu.times as any)[type];
+        }
+        totalIdle += cpu.times.idle;
       }
-      totalIdle += cpus[i].times.idle;
     }
 
     return { idle: totalIdle / cpus.length, total: totalTick / cpus.length };
@@ -517,7 +516,7 @@ export class PerformanceMonitor {
       const metrics = JSON.parse(content);
       
       // Convert timestamp strings back to Date objects
-      return metrics.map((m) => ({
+      return metrics.map((m: any) => ({
         ...m,
         timestamp: new Date(m.timestamp),
       }));
@@ -531,7 +530,7 @@ export class PerformanceMonitor {
       const content = await fs.readFile(this.baselinesPath, 'utf-8');
       const baselines = JSON.parse(content);
       
-      return baselines.map((b) => ({
+      return baselines.map((b: any) => ({
         ...b,
         lastUpdated: new Date(b.lastUpdated),
       }));
@@ -610,7 +609,15 @@ export class PerformanceMonitor {
     }
   }
 
-  private calculateOverallScore(comparisons: any[]): number {
+  private calculateOverallScore(comparisons: Array<{
+    metric: string;
+    current: number;
+    baseline: number;
+    change: number;
+    changePercent: number;
+    passed: boolean;
+    trend: string;
+  }>): number {
     if (comparisons.length === 0) return 100;
 
     const weights = {
@@ -635,7 +642,15 @@ export class PerformanceMonitor {
     return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 100;
   }
 
-  private generateRecommendations(comparisons: any[], regressions: string[]): string[] {
+  private generateRecommendations(comparisons: Array<{
+    metric: string;
+    current: number;
+    baseline: number;
+    change: number;
+    changePercent: number;
+    passed: boolean;
+    trend: string;
+  }>, regressions: string[]): string[] {
     const recommendations: string[] = [];
 
     for (const comparison of comparisons) {
@@ -658,6 +673,6 @@ export class PerformanceMonitor {
   }
 
   private expandPath(path: string): string {
-    return path.replace(/^~/, require('os').homedir());
+    return path.replace(/^~/, os.homedir());
   }
 }

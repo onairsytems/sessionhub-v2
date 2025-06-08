@@ -147,7 +147,7 @@ export class ErrorDetectionEngine {
       }
 
       return errors;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error detection failed for ${filePath}`, error as Error);
       throw error;
     }
@@ -371,7 +371,7 @@ export class ErrorDetectionEngine {
           if (errors.length > 0) {
             onError(errors);
           }
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(`Real-time monitoring error for ${filePath}`, error as Error);
         }
       });
@@ -436,7 +436,7 @@ export class ErrorDetectionEngine {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Project validation failed', error as Error);
       throw error;
     }

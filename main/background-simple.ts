@@ -4,7 +4,7 @@
  * Handles app lifecycle, window management, and system integration
  */
 
-import { app, BrowserWindow, Menu, shell, ipcMain, dialog, Notification } from 'electron';
+import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from 'electron';
 // import { autoUpdater } from 'electron-updater'; // Commented out for future use
 import * as path from 'path';
 // Simple dev detection without external dependencies
@@ -27,7 +27,7 @@ class SessionHubApp {
           electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron'),
           hardResetMethod: 'exit'
         });
-      } catch (error) {
+      } catch (error: any) {
         console.log('electron-reload not available, skipping hot reload');
       }
     }
@@ -139,7 +139,7 @@ class SessionHubApp {
         await this.mainWindow.loadFile(appPath);
       }
       console.log('Content loaded successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load content:', error);
       // Show proper error dialog
       void dialog.showErrorBox('SessionHub Error', `Failed to load application: ${error}`)
@@ -346,12 +346,14 @@ class SessionHubApp {
   // }
 
   private showStartupNotification(): void {
+    const { Notification } = require('electron');
     if (Notification.isSupported()) {
-      new Notification({
+      const notification = new Notification({
         title: 'SessionHub Ready',
         body: 'AI-powered development platform is now running',
         icon: path.join(__dirname, '../resources/icon.png')
-      }).show();
+      });
+      notification.show();
     }
   }
 

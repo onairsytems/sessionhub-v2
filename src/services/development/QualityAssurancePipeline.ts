@@ -155,7 +155,7 @@ export class QualityAssurancePipeline {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('QA pipeline failed with error', error as Error);
       
       result.endTime = new Date();
@@ -217,7 +217,7 @@ export class QualityAssurancePipeline {
         recommendations: this.getStaticAnalysisRecommendations(issues),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Static Analysis',
         passed: false,
@@ -256,7 +256,7 @@ export class QualityAssurancePipeline {
         recommendations: scanResult.vulnerabilities.map(v => v.recommendation),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Security Scan',
         passed: false,
@@ -296,7 +296,7 @@ export class QualityAssurancePipeline {
         artifacts: ['test-results.json', 'coverage-report.html'],
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Unit Tests',
         passed: false,
@@ -334,7 +334,7 @@ export class QualityAssurancePipeline {
         artifacts: ['integration-test-results.json'],
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Integration Tests',
         passed: false,
@@ -381,7 +381,7 @@ export class QualityAssurancePipeline {
         recommendations: violations,
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Architecture Validation',
         passed: false,
@@ -419,7 +419,7 @@ export class QualityAssurancePipeline {
         recommendations: regressions.map(r => `Optimize ${r.metric}: ${r.current} ${r.unit} (threshold: ${r.threshold} ${r.unit})`),
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Performance Benchmarks',
         passed: false,
@@ -462,7 +462,7 @@ export class QualityAssurancePipeline {
         artifacts: ['self-dev-test-results.json'],
       };
 
-    } catch (error) {
+    } catch (error: any) {
       return {
         stage: 'Self-Development Capability',
         passed: false,
@@ -533,7 +533,7 @@ export class QualityAssurancePipeline {
         if (file.includes('execution') && this.containsStrategicDecisions(content)) {
           violations.push(`Execution actor contains strategic decisions: ${file}`);
         }
-      } catch (error) {
+      } catch (error: any) {
         // File might not exist or be readable
       }
     }

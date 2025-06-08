@@ -4,9 +4,7 @@
  */
 
 import { SystemOrchestrator } from '@/src/core/orchestrator/SystemOrchestrator';
-// import { Logger } from '@/src/lib/logging/Logger';
 import { v4 as uuidv4 } from 'uuid';
-// import * as path from 'path';
 import * as fs from 'fs/promises';
 
 // Test configuration
@@ -70,7 +68,7 @@ const TEST_SCENARIOS = [
 class TwoActorWorkflowTest {
   private orchestrator: SystemOrchestrator;
   // private logger: Logger;
-  private testResults: {name: string; passed: boolean; details: string[]}[] = [];
+  private testResults: Array<{name: string; passed: boolean; details: string[]}> = [];
 
   constructor() {
     // this.logger = new Logger('TwoActorWorkflowTest');
@@ -95,7 +93,7 @@ class TwoActorWorkflowTest {
       // Report results
       this.reportResults();
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Test suite failed:', error);
     } finally {
       await this.cleanup();
@@ -120,7 +118,7 @@ class TwoActorWorkflowTest {
     const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Actor Separation',
       passed: true,
-      details: []
+      details: [] as string[]
     };
 
     try {
@@ -154,7 +152,7 @@ class TwoActorWorkflowTest {
         result.details.push('❌ Execution Actor has planning capabilities');
       }
       
-    } catch (error) {
+    } catch (error: any) {
       result.passed = false;
       result.details.push(`❌ Error: ${(error as Error).message}`);
     }
@@ -171,7 +169,7 @@ class TwoActorWorkflowTest {
     const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Instruction Protocol',
       passed: true,
-      details: []
+      details: [] as string[]
     };
 
     try {
@@ -199,7 +197,7 @@ class TwoActorWorkflowTest {
         // Validate instruction structure
         const requiredFields = ['metadata', 'context', 'objectives', 'requirements', 'deliverables', 'constraints', 'successCriteria'];
         requiredFields.forEach(field => {
-          if (instruction[field]) {
+          if ((instruction as any)[field]) {
             result.details.push(`✅ Instruction has ${field}`);
           } else {
             result.passed = false;
@@ -208,7 +206,7 @@ class TwoActorWorkflowTest {
         });
       }
       
-    } catch (error) {
+    } catch (error: any) {
       result.passed = false;
       result.details.push(`❌ Error: ${(error as Error).message}`);
     }
@@ -225,7 +223,7 @@ class TwoActorWorkflowTest {
     const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Session State Persistence',
       passed: true,
-      details: []
+      details: [] as string[]
     };
 
     try {
@@ -271,7 +269,7 @@ class TwoActorWorkflowTest {
         }
       }
       
-    } catch (error) {
+    } catch (error: any) {
       result.passed = false;
       result.details.push(`❌ Error: ${(error as Error).message}`);
     }
@@ -288,7 +286,7 @@ class TwoActorWorkflowTest {
     const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Real-Time Monitoring',
       passed: true,
-      details: []
+      details: [] as string[]
     };
 
     try {
@@ -324,7 +322,7 @@ class TwoActorWorkflowTest {
       await eventCollector;
       
       // Verify events received
-      const eventTypes = events.map(e => e.type);
+      const eventTypes = events.map(e => (e as any).type);
       if (eventTypes.includes('queued')) {
         result.details.push('✅ Received queued event');
       } else {
@@ -348,7 +346,7 @@ class TwoActorWorkflowTest {
         result.details.push('❌ Metrics not updated');
       }
       
-    } catch (error) {
+    } catch (error: any) {
       result.passed = false;
       result.details.push(`❌ Error: ${(error as Error).message}`);
     }
@@ -365,7 +363,7 @@ class TwoActorWorkflowTest {
     const result: {name: string; passed: boolean; details: string[]} = {
       name: 'Error Handling',
       passed: true,
-      details: []
+      details: [] as string[]
     };
 
     try {
@@ -402,7 +400,7 @@ class TwoActorWorkflowTest {
         result.details.push('❌ Error metrics not tracking');
       }
       
-    } catch (error) {
+    } catch (error: any) {
       // Expected to have some errors
       result.details.push('✅ Error handling triggered as expected');
     }
@@ -420,7 +418,7 @@ class TwoActorWorkflowTest {
       const result: {name: string; passed: boolean; details: string[]} = {
         name: `Complete Workflow: ${scenario.name}`,
         passed: true,
-        details: []
+        details: [] as string[]
       };
 
       try {
@@ -480,14 +478,14 @@ class TwoActorWorkflowTest {
         // Verify deliverables if using real API
         if (TEST_CONFIG.useRealApi && hasExecution) {
           const execution = history.find(h => h.type === 'execution');
-          if (execution?.data?.outputs?.length > 0) {
-            result.details.push(`✅ Deliverables created: ${execution?.data?.outputs?.length || 0} files`);
+          if ((execution?.data as any)?.outputs?.length > 0) {
+            result.details.push(`✅ Deliverables created: ${(execution?.data as any)?.outputs?.length || 0} files`);
           } else {
             result.details.push('⚠️  No deliverables created (mock mode or API issue)');
           }
         }
         
-      } catch (error) {
+      } catch (error: any) {
         result.passed = false;
         result.details.push(`❌ Error: ${(error as Error).message}`);
       }
@@ -562,7 +560,7 @@ class TwoActorWorkflowTest {
       await this.orchestrator.shutdown();
       await fs.rm(TEST_CONFIG.dataDir, { recursive: true, force: true });
       console.log('✅ Cleanup complete');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Cleanup error:', error);
     }
   }

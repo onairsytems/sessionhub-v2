@@ -17,7 +17,7 @@ const navItems = [
   { name: 'Settings', href: '/settings', icon: Settings },
 ];
 
-export function Navigation() : void {
+export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (

@@ -91,7 +91,7 @@ export class IntegrationTests {
       this.validator.validate(instructions);
       this.validator.ensureNoCode(instructions);
       console.log('   ✅ Instructions validated successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('   ❌ Instruction validation failed:', error);
       throw error;
     }
@@ -208,7 +208,7 @@ export class IntegrationTests {
     try {
       await this.planningEngine.generateInstructions(invalidRequest);
       console.error('   ❌ Failed to catch invalid request');
-    } catch (error) {
+    } catch (error: any) {
       console.log('   ✅ Invalid request properly rejected');
       this.systemLogger.error('Invalid request rejected', error as Error);
     }
@@ -384,7 +384,7 @@ export class IntegrationTests {
       
       this.validator.ensureNoCode(badInstructions);
       console.error('   ❌ Failed to detect code in planning');
-    } catch (error) {
+    } catch (error: any) {
       console.log('   ✅ Planning code violation detected and blocked');
       console.log(`   - Error: ${(error as Error).message}`);
       this.systemLogger.error('Boundary violation attempt', error as Error);

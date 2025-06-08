@@ -143,7 +143,7 @@ export class SystemOrchestrator {
       this.startRequestProcessor();
       
       this.logger.info('SystemOrchestrator initialized successfully');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to initialize SystemOrchestrator', error as Error);
       throw error;
     }
@@ -162,7 +162,7 @@ export class SystemOrchestrator {
       id: requestId,
       sessionId: '', // Will be set by SessionManager
       userId,
-      request: requestContent,
+      content: requestContent,
       context: context || {},
       timestamp: new Date().toISOString()
     };
@@ -170,7 +170,7 @@ export class SystemOrchestrator {
     // Create session
     const session = await this.sessionManager.createSession({
       userId,
-      request: requestContent,
+      content: requestContent,
       context: context || {}
     });
 
@@ -432,10 +432,10 @@ export class SystemOrchestrator {
       // Convert SessionManager.UserRequest to PlanningEngine.UserRequest format
       const planningUserRequest = {
         id: nextItem.request.id,
-        content: nextItem.request.request, // Map 'request' property to 'content'
+        content: nextItem.request.content,
         context: nextItem.request.context,
         sessionId: nextItem.request.sessionId,
-        timestamp: nextItem.request.timestamp
+        timestamp: new Date().toISOString()
       };
       await this.sessionStateManager.recordUserRequest(session.id, planningUserRequest);
       
@@ -471,9 +471,27 @@ export class SystemOrchestrator {
       await this.workflowEngine.completeStep(workflow.id, 'result', result);
       
       // Record execution result in session history
+      // Convert SessionManager.ExecutionResult to Instruction.ExecutionResult format
+      const instructionExecutionResult = {
+        instructionId: result.instructions.metadata.id,
+        status: result.executionResult.status,
+        startTime: new Date().toISOString(),
+        endTime: new Date().toISOString(),
+        outputs: result.executionResult.deliverables.map(d => ({
+          type: d.type as any,
+          data: { path: d.path, status: d.status }
+        })),
+        errors: result.executionResult.errors.map(e => ({
+          code: 'EXECUTION_ERROR',
+          message: e,
+          details: {}
+        })),
+        logs: result.executionResult.logs,
+        validationResults: []
+      };
       await this.sessionStateManager.recordExecutionResult(
         session.id,
-        result.executionResult,
+        instructionExecutionResult,
         result.instructions.metadata.id
       );
       
@@ -490,7 +508,7 @@ export class SystemOrchestrator {
       // Update queue item
       nextItem.status = 'completed';
       
-    } catch (error) {
+    } catch (error: any) {
       await this.errorHandler.handleError(error as Error, {
         actor: 'orchestrator',
         operation: 'processRequest'

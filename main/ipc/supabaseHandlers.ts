@@ -16,7 +16,7 @@ export function registerSupabaseHandlers() : void {
       await supabaseService.configureCredentials(config.url, config.anonKey, config.serviceKey);
       await supabaseService.initialize();
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to configure Supabase', error as Error);
       return { 
         success: false, 
@@ -37,7 +37,7 @@ export function registerSupabaseHandlers() : void {
         isConnected: supabaseService.isServiceOnline(),
         isInitialized: supabaseService.isInitialized()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         isConnected: false,
         isInitialized: false,
@@ -55,7 +55,7 @@ export function registerSupabaseHandlers() : void {
         url: config.url,
         hasServiceKey: config.hasServiceKey
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         hasConfig: false,
         error: error instanceof Error ? error.message : 'Unknown error'
@@ -73,7 +73,7 @@ export function registerSupabaseHandlers() : void {
     try {
       const result = await supabaseService.createProject(project);
       return { success: true, project: result };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to create project', error as Error);
       return { 
         success: false, 
@@ -87,7 +87,7 @@ export function registerSupabaseHandlers() : void {
     try {
       const projects = await supabaseService.getProjects();
       return { success: true, projects };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get projects', error as Error);
       return { 
         success: false, 
@@ -108,7 +108,7 @@ export function registerSupabaseHandlers() : void {
     try {
       const result = await supabaseService.createSession(session);
       return { success: true, session: result };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to create session', error as Error);
       return { 
         success: false, 
@@ -122,7 +122,7 @@ export function registerSupabaseHandlers() : void {
     try {
       const result = await supabaseService.updateSession(sessionId, { status: status as any });
       return { success: true, session: result };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to update session', error as Error);
       return { 
         success: false, 
@@ -136,7 +136,7 @@ export function registerSupabaseHandlers() : void {
     try {
       const sessions = await supabaseService.getActiveSessions();
       return { success: true, sessions };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get active sessions', error as Error);
       return { 
         success: false, 
@@ -151,7 +151,7 @@ export function registerSupabaseHandlers() : void {
     try {
       const stats = await supabaseService.getSessionStatistics(sessionId);
       return { success: true, stats };
-    } catch (error) {
+    } catch (error: any) {
       logger.error('Failed to get session statistics', error as Error);
       return { 
         success: false, 
@@ -166,7 +166,7 @@ export function registerSupabaseHandlers() : void {
     try {
       await supabaseService.initialize();
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       logger.warn('Supabase initialization failed - credentials may not be configured', error as Error);
       return { 
         success: false, 

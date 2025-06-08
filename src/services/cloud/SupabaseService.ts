@@ -103,7 +103,7 @@ export class SupabaseService {
   private isOnline: boolean = true;
   private retryCount: number = 3;
   private retryDelay: number = 1000; // milliseconds
-  private offlineQueue: Array<() => Promise<any>> = [];
+  private offlineQueue: Array<() => Promise<unknown>> = [];
   private reconnectInterval: NodeJS.Timeout | null = null;
 
   // Keychain account names
@@ -250,7 +250,7 @@ export class SupabaseService {
    * Execute operation with retry logic
    */
   private async executeWithRetry<T>(
-    operation: ($1) => Promise<T>,
+    operation: () => Promise<T>,
     operationName: string
   ): Promise<T> {
     let lastError: Error | null = null;
@@ -278,7 +278,7 @@ export class SupabaseService {
   /**
    * Queue operation for offline execution
    */
-  private queueOfflineOperation<T>(operation: ($1) => Promise<T>): void {
+  private queueOfflineOperation<T>(operation: () => Promise<T>): void {
     this.offlineQueue.push(operation);
     this.logger.info('Operation queued for offline execution');
   }
@@ -1030,7 +1030,7 @@ export class SupabaseService {
    * Upsert session state data
    * Stores SessionStateManager's state in the session metadata
    */
-  async upsertSessionState(sessionState): Promise<void> {
+  async upsertSessionState(sessionState: any): Promise<void> {
     const client = this.getClient();
     
     if (!this.isOnline) {
@@ -1088,7 +1088,7 @@ export class SupabaseService {
    * Get session state data
    * Retrieves SessionStateManager's state from session metadata
    */
-  async getSessionState(sessionId: string): Promise<any | null> {
+  async getSessionState(sessionId: string): Promise<any> {
     const client = this.getClient();
     
     return this.executeWithRetry(async () => {

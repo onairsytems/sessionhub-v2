@@ -159,7 +159,7 @@ export class ProductionMonitoringService {
         details: 'Local SQLite database accessible',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'database_connection',
         status: 'fail',
@@ -183,7 +183,7 @@ export class ProductionMonitoringService {
         details: 'Claude API responding normally',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'claude_api',
         status: 'fail',
@@ -207,7 +207,7 @@ export class ProductionMonitoringService {
         details: 'Supabase connection healthy',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'supabase_connection',
         status: 'fail',
@@ -231,7 +231,7 @@ export class ProductionMonitoringService {
         details: 'File system read/write access available',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'file_system_access',
         status: 'fail',
@@ -255,7 +255,7 @@ export class ProductionMonitoringService {
         details: 'Mac Keychain access available',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'keychain_access',
         status: 'fail',
@@ -279,7 +279,7 @@ export class ProductionMonitoringService {
         details: 'Self-development system operational',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'self_development_pipeline',
         status: 'fail',
@@ -303,7 +303,7 @@ export class ProductionMonitoringService {
         details: 'Error reporting system active',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'error_reporting',
         status: 'fail',
@@ -327,7 +327,7 @@ export class ProductionMonitoringService {
         details: 'Telemetry collection operational',
         lastCheck: new Date().toISOString()
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         name: 'telemetry_system',
         status: 'fail',

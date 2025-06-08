@@ -234,7 +234,7 @@ export class SelfDevelopmentProductionService {
         issue.status = 'failed';
         console.log(`❌ Session failed for issue: ${issue.title}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       issue.status = 'failed';
       console.error(`💥 Error processing issue ${issue.title}:`, error);
     }

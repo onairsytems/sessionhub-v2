@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { safeStorage } from 'electron';
+const { safeStorage } = require('electron');
 
 export class MacKeychainService {
   private serviceName: string;
@@ -48,7 +48,7 @@ export class MacKeychainService {
       const decrypted = safeStorage.decryptString(encryptedBuffer);
       
       return decrypted;
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -60,7 +60,7 @@ export class MacKeychainService {
     try {
       const command = `security delete-generic-password -a "${account}" -s "${this.serviceName}-${service}"`;
       execSync(command);
-    } catch (error) {
+    } catch (error: any) {
       // Ignore errors if item doesn't exist
     }
   }
@@ -73,7 +73,7 @@ export class MacKeychainService {
       const command = `security find-generic-password -a "${account}" -s "${this.serviceName}-${service}"`;
       execSync(command);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   }

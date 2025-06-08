@@ -71,7 +71,7 @@ async function exampleUsage() {
     await new Promise(resolve => setTimeout(resolve, 2000));
 
     // Update execution result
-    await supabaseService.updateExecutionResult(executionResult.id, {
+    await supabaseService.updateExecutionResult(executionResult.id!, {
       status: 'success',
       completed_at: new Date().toISOString(),
       outputs: {
@@ -92,10 +92,10 @@ async function exampleUsage() {
     // });
 
     // Step 9: Query data
-    const projectSessions = await supabaseService.getProjectSessions(project.id);
+    const projectSessions = await supabaseService.getProjectSessions(project.id!);
     logger.info('Project sessions', { count: projectSessions.length });
 
-    const sessionInstructions = await supabaseService.getSessionInstructions(newSession.id);
+    const sessionInstructions = await supabaseService.getSessionInstructions(newSession.id!);
     logger.info('Session instructions', { count: sessionInstructions.length });
 
     const patterns = await supabaseService.getPatterns({ projectId: project.id });
@@ -118,7 +118,7 @@ async function exampleUsage() {
     // Step 12: Cleanup (when app closes)
     await supabaseService.cleanup();
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Example failed', error as Error);
   }
 }
@@ -127,7 +127,7 @@ async function exampleUsage() {
 async function errorHandlingExample() {
   try {
     await supabaseService.initialize();
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof Error) {
       if (error.message.includes('Missing Supabase credentials')) {
         // Prompt user to configure credentials
@@ -149,7 +149,7 @@ async function offlineModeExample() {
       path: '/path/to/project',
       type: 'react'
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error instanceof Error && error.message.includes('Offline mode')) {
       console.log('Operation queued for when connection is restored');
     }

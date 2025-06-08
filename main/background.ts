@@ -4,7 +4,7 @@
  * Handles app lifecycle, window management, and system integration
  */
 
-import { app, BrowserWindow, Menu, shell, ipcMain, dialog, Notification } from 'electron';
+import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import * as path from 'path';
 import isDev from 'electron-is-dev';
@@ -47,7 +47,7 @@ class SessionHubApp {
     // Security: Prevent new window creation
     app.on('web-contents-created', (_event, contents) => {
       contents.setWindowOpenHandler(({ url }) => {
-        void shell.openExternal(url)
+        shell.openExternal(url).catch(console.error);
         return { action: 'deny' };
       });
     });
@@ -80,14 +80,14 @@ class SessionHubApp {
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows are closed
     if (process.platform !== 'darwin') {
-      void app.quit();
+      app.quit();
     }
   }
 
   private onActivate(): void {
     // On macOS, re-create window when dock icon is clicked
     if (BrowserWindow.getAllWindows().length === 0) {
-      this.createMainWindow();
+      this.createMainWindow().catch(console.error);
     }
   }
 
@@ -183,7 +183,7 @@ class SessionHubApp {
           {
             label: 'New Session',
             accelerator: 'CmdOrCtrl+N',
-            click: () => voidthis.newSession()
+            click: () => void this.newSession()
           },
           { type: 'separator' },
           { role: 'close' }
@@ -229,16 +229,16 @@ class SessionHubApp {
         submenu: [
           {
             label: 'Documentation',
-            click: () => voidshell.openExternal('https://sessionhub.com/docs')
+            click: () => void shell.openExternal('https://sessionhub.com/docs')
           },
           {
             label: 'Support',
-            click: () => voidshell.openExternal('https://sessionhub.com/support')
+            click: () => void shell.openExternal('https://sessionhub.com/support')
           },
           { type: 'separator' },
           {
             label: 'System Health',
-            click: () => voidthis.showSystemHealth()
+            click: () => void this.showSystemHealth()
           }
         ]
       }
@@ -325,22 +325,26 @@ class SessionHubApp {
   }
 
   private showStartupNotification(): void {
+    const { Notification } = require('electron');
     if (Notification.isSupported()) {
-      new Notification({
+      const notification = new Notification({
         title: 'SessionHub Ready',
         body: 'AI-powered development platform is now running',
         icon: path.join(__dirname, '../resources/icon.png')
-      }).show();
+      });
+      notification.show();
     }
   }
 
   private showUpdateNotification(title: string, body: string): void {
+    const { Notification } = require('electron');
     if (Notification.isSupported()) {
-      new Notification({
+      const notification = new Notification({
         title,
         body,
         icon: path.join(__dirname, '../resources/icon.png')
-      }).show();
+      });
+      notification.show();
     }
   }
 

@@ -150,7 +150,7 @@ export class ActorCoordinator {
 
       return result;
 
-    } catch (error) {
+    } catch (error: any) {
       await this.errorHandler.handleError(error as Error, {
         actor: 'coordinator',
         operation: 'processRequest',
@@ -198,7 +198,7 @@ export class ActorCoordinator {
       // Generate instructions - adapt request format
       const planningRequest = {
         id: request.id,
-        content: request.request,
+        content: request.content,
         context: request.context,
         sessionId: request.sessionId,
         timestamp: request.timestamp
@@ -238,7 +238,7 @@ export class ActorCoordinator {
 
       return instructions;
 
-    } catch (error) {
+    } catch (error: any) {
       this.updateActorState(planningActorId, {
         status: 'error',
         currentOperation: undefined
@@ -339,7 +339,7 @@ export class ActorCoordinator {
         }
       };
 
-    } catch (error) {
+    } catch (error: any) {
       this.updateActorState(executionActorId, {
         status: 'error',
         currentOperation: undefined

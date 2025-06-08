@@ -25,7 +25,7 @@ const fixes: Fix[] = [
   // Add void to floating promises
   {
     pattern: /^(\s*)([a-zA-Z_$][\w$]*\.[\w$]+\([^)]*\))\s*;/gm,
-    replacement: (match: unknown, indent: unknown, call: any) => {
+    replacement: (match: string, indent: string, call: string) => {
       if (call.includes('app.') || call.includes('mainWindow.') || call.includes('win.')) {
         return `${indent}void ${call};`;
       }
@@ -103,7 +103,7 @@ async function fixFile(filePath: string): Promise<number> {
     }
     
     return fixCount;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error fixing ${filePath}:`, error);
     return 0;
   }
@@ -179,7 +179,7 @@ async function main() {
       maxBuffer: 50 * 1024 * 1024
     });
     console.log('✅ ESLint auto-fix complete');
-  } catch (error) {
+  } catch (error: any) {
     console.log('⚠️  ESLint auto-fix completed with some remaining issues');
   }
 }

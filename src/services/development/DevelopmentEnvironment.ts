@@ -134,7 +134,7 @@ export class DevelopmentEnvironment {
       await this.waitForStop(instance.pid, 10000);
       
       this.logger.info('Development instance stopped gracefully');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('Graceful stop failed, forcing termination', { error });
       
       try {
@@ -155,7 +155,7 @@ export class DevelopmentEnvironment {
     try {
       const statusData = await fs.readFile(this.statusFile, 'utf-8');
       return JSON.parse(statusData);
-    } catch (error) {
+    } catch (error: any) {
       return null;
     }
   }
@@ -233,7 +233,7 @@ export class DevelopmentEnvironment {
   private async removeLockFile(): Promise<void> {
     try {
       await fs.unlink(this.lockFile);
-    } catch (error) {
+    } catch (error: any) {
       // Ignore if file doesn't exist
     }
   }
@@ -266,7 +266,7 @@ export class DevelopmentEnvironment {
           } else {
             setTimeout(check, checkInterval);
           }
-        } catch (error) {
+        } catch (error: any) {
           // Process no longer exists
           resolve();
         }

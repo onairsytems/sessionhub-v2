@@ -12,7 +12,7 @@ import { IntegrationTests } from './test-integration';
 
 interface TestSuite {
   name: string;
-  runner: ($1) => Promise<void>;
+  runner: () => Promise<void>;
 }
 
 class TwoActorArchitectureTestRunner {
@@ -52,7 +52,7 @@ class TwoActorArchitectureTestRunner {
       try {
         await suite.runner();
         results.push({ suite: suite.name, success: true });
-      } catch (error) {
+      } catch (error: any) {
         console.error(`\n❌ ${suite.name} failed:`, error);
         results.push({ 
           suite: suite.name, 
@@ -120,7 +120,7 @@ async function main() {
   try {
     const runner = new TwoActorArchitectureTestRunner();
     await runner.runAllTests();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Fatal error running tests:', error);
     process.exit(1);
   }

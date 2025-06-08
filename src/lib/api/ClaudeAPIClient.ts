@@ -177,7 +177,7 @@ Please analyze this request and generate a comprehensive instruction protocol th
         }
         throw new Error('Failed to parse strategy response as JSON');
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to generate strategy', error as Error);
       throw error;
     }
@@ -224,7 +224,7 @@ Please analyze this request and generate a comprehensive instruction protocol th
       });
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Claude API request timed out after ${this.config.timeout}ms`);
       }
@@ -246,7 +246,7 @@ Please analyze this request and generate a comprehensive instruction protocol th
         temperature: 0
       });
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('API key validation failed', error as Error);
       return false;
     }
@@ -279,7 +279,7 @@ Do not write code - only describe what needs to be built.`
       });
 
       return response.content[0]?.text || 'No response generated';
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Failed to send chat message', error as Error);
       throw error;
     }

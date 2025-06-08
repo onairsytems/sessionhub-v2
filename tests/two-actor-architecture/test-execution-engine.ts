@@ -121,7 +121,7 @@ export class ExecutionEngineTests {
       console.log(`   - Outputs: ${result.outputs.length}`);
       console.log(`   - Logs: ${result.logs.length}`);
       console.log(`   - Sample log: ${result.logs[0]}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed instruction parsing test:', error);
       throw error;
     }
@@ -139,7 +139,7 @@ export class ExecutionEngineTests {
 
       await this.sandbox.executeSecurely(longRunningTask, 1000);
       console.error('❌ Sandbox failed to enforce timeout');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Sandbox correctly enforced timeout');
       console.log(`   - Error: ${(error as Error).message}`);
     }
@@ -176,7 +176,7 @@ export class ExecutionEngineTests {
     try {
       this.validator.ensureExecutionBoundary(strategicInstructions);
       console.error('❌ Failed to reject strategic planning in execution');
-    } catch (error) {
+    } catch (error: any) {
       console.log('✅ Correctly rejected strategic planning in execution');
       console.log(`   - Error: ${(error as Error).message}`);
     }

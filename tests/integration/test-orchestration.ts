@@ -60,7 +60,7 @@ async function testEndToEndFlow() {
     console.log('\n6️⃣ Checking system health...');
     const health = await orchestrator.getHealthStatus();
     console.log(`📊 System status: ${health.status}`);
-    console.log(`📊 Actors healthy: ${health.actors.every((a) => a.healthy) ? 'Yes' : 'No'}`);
+    console.log(`📊 Actors healthy: ${health.actors.every((a: any) => a.healthy) ? 'Yes' : 'No'}`);
     console.log(`📊 Queue length: ${health.queue.length}`);
     
     // Get metrics
@@ -77,7 +77,7 @@ async function testEndToEndFlow() {
     
     console.log('\n✅ All orchestration tests passed!');
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n❌ Orchestration test failed:', error);
     throw error;
   }
@@ -127,7 +127,7 @@ async function testMultipleRequests() {
     
     await orchestrator.shutdown();
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n❌ Multiple requests test failed:', error);
     throw error;
   }
@@ -171,7 +171,7 @@ async function testErrorHandling() {
     
     await orchestrator.shutdown();
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n❌ Error handling test failed:', error);
     throw error;
   }
@@ -219,7 +219,7 @@ async function testAPIIntegration() {
     
     await orchestrator.shutdown();
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n❌ API integration test failed:', error);
     throw error;
   }
@@ -236,7 +236,7 @@ async function runAllTests() {
     await testAPIIntegration();
     
     console.log('\n\n✅ All integration tests completed successfully! 🎉');
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n\n❌ Integration tests failed');
     process.exit(1);
   }

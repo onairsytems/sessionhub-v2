@@ -59,7 +59,7 @@ export class PlanningEngineTests {
       console.log(`   - Objectives: ${instructions.objectives.length}`);
       console.log(`   - Requirements: ${instructions.requirements.length}`);
       console.log(`   - Success Criteria: ${instructions.successCriteria.length}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed to generate valid instructions:', error);
       throw error;
     }
@@ -114,7 +114,7 @@ export class PlanningEngineTests {
         // This should throw an error
         this.validator.ensureNoCode(mockInstructions);
         console.error(`❌ Failed to reject code in request: ${request.id}`);
-      } catch (error) {
+      } catch (error: any) {
         console.log(`✅ Successfully rejected code pattern in ${request.id}`);
         console.log(`   - Error: ${(error as Error).message}`);
       }
@@ -162,7 +162,7 @@ export class PlanningEngineTests {
       console.log('✅ Instructions are properly descriptive');
       console.log('   Sample requirement:', instructions.requirements[0]?.description || 'No requirements');
       console.log('   Sample objective:', instructions.objectives[0]?.primary || 'No objectives');
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed descriptive instruction test:', error);
       throw error;
     }
@@ -206,7 +206,7 @@ export class PlanningEngineTests {
       console.log(`   - Generated ${instructions.requirements.length} requirements`);
       console.log(`   - Identified ${instructions.context.prerequisites.length} prerequisites`);
       console.log(`   - Prerequisites:`, instructions.context.prerequisites);
-    } catch (error) {
+    } catch (error: any) {
       console.error('❌ Failed complex request test:', error);
       throw error;
     }

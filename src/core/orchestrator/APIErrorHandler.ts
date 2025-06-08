@@ -75,7 +75,7 @@ export class APIErrorHandler {
    * Handle error with retry logic
    */
   async handleWithRetry<T>(
-    operation: ($1) => Promise<T>,
+    operation: (context?: any) => Promise<T>,
     context: ErrorContext
   ): Promise<T> {
     const circuitBreakerId = `${context.actor}-${context.operation}`;
@@ -89,7 +89,7 @@ export class APIErrorHandler {
         }
         
         // Execute operation
-        const result = await operation();
+        const result = await operation({});
         
         // Reset circuit breaker on success
         this.resetCircuitBreaker(circuitBreakerId);
@@ -104,7 +104,7 @@ export class APIErrorHandler {
         }
         
         return result;
-      } catch (error) {
+      } catch (error: any) {
         lastError = error as Error;
         
         // Record error

@@ -110,7 +110,7 @@ export class PatternRecognitionService {
 
       if (error) throw error;
 
-      patterns?.forEach((pattern) => {
+      patterns?.forEach((pattern: any) => {
         this.patterns.set(pattern.id, {
           ...pattern,
           lastSeen: new Date(pattern.last_seen),
@@ -126,14 +126,14 @@ export class PatternRecognitionService {
         .from('workflow_patterns')
         .select('*');
 
-      workflows?.forEach((workflow) => {
+      workflows?.forEach((workflow: any) => {
         this.workflowPatterns.set(workflow.id, {
           ...workflow,
           steps: JSON.parse(workflow.steps || '[]'),
           bottlenecks: JSON.parse(workflow.bottlenecks || '[]')
         });
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to initialize patterns:', error);
     }
   }
@@ -199,7 +199,7 @@ export class PatternRecognitionService {
       await this.updatePatternDatabase(newPatterns);
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Pattern analysis failed:', error);
       return {
         patterns: [],
@@ -215,7 +215,7 @@ export class PatternRecognitionService {
     }
   }
 
-  private async extractPatternsFromSession(session): Promise<CodePattern[]> {
+  private async extractPatternsFromSession(session: any): Promise<CodePattern[]> {
     const patterns: CodePattern[] = [];
     const codeBlocks = this.extractCodeBlocks(session.content || '');
 
@@ -506,7 +506,7 @@ export class PatternRecognitionService {
       }
 
       return workflows;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Workflow pattern analysis failed:', error);
       return [];
     }
@@ -767,7 +767,7 @@ export class PatternRecognitionService {
         });
         
         this.patterns.set(pattern.id, pattern);
-      } catch (error) {
+      } catch (error: any) {
         console.error(`Failed to save pattern ${pattern.id}:`, error);
       }
     }
@@ -836,7 +836,7 @@ export class PatternRecognitionService {
           score: pattern.score
         })
         .eq('id', pattern.id);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to update pattern ${pattern.id}:`, error);
     }
   }
@@ -982,7 +982,7 @@ export class PatternRecognitionService {
         .from('code_patterns')
         .delete()
         .eq('id', patternId);
-    } catch (error) {
+    } catch (error: any) {
       console.error(`Failed to remove pattern ${patternId}:`, error);
     }
   }

@@ -67,51 +67,51 @@ class SessionCompletionWorkflow {
       {
         name: 'Check Git Status',
         description: 'Verify git repository state',
-        action: () => voidthis.checkGitStatus(),
+        action: () => this.checkGitStatus(),
         critical: true
       },
       {
         name: 'TypeScript Check',
         description: 'Run TypeScript compiler checks',
-        action: () => voidthis.runTypeScriptCheck(),
+        action: () => this.runTypeScriptCheck(),
         critical: true,
         fixable: true
       },
       {
         name: 'ESLint Check',
         description: 'Run ESLint checks',
-        action: () => voidthis.runESLintCheck(),
+        action: () => this.runESLintCheck(),
         critical: true,
         fixable: true
       },
       {
         name: 'Build Verification',
         description: 'Verify build completes successfully',
-        action: () => voidthis.runBuildVerification(),
+        action: () => this.runBuildVerification(),
         critical: true
       },
       {
         name: 'Test Suite',
         description: 'Run test suite',
-        action: () => voidthis.runTests(),
+        action: () => this.runTests(),
         critical: false
       },
       {
         name: 'Update Foundation',
         description: 'Update Foundation document',
-        action: () => voidthis.updateFoundation(),
+        action: () => this.updateFoundation(),
         critical: true
       },
       {
         name: 'Git Commit',
         description: 'Create git commit with session changes',
-        action: () => voidthis.createCommit(),
+        action: () => this.createCommit(),
         critical: true
       },
       {
         name: 'Push to GitHub',
         description: 'Push changes to GitHub',
-        action: () => voidthis.pushToGitHub(),
+        action: () => this.pushToGitHub(),
         critical: true
       }
     ];
@@ -149,7 +149,7 @@ class SessionCompletionWorkflow {
             }
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         logger.error(`Error in ${step.name}: ${error}`);
         this.logToSession(`Error in ${step.name}: ${error}`);
         if (step.critical) {
@@ -188,7 +188,7 @@ class SessionCompletionWorkflow {
       const status = execSync('git status --porcelain', { encoding: 'utf8' });
       this.logToSession(`Git status:\n${status || 'Working directory clean'}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`Git status check failed: ${error}`);
       return false;
     }
@@ -214,7 +214,7 @@ class SessionCompletionWorkflow {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`TypeScript check failed: ${error}`);
       return false;
     }
@@ -240,7 +240,7 @@ class SessionCompletionWorkflow {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`ESLint check failed: ${error}`);
       return false;
     }
@@ -252,7 +252,7 @@ class SessionCompletionWorkflow {
       execSync('npm run build:strict', { encoding: 'utf8', stdio: 'pipe' });
       this.logToSession('Build completed successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`Build verification failed: ${error}`);
       return false;
     }
@@ -264,7 +264,7 @@ class SessionCompletionWorkflow {
       execSync('npm test', { encoding: 'utf8', stdio: 'pipe' });
       this.logToSession('All tests passed');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`Test suite failed: ${error}`);
       return false;
     }
@@ -320,7 +320,7 @@ class SessionCompletionWorkflow {
       
       this.logToSession('Git commit created successfully');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`Git commit failed: ${error}`);
       return false;
     }
@@ -331,7 +331,7 @@ class SessionCompletionWorkflow {
       execSync('git push origin main', { encoding: 'utf8' });
       this.logToSession('Successfully pushed to GitHub');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`Git push failed: ${error}`);
       return false;
     }
@@ -366,7 +366,7 @@ class SessionCompletionWorkflow {
       
       this.logToSession(`Still have ${errors.length} TypeScript errors after fix attempt`);
       return false;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`TypeScript fix failed: ${error}`);
       return false;
     }
@@ -390,7 +390,7 @@ class SessionCompletionWorkflow {
       
       this.logToSession(`Still have ${errors.length} ESLint errors after fix attempt`);
       return false;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`ESLint fix failed: ${error}`);
       return false;
     }
@@ -401,7 +401,7 @@ class SessionCompletionWorkflow {
       const output = execSync(command, { encoding: 'utf8' });
       this.logToSession(`Command output:\n${output}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logToSession(`Command failed: ${error}`);
       return false;
     }
@@ -464,7 +464,7 @@ async function main() {
   
   try {
     await workflow.run();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Session completion workflow failed:', error);
     process.exit(1);
   }

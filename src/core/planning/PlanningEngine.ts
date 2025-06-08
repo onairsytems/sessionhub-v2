@@ -94,7 +94,7 @@ export class PlanningEngine {
       });
       
       return instructions;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('PlanningEngine: Failed to generate instructions', error as Error);
       throw error;
     }
@@ -125,7 +125,7 @@ export class PlanningEngine {
       });
       
       return suggestions;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.warn('PlanningEngine: Failed to get pattern suggestions', error as Error);
       return [];
     }
@@ -170,7 +170,7 @@ export class PlanningEngine {
       };
 
       return this.buildInstructions(request, context, strategy, patternSuggestions);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Claude API call failed', error as Error);
       
       // Fall back to pattern-enhanced local generation
@@ -180,7 +180,7 @@ export class PlanningEngine {
     }
   }
 
-  private isValidInstructionProtocol(obj): boolean {
+  private isValidInstructionProtocol(obj: any): boolean {
     return obj &&
       obj.metadata &&
       obj.context &&

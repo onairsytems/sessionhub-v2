@@ -29,7 +29,7 @@ export interface ExecutionTask {
   id: string;
   type: 'code' | 'command' | 'file' | 'service';
   description: string;
-  action: ($1) => Promise<any>;
+  action: (context?: any) => Promise<any>;
   rollback?: () => Promise<void>;
 }
 
@@ -98,7 +98,7 @@ export class ExecutionEngine {
           });
           
           logs.push(`Completed task: ${task.description}`);
-        } catch (error) {
+        } catch (error: any) {
           const execError: ExecutionError = {
             code: 'TASK_FAILED',
             message: `Failed to execute task: ${task.description}`,
@@ -147,7 +147,7 @@ export class ExecutionEngine {
       });
 
       return result;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('ExecutionEngine: Execution failed', error as Error);
       
       return {
@@ -184,7 +184,12 @@ export class ExecutionEngine {
           this.logger.info('Using Claude Code API to generate implementation');
           
           // Generate code from instructions
-          const generatedCode = await this.claudeCodeApi!.generateCode({
+          const claudeApi = this.claudeCodeApi;
+          if (!claudeApi) {
+            throw new Error('Claude Code API not available');
+          }
+          
+          const generatedCode = await claudeApi.generateCode({
             instruction: instructions,
             context: {
               projectType: context.environment['PROJECT_TYPE'] || 'web',
@@ -197,13 +202,13 @@ export class ExecutionEngine {
           this.logger.debug('Code generated, executing...');
           
           // Execute the generated code
-          const executionResult = await this.claudeCodeApi!.executeCode(
+          const executionResult = await claudeApi.executeCode(
             generatedCode,
             instructions
           );
           
-          if (!executionResult.success) {
-            throw new Error(`Execution failed: ${executionResult.error}`);
+          if (!executionResult || !executionResult.success) {
+            throw new Error(`Execution failed: ${executionResult?.error || 'Unknown error'}`);
           }
           
           return {

@@ -6,9 +6,10 @@
 
 import { Logger } from '@/src/lib/logging/Logger';
 import { InstructionProtocol } from '@/src/models/Instruction';
-import { spawn } from 'child_process';
+import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+
 
 export interface ClaudeCodeAPIConfig {
   apiKey: string;
@@ -176,7 +177,7 @@ Implement everything needed to meet all success criteria.`;
   /**
    * Parse generated code and write files
    */
-  private async parseAndWriteFiles(code: string, sessionDir: string): Promise<string[]> {
+  private async parseAndWriteFiles(code: string, _sessionDir: string): Promise<string[]> {
     const fileRegex = /=== FILE: (.*?) ===\n([\s\S]*?)(?=\n=== (?:END FILE|FILE:)|$)/g;
     const files: string[] = [];
     let match;
@@ -185,7 +186,7 @@ Implement everything needed to meet all success criteria.`;
       const filePath = match[1]?.trim() || '';
       const fileContent = match[2]?.trim() || '';
       
-      const fullPath = path.join(sessionDir, filePath);
+      const fullPath = path.join(_sessionDir, filePath);
       const dir = path.dirname(fullPath);
       
       // Create directory structure
@@ -246,28 +247,33 @@ Implement everything needed to meet all success criteria.`;
   private async runCommand(command: string, cwd: string): Promise<string> {
     return new Promise((resolve, reject) => {
       const [cmd, ...args] = command.split(' ');
-      const child = spawn(cmd || '', args, {
+      const child: ChildProcessWithoutNullStreams = spawn(cmd || 'echo', args, {
         cwd,
         env: { ...process.env },
-        timeout: this.config.timeout
+        timeout: this.config.timeout,
+        shell: true
       });
 
       let stdout = '';
       let stderr = '';
 
-      child.stdout?.on('data', (data) => {
-        stdout += data.toString();
-      });
+      if (child.stdout) {
+        child.stdout.on('data', (data: Buffer) => {
+          stdout += data.toString();
+        });
+      }
 
-      child.stderr?.on('data', (data) => {
-        stderr += data.toString();
-      });
+      if (child.stderr) {
+        child.stderr.on('data', (data: Buffer) => {
+          stderr += data.toString();
+        });
+      }
 
-      child.on('error', (error) => {
+      child.on('error', (error: Error) => {
         reject(error);
       });
 
-      child.on('close', (code) => {
+      child.on('close', (code: number | null) => {
         if (code === 0) {
           resolve(stdout);
         } else {
@@ -311,7 +317,13 @@ Implement everything needed to meet all success criteria.`;
   /**
    * Send request to Claude API
    */
-  private async sendRequest(request): Promise<any> {
+  private async sendRequest(request: {
+    model: string;
+    messages: Array<{ role: string; content: string }>;
+    max_tokens: number;
+    temperature: number;
+    system: string;
+  }): Promise<{ content: Array<{ text?: string }> }> {
     const response = await fetch(this.config.apiUrl, {
       method: 'POST',
       headers: {
@@ -333,10 +345,8 @@ Implement everything needed to meet all success criteria.`;
    * Clean up execution workspace
    */
   async cleanup(sessionId: string): Promise<void> {
-    const sessionDir = path.join(this.workspaceDir, sessionId);
-    
     try {
-      await fs.rm(sessionDir, { recursive: true, force: true });
+      await fs.rm(path.join(this.workspaceDir, sessionId), { recursive: true, force: true });
       this.logger.debug('Cleaned up session workspace', { sessionId });
     } catch (error) {
       this.logger.warn('Failed to cleanup workspace', error as Error);

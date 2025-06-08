@@ -12,7 +12,7 @@ export function registerApiHandlers() : void {
     try {
       const apiKey = await keychainService.getCredential('sessionhub', 'claude-api-key');
       return !!apiKey;
-    } catch (error) {
+    } catch (error: any) {
       return false;
     }
   });
@@ -24,7 +24,7 @@ export function registerApiHandlers() : void {
       // Test the API key with a simple request
       await client.sendMessage('Hello', 'test-validation');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('API key validation failed:', error);
       return false;
     }
@@ -35,7 +35,7 @@ export function registerApiHandlers() : void {
     try {
       await keychainService.setCredential('sessionhub', 'claude-api-key', apiKey);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save API key:', error);
       throw error;
     }
@@ -67,7 +67,7 @@ export function registerApiHandlers() : void {
       store.set(`sessions.${sessionId}.messages`, history);
       
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to send chat message:', error);
       throw error;
     }
@@ -98,7 +98,7 @@ export function registerApiHandlers() : void {
         owner: 'example',
         defaultBranch: 'main'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to select GitHub repo:', error);
       return null;
     }
@@ -130,7 +130,7 @@ Provide a comprehensive analysis including:
       const response = await client.sendMessage(analysisPrompt, sessionId);
       
       return response;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to analyze repository:', error);
       throw error;
     }

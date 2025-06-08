@@ -16,7 +16,7 @@ interface Session {
   results?: unknown;
 }
 
-export function SessionWorkflow() : void {
+export default function SessionWorkflow() {
   const [hasApiKey, setHasApiKey] = useState(false);
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
@@ -29,7 +29,7 @@ export function SessionWorkflow() : void {
     try {
       const hasKey = await window.electronAPI.checkApiKey();
       setHasApiKey(hasKey);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to check API key:', error);
     } finally {
       setIsCheckingApiKey(false);
@@ -55,7 +55,7 @@ export function SessionWorkflow() : void {
     }
   };
 
-  const handleExecutionComplete = (results) => {
+  const handleExecutionComplete = (results: any) => {
     if (currentSession) {
       setCurrentSession({
         ...currentSession,

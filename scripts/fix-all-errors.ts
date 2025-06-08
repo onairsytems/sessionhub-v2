@@ -17,7 +17,7 @@ const logger = new Logger('ErrorFixer');
 
 interface ErrorFix {
   pattern: RegExp;
-  fix: () => void;
+  fix: (filePath: string, line: number, match: RegExpMatchArray) => void;
   description: string;
 }
 
@@ -149,7 +149,7 @@ class AutomaticErrorFixer {
         const match = error.message.match(errorFix.pattern);
         if (match) {
           try {
-            errorFix.fix(error.filePath, error.line, match);
+            errorFix.fix(error.filePath || '', error.line || 0, match);
             this.fixCount++;
           } catch (fixError) {
             logger.warn(`Could not apply fix for: ${error.message}`);

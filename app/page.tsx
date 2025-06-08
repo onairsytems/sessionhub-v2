@@ -1,7 +1,10 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
+
+// Lazy load the SessionWorkflow component
+const SessionWorkflow = lazy(() => import('../renderer/components/SessionWorkflow'));
 
 export default function Home() {
   const [hasElectronAPI, setHasElectronAPI] = useState(false);
@@ -38,6 +41,16 @@ export default function Home() {
   }
 
   // If we have Electron API, load the actual workflow
-  const { default: SessionWorkflow } = await import('../renderer/components/SessionWorkflow');
-  return <SessionWorkflow />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading SessionHub...</p>
+        </div>
+      </div>
+    }>
+      <SessionWorkflow />
+    </Suspense>
+  );
 }

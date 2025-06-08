@@ -60,13 +60,13 @@ class PostBuildValidator {
 
       // Generate final report
       return this.generateReport();
-    } catch (error) {
+    } catch (error: any) {
       console.error(`${colors.red}Validation error: ${error}${colors.reset}`);
       return false;
     } finally {
       // Cleanup
       if (this.electronProcess) {
-        this.electronProcess.kill();
+        (this.electronProcess as any).kill();
       }
     }
   }
@@ -118,7 +118,7 @@ class PostBuildValidator {
         const foundation = fs.readFileSync(foundationPath, 'utf8');
         const match = foundation.match(/Version[^:]*:\s*v?([\d.]+)/);
         if (match) {
-          foundationVersion = match[1] || 'unknown';
+          foundationVersion = match[1]!;
         }
       }
 
@@ -130,7 +130,7 @@ class PostBuildValidator {
         passed: versionsMatch,
         details: `Package: ${packageJson.version}, Foundation: ${foundationVersion}`
       });
-    } catch (error) {
+    } catch (error: any) {
       this.addCheck({
         name: 'Version Consistency',
         passed: false,
@@ -209,7 +209,7 @@ class PostBuildValidator {
         passed: true,
         details: `Generated ${Object.keys(checksums).length} checksums`
       });
-    } catch (error) {
+    } catch (error: any) {
       this.addCheck({
         name: 'Build Checksums',
         passed: false,
@@ -288,7 +288,7 @@ class PostBuildValidator {
             resolve();
           }
         });
-      } catch (error) {
+      } catch (error: any) {
         this.addCheck({
           name: 'Electron Startup',
           passed: false,
@@ -329,7 +329,7 @@ class PostBuildValidator {
         passed: allLoadable,
         details: allLoadable ? 'All modules loadable' : `Failed to load: ${failed.join(', ')}`
       });
-    } catch (error) {
+    } catch (error: any) {
       this.addCheck({
         name: 'Runtime Modules',
         passed: false,
@@ -377,7 +377,7 @@ async function main() {
   const validator = new PostBuildValidator();
   try {
     await validator.validate();
-  } catch (error) {
+  } catch (error: any) {
     console.error(`${colors.red}Unexpected error: ${error}${colors.reset}`);
     process.exit(1);
   }

@@ -46,7 +46,7 @@ export class WorkflowEngine {
   private readonly transitions: WorkflowTransition[] = [
     { from: 'request', to: 'planning' },
     { from: 'planning', to: 'validation' },
-    { from: 'validation', to: 'execution', condition: (step) => voidstep.status === 'completed' },
+    { from: 'validation', to: 'execution', condition: (step) => step.status === 'completed' },
     { from: 'execution', to: 'result' }
   ];
 

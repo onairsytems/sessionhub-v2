@@ -54,7 +54,7 @@ async function checkErrors() {
     
     if (!result.canBuild && result.blockingErrors.length > 0) {
       console.log('\n❌ Critical Errors (first 10):');
-      result.blockingErrors.slice(0, 10).forEach((error) => {
+      result.blockingErrors.slice(0, 10).forEach((error: any) => {
         console.log(`\n  ${error.filePath}:${error.line}:${error.column}`);
         console.log(`  ${error.code}: ${error.message}`);
         if (error.suggestion) {
@@ -69,7 +69,7 @@ async function checkErrors() {
     
     process.exit(result.canBuild ? 0 : 1);
     
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error detection failed:', error);
     process.exit(1);
   }

@@ -104,8 +104,8 @@ export class Logger {
     // In production Mac app, this would write to log file
     // Using async file operations to avoid blocking
     // For now, we'll skip actual file I/O
-    // import fs from 'fs/promises';
-    // fs.appendFile(this.logFile, JSON.stringify(entry) + '\n');
+    // import { promises as fsPromises } from 'fs';
+    // fsPromises.appendFile(this.logFile, JSON.stringify(entry) + '\n');
   }
 
   /**

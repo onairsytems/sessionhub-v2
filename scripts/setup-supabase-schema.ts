@@ -87,7 +87,7 @@ async function main() {
           console.log('✅');
           successCount++;
         }
-      } catch (error) {
+      } catch (error: any) {
         console.log('❌');
         console.error(`  Error: ${error instanceof Error ? error.message : error}`);
         errorCount++;
@@ -113,7 +113,7 @@ async function main() {
       console.log('Please check your Supabase dashboard and logs for details.');
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('\n❌ Setup failed:', error instanceof Error ? error.message : error);
     console.log('\nTroubleshooting:');
     console.log('1. Ensure you have run configure-supabase.ts first');

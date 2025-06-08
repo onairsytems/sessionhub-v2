@@ -4,6 +4,7 @@
  * Demonstrates usage and functionality of the local SQLite cache
  */
 
+import { describe, it, expect, beforeEach } from '@jest/globals';
 import { LocalCacheService } from './LocalCacheService';
 import { SupabaseService } from '../cloud/SupabaseService';
 import { Logger } from '@/src/lib/logging/Logger';

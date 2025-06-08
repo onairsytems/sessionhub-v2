@@ -44,42 +44,43 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
 
   useEffect(() => {
     // Connect to real-time progress updates
+    let cleanup: (() => void) | undefined;
+    
     const connect = async () => {
       try {
         // Subscribe to session progress events
-        const unsubscribe = await window.Electron.onSessionProgress(sessionId, (event) => {
+        const unsubscribe = await window.electron.onSessionProgress((event: any) => {
           handleProgressEvent(event);
         });
         
         setIsConnected(true);
         
         // Get initial status
-        const status = await window.Electron.getSessionStatus(sessionId);
+        const status = await window.electron.getSessionStatus(sessionId);
         if (status) {
           updateStepsFromStatus(status);
         }
         
-        return () => {
-          unsubscribe();
+        cleanup = () => {
+          unsubscribe?.();
           setIsConnected(false);
         };
       } catch (err) {
         console.error('Failed to connect to progress stream:', err);
         setError('Failed to connect to progress updates');
-        return undefined;
       }
     };
 
     connect();
     
     return () => {
-      // Cleanup handled by unsubscribe function
+      cleanup?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
 
-  const handleProgressEvent = (event) => {
+  const handleProgressEvent = (event: any) => {
     switch (event.type) {
       case 'queued':
         updateStep('queue', 'active', 'Position in queue: ' + event.data.position);
@@ -153,7 +154,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
     );
   };
 
-  const updateStepsFromStatus = (status) => {
+  const updateStepsFromStatus = (status: any) => {
     if (status.state === 'planning') {
       updateStep('queue', 'completed');
       updateStep('planning', 'active');
@@ -167,7 +168,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
     }
   };
 
-  const determineFailedStep = (data): string => {
+  const determineFailedStep = (data: any): string => {
     if (data.actor === 'planning') return 'planning';
     if (data.actor === 'execution') return 'execution';
     if (data.stage === 'validation') return 'validation';
@@ -227,7 +228,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
           
           {/* Steps */}
           <div className="space-y-4">
-            {steps.map((step) => (
+            {steps.map((step: any) => (
               <div key={step.id} className="relative flex items-start">
                 {/* Step Icon */}
                 <div className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 ${
