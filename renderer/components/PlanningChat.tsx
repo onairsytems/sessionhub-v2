@@ -1,14 +1,13 @@
+"use client";
 
-'use client';
-
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { Send, GitBranch, FileCode, Loader, User, Bot } from 'lucide-react';
+import { useState, useRef, useEffect } from "react";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { Send, GitBranch, FileCode, Loader, User, Bot } from "lucide-react";
 
 interface Message {
   id: string;
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
 }
@@ -19,21 +18,25 @@ interface PlanningChatProps {
   onPlanComplete: (plan: string) => void;
 }
 
-export function PlanningChat({ sessionId, sessionName, onPlanComplete }: PlanningChatProps) {
+export function PlanningChat({
+  sessionId,
+  sessionName,
+  onPlanComplete,
+}: PlanningChatProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: '1',
-      role: 'assistant',
+      id: "1",
+      role: "assistant",
       content: `Hello! I'm the Planning Actor for your session "${sessionName}". Let's discuss what you want to build and create a comprehensive plan before we start execution. You can also import a GitHub repository if you'd like me to analyze an existing codebase.`,
       timestamp: new Date(),
     },
   ]);
-  const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -45,31 +48,34 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      role: 'user',
+      role: "user",
       content: input.trim(),
       timestamp: new Date(),
     };
 
     setMessages((prev) => [...prev, userMessage]);
-    setInput('');
+    setInput("");
     setIsLoading(true);
 
     try {
-      const response = await window.electronAPI.sendChatMessage(sessionId, input.trim());
-      
+      const response = await window.electronAPI.sendChatMessage(
+        sessionId,
+        input.trim(),
+      );
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant',
+        role: "assistant",
         content: response,
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'I apologize, but I encountered an error. Please try again.',
+        role: "assistant",
+        content: "I apologize, but I encountered an error. Please try again.",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -80,39 +86,47 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
 
   const importGitHub = async () => {
     try {
-      const result = await window.electronAPI.selectGitHubRepo();
+      const result = (await window.electronAPI.selectGitHubRepo()) as {
+        url: string;
+        name: string;
+        owner: string;
+        defaultBranch: string;
+      } | null;
       if (result) {
         const message: Message = {
           id: Date.now().toString(),
-          role: 'user',
+          role: "user",
           content: `I'd like you to analyze this GitHub repository: ${result.url}`,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, message]);
-        
+
         // Trigger analysis
         setIsLoading(true);
-        const response = await window.electronAPI.analyzeRepository(sessionId, result);
-        
+        const response = await window.electronAPI.analyzeRepository(
+          sessionId,
+          result,
+        );
+
         const assistantMessage: Message = {
           id: (Date.now() + 1).toString(),
-          role: 'assistant',
+          role: "assistant",
           content: response,
           timestamp: new Date(),
         };
         setMessages((prev) => [...prev, assistantMessage]);
         setIsLoading(false);
       }
-    } catch (error: any) {
-      console.error('Failed to import GitHub repository:', error);
+    } catch (error: unknown) {
+      console.error("Failed to import GitHub repository:", error);
     }
   };
 
   const finalizePlan = () => {
     const plan = messages
-      .filter((m: any) => m.role === 'assistant')
-      .map((m: any) => m.content)
-      .join('\n\n');
+      .filter((m: Message) => m.role === "assistant")
+      .map((m: Message) => m.content)
+      .join("\n\n");
     onPlanComplete(plan);
   };
 
@@ -124,13 +138,16 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
             <div>
               <h2 className="text-xl font-semibold">Planning: {sessionName}</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Discuss your requirements and I&apos;ll help create a comprehensive plan
+                Discuss your requirements and I&apos;ll help create a
+                comprehensive plan
               </p>
             </div>
             <Button
               variant="secondary"
               size="sm"
-              onClick={importGitHub}
+              onClick={(): void => {
+                void importGitHub();
+              }}
               disabled={isLoading}
             >
               <GitBranch className="h-4 w-4 mr-2" />
@@ -140,26 +157,26 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
-          {messages.map((message: any) => (
+          {messages.map((message: Message) => (
             <div
               key={message.id}
               className={`flex gap-3 ${
-                message.role === 'user' ? 'justify-end' : 'justify-start'
+                message.role === "user" ? "justify-end" : "justify-start"
               }`}
             >
               <div
                 className={`flex gap-3 max-w-[80%] ${
-                  message.role === 'user' ? 'flex-row-reverse' : 'flex-row'
+                  message.role === "user" ? "flex-row-reverse" : "flex-row"
                 }`}
               >
                 <div
                   className={`p-2 rounded-full ${
-                    message.role === 'user'
-                      ? 'bg-blue-100 dark:bg-blue-900'
-                      : 'bg-gray-100 dark:bg-gray-800'
+                    message.role === "user"
+                      ? "bg-blue-100 dark:bg-blue-900"
+                      : "bg-gray-100 dark:bg-gray-800"
                   }`}
                 >
-                  {message.role === 'user' ? (
+                  {message.role === "user" ? (
                     <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   ) : (
                     <Bot className="h-5 w-5 text-gray-600 dark:text-gray-400" />
@@ -167,17 +184,17 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
                 </div>
                 <div
                   className={`px-4 py-2 rounded-lg ${
-                    message.role === 'user'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+                    message.role === "user"
+                      ? "bg-blue-600 text-white"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                   }`}
                 >
                   <p className="whitespace-pre-wrap">{message.content}</p>
                   <p
                     className={`text-xs mt-1 ${
-                      message.role === 'user'
-                        ? 'text-blue-100'
-                        : 'text-gray-500 dark:text-gray-400'
+                      message.role === "user"
+                        ? "text-blue-100"
+                        : "text-gray-500 dark:text-gray-400"
                     }`}
                   >
                     {message.timestamp.toLocaleTimeString()}
@@ -205,18 +222,28 @@ export function PlanningChat({ sessionId, sessionName, onPlanComplete }: Plannin
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+              onKeyPress={(e): void => {
+                if (e.key === "Enter") {
+                  void sendMessage();
+                }
+              }}
               placeholder="Describe what you want to build..."
               className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               disabled={isLoading}
             />
-            <Button onClick={sendMessage} disabled={isLoading || !input.trim()}>
+            <Button
+              onClick={(): void => {
+                void sendMessage();
+              }}
+              disabled={isLoading || !input.trim()}
+            >
               <Send className="h-4 w-4" />
             </Button>
           </div>
           <div className="flex justify-between items-center mt-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              When you&apos;re ready, finalize the plan to move to execution phase
+              When you&apos;re ready, finalize the plan to move to execution
+              phase
             </p>
             <Button
               variant="primary"

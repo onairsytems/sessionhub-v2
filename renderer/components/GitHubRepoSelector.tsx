@@ -1,10 +1,9 @@
+"use client";
 
-'use client';
-
-import { useState } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { GitBranch, Search, ExternalLink, Loader } from 'lucide-react';
+import { useState } from "react";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { GitBranch, Search, ExternalLink, Loader } from "lucide-react";
 
 interface Repository {
   id: number;
@@ -23,17 +22,20 @@ interface GitHubRepoSelectorProps {
   onClose: () => void;
 }
 
-export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+export function GitHubRepoSelector({
+  onSelect,
+  onClose,
+}: GitHubRepoSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
   const [repositories, setRepositories] = useState<Repository[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
 
   const searchRepositories = async () => {
     if (!searchQuery.trim()) return;
 
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // In a real implementation, this would call GitHub API
@@ -41,31 +43,31 @@ export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProp
       const mockRepos: Repository[] = [
         {
           id: 1,
-          name: 'my-project',
-          full_name: 'user/my-project',
-          description: 'A sample project for demonstration',
-          html_url: 'https://github.com/user/my-project',
+          name: "my-project",
+          full_name: "user/my-project",
+          description: "A sample project for demonstration",
+          html_url: "https://github.com/user/my-project",
           private: false,
-          default_branch: 'main',
-          language: 'TypeScript',
+          default_branch: "main",
+          language: "TypeScript",
           updated_at: new Date().toISOString(),
         },
         {
           id: 2,
-          name: 'another-repo',
-          full_name: 'user/another-repo',
-          description: 'Another repository with React code',
-          html_url: 'https://github.com/user/another-repo',
+          name: "another-repo",
+          full_name: "user/another-repo",
+          description: "Another repository with React code",
+          html_url: "https://github.com/user/another-repo",
           private: false,
-          default_branch: 'main',
-          language: 'JavaScript',
+          default_branch: "main",
+          language: "JavaScript",
           updated_at: new Date().toISOString(),
         },
       ];
 
       setRepositories(mockRepos);
     } catch (err) {
-      setError('Failed to search repositories. Please try again.');
+      setError("Failed to search repositories. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -95,11 +97,20 @@ export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProp
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && searchRepositories()}
+              onKeyPress={(e): void => {
+                if (e.key === "Enter") {
+                  void searchRepositories();
+                }
+              }}
               placeholder="Search repositories..."
               className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
-            <Button onClick={searchRepositories} disabled={isLoading || !searchQuery.trim()}>
+            <Button
+              onClick={(): void => {
+                void searchRepositories();
+              }}
+              disabled={isLoading || !searchQuery.trim()}
+            >
               {isLoading ? (
                 <Loader className="h-4 w-4 animate-spin" />
               ) : (
@@ -113,9 +124,12 @@ export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProp
           )}
 
           <div className="space-y-2 max-h-96 overflow-y-auto">
-            {repositories.map((repo: any) => (<button
+            {repositories.map((repo: Repository) => (
+              <button
                 key={repo.id}
-                onClick={() => handleSelect(repo)}
+                onClick={(): void => {
+                  handleSelect(repo);
+                }}
                 className="w-full p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-left transition-colors"
               >
                 <div className="flex items-start justify-between">
@@ -132,7 +146,8 @@ export function GitHubRepoSelector({ onSelect, onClose }: GitHubRepoSelectorProp
                       <span>{repo.language}</span>
                       <span>Branch: {repo.default_branch}</span>
                       <span>
-                        Updated: {new Date(repo.updated_at).toLocaleDateString()}
+                        Updated:{" "}
+                        {new Date(repo.updated_at).toLocaleDateString()}
                       </span>
                     </div>
                   </div>

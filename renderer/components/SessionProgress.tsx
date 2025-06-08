@@ -1,10 +1,9 @@
-
 /**
  * Progress tracking UI component for real-time session monitoring
  */
 
-import React, { useState, useEffect } from 'react';
-import { Card } from '../../components/ui/Card';
+import React, { useState, useEffect } from "react";
+import { Card } from "../../components/ui/Card";
 
 export interface SessionProgressProps {
   sessionId: string;
@@ -13,7 +12,7 @@ export interface SessionProgressProps {
 export interface ProgressStep {
   id: string;
   name: string;
-  status: 'pending' | 'active' | 'completed' | 'failed';
+  status: "pending" | "active" | "completed" | "failed";
   startTime?: string;
   endTime?: string;
   details?: string;
@@ -28,16 +27,20 @@ export interface SessionMetrics {
   retryCount: number;
 }
 
-export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) => {
+export const SessionProgress: React.FC<SessionProgressProps> = ({
+  sessionId,
+}) => {
   const [steps, setSteps] = useState<ProgressStep[]>([
-    { id: 'queue', name: 'Queued', status: 'completed' },
-    { id: 'planning', name: 'Planning', status: 'pending' },
-    { id: 'validation', name: 'Validation', status: 'pending' },
-    { id: 'execution', name: 'Execution', status: 'pending' },
-    { id: 'complete', name: 'Complete', status: 'pending' }
+    { id: "queue", name: "Queued", status: "completed" },
+    { id: "planning", name: "Planning", status: "pending" },
+    { id: "validation", name: "Validation", status: "pending" },
+    { id: "execution", name: "Execution", status: "pending" },
+    { id: "complete", name: "Complete", status: "pending" },
   ]);
-  
-  const [currentMessage, setCurrentMessage] = useState<string>('Waiting in queue...');
+
+  const [currentMessage, setCurrentMessage] = useState<string>(
+    "Waiting in queue...",
+  );
   const [metrics, setMetrics] = useState<SessionMetrics | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -45,146 +48,183 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
   useEffect(() => {
     // Connect to real-time progress updates
     let cleanup: (() => void) | undefined;
-    
+
     const connect = async () => {
       try {
         // Subscribe to session progress events
-        const unsubscribe = await window.electron.onSessionProgress((event: any) => {
-          handleProgressEvent(event);
-        });
-        
+        const unsubscribe = await window.electron.onSessionProgress(
+          (event: { type: string; data: unknown }) => {
+            const typedData = event.data as {
+              position?: number;
+              status?: string;
+              metrics?: SessionMetrics;
+              error?: string;
+              retryCount?: number;
+              actor?: string;
+              stage?: string;
+            };
+            handleProgressEvent({ type: event.type, data: typedData });
+          },
+        );
+
         setIsConnected(true);
-        
+
         // Get initial status
-        const status = await window.electron.getSessionStatus(sessionId);
+        const status = (await window.electron.getSessionStatus(sessionId)) as {
+          state: string;
+        } | null;
         if (status) {
           updateStepsFromStatus(status);
         }
-        
+
         cleanup = () => {
           unsubscribe?.();
           setIsConnected(false);
         };
       } catch (err) {
-        console.error('Failed to connect to progress stream:', err);
-        setError('Failed to connect to progress updates');
+        console.error("Failed to connect to progress stream:", err);
+        setError("Failed to connect to progress updates");
       }
     };
 
-    connect();
-    
+    void connect();
+
     return () => {
       cleanup?.();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
-
-  const handleProgressEvent = (event: any) => {
+  const handleProgressEvent = (event: {
+    type: string;
+    data: {
+      position?: number;
+      status?: string;
+      metrics?: SessionMetrics;
+      error?: string;
+      retryCount?: number;
+      actor?: string;
+      stage?: string;
+    };
+  }) => {
     switch (event.type) {
-      case 'queued':
-        updateStep('queue', 'active', 'Position in queue: ' + event.data.position);
+      case "queued":
+        updateStep(
+          "queue",
+          "active",
+          "Position in queue: " + event.data.position,
+        );
         setCurrentMessage(`Queued at position ${event.data.position}`);
         break;
-        
-      case 'started':
-        updateStep('queue', 'completed');
-        updateStep('planning', 'active', 'Analyzing request...');
-        setCurrentMessage('Planning Actor is analyzing your request...');
+
+      case "started":
+        updateStep("queue", "completed");
+        updateStep("planning", "active", "Analyzing request...");
+        setCurrentMessage("Planning Actor is analyzing your request...");
         break;
-        
-      case 'progress':
-        if (event.data.status === 'planning') {
-          updateStep('planning', 'active', 'Generating instructions...');
-          setCurrentMessage('Generating detailed instructions...');
-        } else if (event.data.status === 'executing') {
-          updateStep('planning', 'completed');
-          updateStep('validation', 'completed');
-          updateStep('execution', 'active', 'Implementing solution...');
-          setCurrentMessage('Execution Actor is implementing the solution...');
+
+      case "progress":
+        if (event.data.status === "planning") {
+          updateStep("planning", "active", "Generating instructions...");
+          setCurrentMessage("Generating detailed instructions...");
+        } else if (event.data.status === "executing") {
+          updateStep("planning", "completed");
+          updateStep("validation", "completed");
+          updateStep("execution", "active", "Implementing solution...");
+          setCurrentMessage("Execution Actor is implementing the solution...");
         }
         break;
-        
-      case 'completed':
-        updateStep('execution', 'completed');
-        updateStep('complete', 'completed', 'Success!');
-        setCurrentMessage('Session completed successfully!');
-        
+
+      case "completed":
+        updateStep("execution", "completed");
+        updateStep("complete", "completed", "Success!");
+        setCurrentMessage("Session completed successfully!");
+
         // Update metrics if available
         if (event.data.metrics) {
           setMetrics(event.data.metrics);
         }
         break;
-        
-      case 'failed':
+
+      case "failed":
         const failedStep = determineFailedStep(event.data);
-        updateStep(failedStep, 'failed', event.data.error);
-        setCurrentMessage(`Failed: ${event.data.error}`);
-        setError(event.data.error);
+        updateStep(failedStep, "failed", event.data.error);
+        setCurrentMessage(`Failed: ${event.data.error || "Unknown error"}`);
+        setError(event.data.error || null);
         break;
-        
-      case 'retrying':
+
+      case "retrying":
         setCurrentMessage(`Retrying (attempt ${event.data.retryCount})...`);
         break;
     }
   };
 
-  const updateStep = (stepId: string, status: ProgressStep['status'], details?: string) => {
-    setSteps(prevSteps => 
-      prevSteps.map(step => {
+  const updateStep = (
+    stepId: string,
+    status: ProgressStep["status"],
+    details?: string,
+  ) => {
+    setSteps((prevSteps) =>
+      prevSteps.map((step) => {
         if (step.id === stepId) {
           const updated = { ...step, status };
-          
-          if (status === 'active' && !step.startTime) {
+
+          if (status === "active" && !step.startTime) {
             updated.startTime = new Date().toISOString();
           }
-          
-          if ((status === 'completed' || status === 'failed') && !step.endTime) {
+
+          if (
+            (status === "completed" || status === "failed") &&
+            !step.endTime
+          ) {
             updated.endTime = new Date().toISOString();
           }
-          
+
           if (details) {
             updated.details = details;
           }
-          
+
           return updated;
         }
         return step;
-      })
+      }),
     );
   };
 
-  const updateStepsFromStatus = (status: any) => {
-    if (status.state === 'planning') {
-      updateStep('queue', 'completed');
-      updateStep('planning', 'active');
-    } else if (status.state === 'executing') {
-      updateStep('queue', 'completed');
-      updateStep('planning', 'completed');
-      updateStep('validation', 'completed');
-      updateStep('execution', 'active');
-    } else if (status.state === 'completed') {
-      steps.forEach(step => updateStep(step.id, 'completed'));
+  const updateStepsFromStatus = (status: { state: string }) => {
+    if (status.state === "planning") {
+      updateStep("queue", "completed");
+      updateStep("planning", "active");
+    } else if (status.state === "executing") {
+      updateStep("queue", "completed");
+      updateStep("planning", "completed");
+      updateStep("validation", "completed");
+      updateStep("execution", "active");
+    } else if (status.state === "completed") {
+      steps.forEach((step) => updateStep(step.id, "completed"));
     }
   };
 
-  const determineFailedStep = (data: any): string => {
-    if (data.actor === 'planning') return 'planning';
-    if (data.actor === 'execution') return 'execution';
-    if (data.stage === 'validation') return 'validation';
-    return 'queue';
+  const determineFailedStep = (data: {
+    actor?: string;
+    stage?: string;
+  }): string => {
+    if (data.actor === "planning") return "planning";
+    if (data.actor === "execution") return "execution";
+    if (data.stage === "validation") return "validation";
+    return "queue";
   };
 
-  const getStepIcon = (status: ProgressStep['status']) => {
+  const getStepIcon = (status: ProgressStep["status"]) => {
     switch (status) {
-      case 'completed':
-        return '✅';
-      case 'active':
-        return '⏳';
-      case 'failed':
-        return '❌';
+      case "completed":
+        return "✅";
+      case "active":
+        return "⏳";
+      case "failed":
+        return "❌";
       default:
-        return '⭕';
+        return "⭕";
     }
   };
 
@@ -196,7 +236,8 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
 
   const calculateStepDuration = (step: ProgressStep): string | null => {
     if (!step.startTime || !step.endTime) return null;
-    const duration = new Date(step.endTime).getTime() - new Date(step.startTime).getTime();
+    const duration =
+      new Date(step.endTime).getTime() - new Date(step.startTime).getTime();
     return formatDuration(duration);
   };
 
@@ -207,11 +248,13 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Session Progress</h3>
           <div className="flex items-center gap-2">
-            <span className={`inline-flex h-2 w-2 rounded-full ${
-              isConnected ? 'bg-green-500' : 'bg-gray-400'
-            }`} />
+            <span
+              className={`inline-flex h-2 w-2 rounded-full ${
+                isConnected ? "bg-green-500" : "bg-gray-400"
+              }`}
+            />
             <span className="text-sm text-gray-600">
-              {isConnected ? 'Live' : 'Disconnected'}
+              {isConnected ? "Live" : "Disconnected"}
             </span>
           </div>
         </div>
@@ -225,48 +268,58 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
         <div className="relative">
           {/* Progress Line */}
           <div className="absolute left-6 top-0 h-full w-0.5 bg-gray-200" />
-          
+
           {/* Steps */}
           <div className="space-y-4">
-            {steps.map((step: any) => (
+            {steps.map((step: ProgressStep) => (
               <div key={step.id} className="relative flex items-start">
                 {/* Step Icon */}
-                <div className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 ${
-                  step.status === 'completed' ? 'border-green-500 bg-green-50' :
-                  step.status === 'active' ? 'border-blue-500 bg-blue-50 animate-pulse' :
-                  step.status === 'failed' ? 'border-red-500 bg-red-50' :
-                  'border-gray-300 bg-white'
-                }`}>
+                <div
+                  className={`relative z-10 flex h-12 w-12 items-center justify-center rounded-full border-2 ${
+                    step.status === "completed"
+                      ? "border-green-500 bg-green-50"
+                      : step.status === "active"
+                        ? "border-blue-500 bg-blue-50 animate-pulse"
+                        : step.status === "failed"
+                          ? "border-red-500 bg-red-50"
+                          : "border-gray-300 bg-white"
+                  }`}
+                >
                   <span className="text-lg">{getStepIcon(step.status)}</span>
                 </div>
-                
+
                 {/* Step Content */}
                 <div className="ml-4 flex-1">
                   <div className="flex items-center justify-between">
-                    <h4 className={`font-medium ${
-                      step.status === 'completed' ? 'text-green-700' :
-                      step.status === 'active' ? 'text-blue-700' :
-                      step.status === 'failed' ? 'text-red-700' :
-                      'text-gray-500'
-                    }`}>
+                    <h4
+                      className={`font-medium ${
+                        step.status === "completed"
+                          ? "text-green-700"
+                          : step.status === "active"
+                            ? "text-blue-700"
+                            : step.status === "failed"
+                              ? "text-red-700"
+                              : "text-gray-500"
+                      }`}
+                    >
                       {step.name}
                     </h4>
-                    
+
                     {/* Duration */}
-                    {step.status === 'completed' && (
+                    {step.status === "completed" && (
                       <span className="text-sm text-gray-500">
                         {calculateStepDuration(step)}
                       </span>
                     )}
                   </div>
-                  
+
                   {/* Details */}
                   {step.details && (
                     <p className="mt-1 text-sm text-gray-600">{step.details}</p>
                   )}
-                  
+
                   {/* Error */}
-                  {step.status === 'failed' && step.error && (
+                  {step.status === "failed" && step.error && (
                     <p className="mt-1 text-sm text-red-600">{step.error}</p>
                   )}
                 </div>
@@ -278,23 +331,33 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({ sessionId }) =
         {/* Metrics */}
         {metrics && (
           <div className="mt-6 rounded-lg bg-gray-50 p-4">
-            <h4 className="mb-3 font-medium text-gray-900">Performance Metrics</h4>
+            <h4 className="mb-3 font-medium text-gray-900">
+              Performance Metrics
+            </h4>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-600">Total Duration:</span>
-                <span className="ml-2 font-medium">{formatDuration(metrics.totalDuration)}</span>
+                <span className="ml-2 font-medium">
+                  {formatDuration(metrics.totalDuration)}
+                </span>
               </div>
               <div>
                 <span className="text-gray-600">Planning Time:</span>
-                <span className="ml-2 font-medium">{formatDuration(metrics.planningDuration)}</span>
+                <span className="ml-2 font-medium">
+                  {formatDuration(metrics.planningDuration)}
+                </span>
               </div>
               <div>
                 <span className="text-gray-600">Execution Time:</span>
-                <span className="ml-2 font-medium">{formatDuration(metrics.executionDuration)}</span>
+                <span className="ml-2 font-medium">
+                  {formatDuration(metrics.executionDuration)}
+                </span>
               </div>
               <div>
                 <span className="text-gray-600">Queue Wait:</span>
-                <span className="ml-2 font-medium">{formatDuration(metrics.queueWaitTime)}</span>
+                <span className="ml-2 font-medium">
+                  {formatDuration(metrics.queueWaitTime)}
+                </span>
               </div>
             </div>
           </div>

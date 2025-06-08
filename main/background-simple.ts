@@ -1,14 +1,17 @@
-
 /**
  * Electron Main Process - Background Service (Simplified)
  * Handles app lifecycle, window management, and system integration
  */
 
-import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from "electron";
 // import { autoUpdater } from 'electron-updater'; // Commented out for future use
-import * as path from 'path';
+import * as path from "path";
 // Simple dev detection without external dependencies
-const isDev = process.env['NODE_ENV'] === 'development' || process.defaultApp || /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || /[\\/]electron[\\/]/.test(process.execPath);
+const isDev =
+  process.env["NODE_ENV"] === "development" ||
+  process.defaultApp ||
+  /[\\/]electron-prebuilt[\\/]/.test(process.execPath) ||
+  /[\\/]electron[\\/]/.test(process.execPath);
 // import serve from 'electron-serve';
 
 class SessionHubApp {
@@ -23,26 +26,34 @@ class SessionHubApp {
     // Enable live reload for development (only if electron-reload is available)
     if (isDev) {
       try {
-        require('electron-reload')(__dirname, {
-          electron: path.join(__dirname, '..', 'node_modules', '.bin', 'electron'),
-          hardResetMethod: 'exit'
+        // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+        const electronReload = require("electron-reload");
+        electronReload(__dirname, {
+          electron: path.join(
+            __dirname,
+            "..",
+            "node_modules",
+            ".bin",
+            "electron",
+          ),
+          hardResetMethod: "exit",
         });
-      } catch (error: any) {
-        console.log('electron-reload not available, skipping hot reload');
+      } catch (error: unknown) {
+        console.warn("electron-reload not available, skipping hot reload");
       }
     }
 
     // App event handlers
-    app.whenReady().then(() => this.onReady());
-    app.on('window-all-closed', () => this.onWindowAllClosed());
-    app.on('activate', () => this.onActivate());
-    app.on('before-quit', () => this.onBeforeQuit());
+    void app.whenReady().then(() => this.onReady());
+    app.on("window-all-closed", () => this.onWindowAllClosed());
+    app.on("activate", () => this.onActivate());
+    app.on("before-quit", () => this.onBeforeQuit());
 
     // Security: Prevent new window creation
-    app.on('web-contents-created', (_event, contents) => {
+    app.on("web-contents-created", (_event, contents) => {
       contents.setWindowOpenHandler(({ url }) => {
-        void shell.openExternal(url)
-        return { action: 'deny' };
+        void shell.openExternal(url);
+        return { action: "deny" };
       });
     });
 
@@ -51,7 +62,7 @@ class SessionHubApp {
   }
 
   private async onReady(): Promise<void> {
-    console.log('🚀 SessionHub starting...');
+    console.warn("🚀 SessionHub starting...");
 
     // Set app security
     this.setSecurityDefaults();
@@ -68,12 +79,12 @@ class SessionHubApp {
     // Show startup notification
     this.showStartupNotification();
 
-    console.log('✅ SessionHub ready');
+    console.warn("✅ SessionHub ready");
   }
 
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows are closed
-    if (process.platform !== 'darwin') {
+    if (process.platform !== "darwin") {
       void app.quit();
     }
   }
@@ -81,7 +92,7 @@ class SessionHubApp {
   private onActivate(): void {
     // On macOS, re-create window when dock icon is clicked
     if (BrowserWindow.getAllWindows().length === 0) {
-      this.createMainWindow();
+      void this.createMainWindow();
     }
   }
 
@@ -92,19 +103,19 @@ class SessionHubApp {
   private setSecurityDefaults(): void {
     // Set secure defaults
     app.setAboutPanelOptions({
-      applicationName: 'SessionHub',
-      applicationVersion: '1.0.0',
-      version: '1.0.0',
-      copyright: '© 2025 SessionHub Team',
-      authors: ['SessionHub Development Team'],
-      website: 'https://sessionhub.com',
-      iconPath: path.join(__dirname, '../resources/icon.png')
+      applicationName: "SessionHub",
+      applicationVersion: "1.0.0",
+      version: "1.0.0",
+      copyright: "© 2025 SessionHub Team",
+      authors: ["SessionHub Development Team"],
+      website: "https://sessionhub.com",
+      iconPath: path.join(__dirname, "../resources/icon.png"),
     });
   }
 
   private async createMainWindow(): Promise<void> {
-    console.log('Creating main window...');
-    
+    console.warn("Creating main window...");
+
     // Create the browser window
     this.mainWindow = new BrowserWindow({
       width: 1200,
@@ -112,45 +123,48 @@ class SessionHubApp {
       minWidth: 800,
       minHeight: 600,
       show: false, // Show when ready
-      icon: path.join(__dirname, '../resources/icon.png'),
-      titleBarStyle: 'hiddenInset',
+      icon: path.join(__dirname, "../resources/icon.png"),
+      titleBarStyle: "hiddenInset",
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
         sandbox: true, // Enable sandbox for security
-        preload: path.join(__dirname, 'preload.js')
-      }
+        preload: path.join(__dirname, "preload.js"),
+      },
     });
 
-    console.log('Window created, loading content...');
+    console.warn("Window created, loading content...");
 
     // Load the application
     try {
       if (isDev) {
-        console.log('Loading development server...');
-        await this.mainWindow.loadURL('http://localhost:3000');
+        console.warn("Loading development server...");
+        await this.mainWindow.loadURL("http://localhost:3000");
         // Open DevTools in development
         this.mainWindow.webContents.openDevTools();
       } else {
-        console.log('Loading production files...');
+        console.warn("Loading production files...");
         // For production, load the Next.js static export
-        const appPath = path.join(__dirname, '../../out/index.html');
-        console.log('Loading production build from:', appPath);
+        const appPath = path.join(__dirname, "../../out/index.html");
+        console.warn("Loading production build from:", appPath);
         await this.mainWindow.loadFile(appPath);
       }
-      console.log('Content loaded successfully');
-    } catch (error: any) {
-      console.error('Failed to load content:', error);
+      console.warn("Content loaded successfully");
+    } catch (error: unknown) {
+      console.error("Failed to load content:", error);
       // Show proper error dialog
-      void dialog.showErrorBox('SessionHub Error', `Failed to load application: ${error}`)
+      void dialog.showErrorBox(
+        "SessionHub Error",
+        `Failed to load application: ${error}`,
+      );
       void app.quit();
     }
 
     // Show window when ready
-    this.mainWindow.once('ready-to-show', () => {
+    this.mainWindow.once("ready-to-show", () => {
       if (this.mainWindow) {
-        void this.mainWindow.show()
-        
+        void this.mainWindow.show();
+
         // Focus on the window
         if (isDev) {
           this.mainWindow.webContents.openDevTools();
@@ -159,13 +173,13 @@ class SessionHubApp {
     });
 
     // Handle window closed
-    this.mainWindow.on('closed', () => {
+    this.mainWindow.on("closed", () => {
       this.mainWindow = null;
     });
 
     // Handle window close (hide instead of quit on macOS)
-    this.mainWindow.on('close', (event) => {
-      if (process.platform === 'darwin' && !this.isQuitting) {
+    this.mainWindow.on("close", (event) => {
+      if (process.platform === "darwin" && !this.isQuitting) {
         event.preventDefault();
         this.mainWindow?.hide();
       }
@@ -177,82 +191,88 @@ class SessionHubApp {
       {
         label: app.getName(),
         submenu: [
-          { role: 'about' },
-          { type: 'separator' },
-          { role: 'services' },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideOthers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' }
-        ]
+          { role: "about" },
+          { type: "separator" },
+          { role: "services" },
+          { type: "separator" },
+          { role: "hide" },
+          { role: "hideOthers" },
+          { role: "unhide" },
+          { type: "separator" },
+          { role: "quit" },
+        ],
       },
       {
-        label: 'File',
+        label: "File",
         submenu: [
           {
-            label: 'New Session',
-            accelerator: 'CmdOrCtrl+N',
-            click: () => this.newSession()
+            label: "New Session",
+            accelerator: "CmdOrCtrl+N",
+            click: () => this.newSession(),
           },
-          { type: 'separator' },
-          { role: 'close' }
-        ]
+          { type: "separator" },
+          { role: "close" },
+        ],
       },
       {
-        label: 'Edit',
+        label: "Edit",
         submenu: [
-          { role: 'undo' },
-          { role: 'redo' },
-          { type: 'separator' },
-          { role: 'cut' },
-          { role: 'copy' },
-          { role: 'paste' },
-          { role: 'selectAll' }
-        ]
+          { role: "undo" },
+          { role: "redo" },
+          { type: "separator" },
+          { role: "cut" },
+          { role: "copy" },
+          { role: "paste" },
+          { role: "selectAll" },
+        ],
       },
       {
-        label: 'View',
+        label: "View",
         submenu: [
-          { role: 'reload' },
-          { role: 'forceReload' },
-          { role: 'toggleDevTools' },
-          { type: 'separator' },
-          { role: 'resetZoom' },
-          { role: 'zoomIn' },
-          { role: 'zoomOut' },
-          { type: 'separator' },
-          { role: 'togglefullscreen' }
-        ]
+          { role: "reload" },
+          { role: "forceReload" },
+          { role: "toggleDevTools" },
+          { type: "separator" },
+          { role: "resetZoom" },
+          { role: "zoomIn" },
+          { role: "zoomOut" },
+          { type: "separator" },
+          { role: "togglefullscreen" },
+        ],
       },
       {
-        label: 'Window',
+        label: "Window",
         submenu: [
-          { role: 'minimize' },
-          { role: 'zoom' },
-          { type: 'separator' },
-          { role: 'front' }
-        ]
+          { role: "minimize" },
+          { role: "zoom" },
+          { type: "separator" },
+          { role: "front" },
+        ],
       },
       {
-        label: 'Help',
+        label: "Help",
         submenu: [
           {
-            label: 'Documentation',
-            click: () => shell.openExternal('https://sessionhub.com/docs')
+            label: "Documentation",
+            click: (): void => {
+              void shell.openExternal("https://sessionhub.com/docs");
+            },
           },
           {
-            label: 'Support',
-            click: () => shell.openExternal('https://sessionhub.com/support')
+            label: "Support",
+            click: (): void => {
+              void shell.openExternal("https://sessionhub.com/support");
+            },
           },
-          { type: 'separator' },
+          { type: "separator" },
           {
-            label: 'System Health',
-            click: () => this.showSystemHealth()
-          }
-        ]
-      }
+            label: "System Health",
+            click: (): void => {
+              void this.showSystemHealth();
+            },
+          },
+        ],
+      },
     ];
 
     const menu = Menu.buildFromTemplate(template);
@@ -260,57 +280,94 @@ class SessionHubApp {
   }
 
   private initializeServices(): void {
-    console.log('🔧 Initializing SessionHub services...');
+    console.warn("🔧 Initializing SessionHub services...");
 
     // Set up IPC handlers
     this.setupIpcHandlers();
 
-    console.log('✅ SessionHub services initialized');
+    console.warn("✅ SessionHub services initialized");
   }
 
   private setupIpcHandlers(): void {
     // System health check
-    ipcMain.handle('get-system-health', async () => {
-      return {
-        status: 'healthy',
-        uptime: process.uptime() * 1000,
-        timestamp: new Date().toISOString(),
-        checks: [
-          { name: 'app-startup', status: 'pass', message: 'Application started successfully' },
-          { name: 'electron-version', status: 'pass', message: `Electron ${process.versions.electron}` }
-        ]
-      };
-    });
+    ipcMain.handle(
+      "get-system-health",
+      async (): Promise<{
+        status: string;
+        uptime: number;
+        timestamp: string;
+        checks: Array<{ name: string; status: string; message: string }>;
+      }> => {
+        return {
+          status: "healthy",
+          uptime: process.uptime() * 1000,
+          timestamp: new Date().toISOString(),
+          checks: [
+            {
+              name: "app-startup",
+              status: "pass",
+              message: "Application started successfully",
+            },
+            {
+              name: "electron-version",
+              status: "pass",
+              message: `Electron ${process.versions.electron}`,
+            },
+          ],
+        };
+      },
+    );
 
     // Self-development status
-    ipcMain.handle('get-self-development-status', () => {
-      return {
-        operational: true,
-        message: 'Development ready'
-      };
-    });
+    ipcMain.handle(
+      "get-self-development-status",
+      (): { operational: boolean; message: string } => {
+        return {
+          operational: true,
+          message: "Development ready",
+        };
+      },
+    );
 
     // Production metrics
-    ipcMain.handle('get-production-metrics', () => {
-      return {
-        uptime: process.uptime() * 1000,
-        memory: process.memoryUsage(),
-        timestamp: new Date().toISOString()
-      };
-    });
+    ipcMain.handle(
+      "get-production-metrics",
+      (): {
+        uptime: number;
+        memory: NodeJS.MemoryUsage;
+        timestamp: string;
+      } => {
+        return {
+          uptime: process.uptime() * 1000,
+          memory: process.memoryUsage(),
+          timestamp: new Date().toISOString(),
+        };
+      },
+    );
 
     // Register API handlers
-    const { registerApiHandlers } = require('./ipc/apiHandlers');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const {
+      registerApiHandlers,
+    }: { registerApiHandlers: () => void } = require("./ipc/apiHandlers");
     registerApiHandlers();
 
     // Register Supabase handlers
-    const { registerSupabaseHandlers } = require('./ipc/supabaseHandlers');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const {
+      registerSupabaseHandlers,
+    }: {
+      registerSupabaseHandlers: () => void;
+    } = require("./ipc/supabaseHandlers");
     registerSupabaseHandlers();
 
     // Trigger test issue (for demo purposes)
-    ipcMain.handle('trigger-test-issue', async () => {
-      return { success: true, message: 'Test issue triggered' };
-    });
+    ipcMain.handle(
+      "trigger-test-issue",
+      async (): Promise<{ success: boolean; message: string }> => {
+        return { success: true, message: "Test issue triggered" };
+      },
+    );
   }
 
   // Commented out for future use
@@ -346,12 +403,17 @@ class SessionHubApp {
   // }
 
   private showStartupNotification(): void {
-    const { Notification } = require('electron');
+    // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
+    const {
+      Notification,
+    }: {
+      Notification: typeof import("electron").Notification;
+    } = require("electron");
     if (Notification.isSupported()) {
-      const notification = new Notification({
-        title: 'SessionHub Ready',
-        body: 'AI-powered development platform is now running',
-        icon: path.join(__dirname, '../resources/icon.png')
+      const notification: import("electron").Notification = new Notification({
+        title: "SessionHub Ready",
+        body: "AI-powered development platform is now running",
+        icon: path.join(__dirname, "../resources/icon.png"),
       });
       notification.show();
     }
@@ -370,27 +432,29 @@ class SessionHubApp {
 
   private newSession(): void {
     // Send message to renderer to create new session
-    this.mainWindow?.webContents.send('new-session');
+    this.mainWindow?.webContents.send("new-session");
   }
 
   private async showSystemHealth(): Promise<void> {
     const health = {
-      status: 'healthy',
+      status: "healthy",
       uptime: process.uptime() * 1000,
       checks: [
-        { name: 'app-startup', status: 'pass' },
-        { name: 'electron-version', status: 'pass' }
-      ]
+        { name: "app-startup", status: "pass" },
+        { name: "electron-version", status: "pass" },
+      ],
     };
-    
-    const message = `SessionHub Status: ${health.status.toUpperCase()}\\n\\nUptime: ${Math.round(health.uptime / 1000)}s\\nChecks passed: ${health.checks.filter(c => c.status === 'pass').length}/${health.checks.length}`;
-    
-    void dialog.showMessageBox(this.mainWindow!, {
-      type: 'info',
-      title: 'System Health',
-      message,
-      buttons: ['OK']
-    })
+
+    const message = `SessionHub Status: ${health.status.toUpperCase()}\\n\\nUptime: ${Math.round(health.uptime / 1000)}s\\nChecks passed: ${health.checks.filter((c) => c.status === "pass").length}/${health.checks.length}`;
+
+    if (this.mainWindow) {
+      void dialog.showMessageBox(this.mainWindow, {
+        type: "info",
+        title: "System Health",
+        message,
+        buttons: ["OK"],
+      });
+    }
   }
 }
 

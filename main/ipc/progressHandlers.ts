@@ -1,14 +1,13 @@
-
 /**
  * IPC handlers for session progress tracking
  */
 
-import { ipcMain, BrowserWindow } from 'electron';
-import { SystemOrchestrator } from '@/src/core/orchestrator/SystemOrchestrator';
-import { Logger } from '@/src/lib/logging/Logger';
+import { ipcMain, BrowserWindow } from "electron";
+import { SystemOrchestrator } from "@/src/core/orchestrator/SystemOrchestrator";
+import { Logger } from "@/src/lib/logging/Logger";
 
 export interface ProgressEvent {
-  type: 'queued' | 'started' | 'progress' | 'completed' | 'failed' | 'retrying';
+  type: "queued" | "started" | "progress" | "completed" | "failed" | "retrying";
   sessionId: string;
   timestamp: string;
   data?: unknown;
@@ -20,13 +19,13 @@ export class ProgressHandlers {
   private readonly progressSubscribers: Map<string, Set<number>> = new Map();
 
   constructor(orchestrator: SystemOrchestrator) {
-    this.logger = new Logger('ProgressHandlers');
+    this.logger = new Logger("ProgressHandlers");
     this.orchestrator = orchestrator;
   }
 
   registerHandlers(): void {
     // Subscribe to progress events
-    ipcMain.handle('progress:subscribe', async (event, sessionId: string) => {
+    ipcMain.handle("progress:subscribe", async (event, sessionId: string) => {
       const windowId = BrowserWindow.fromWebContents(event.sender)?.id;
       if (!windowId) return false;
 
@@ -34,17 +33,20 @@ export class ProgressHandlers {
       if (!this.progressSubscribers.has(sessionId)) {
         this.progressSubscribers.set(sessionId, new Set());
       }
-      this.progressSubscribers.get(sessionId)!.add(windowId);
+      const subscribers = this.progressSubscribers.get(sessionId);
+      if (subscribers) {
+        subscribers.add(windowId);
+      }
 
       // Start monitoring
       this.startProgressMonitoring(sessionId);
 
-      this.logger.debug('Progress subscription added', { sessionId, windowId });
+      this.logger.debug("Progress subscription added", { sessionId, windowId });
       return true;
     });
 
     // Unsubscribe from progress events
-    ipcMain.handle('progress:unsubscribe', async (event, sessionId: string) => {
+    ipcMain.handle("progress:unsubscribe", async (event, sessionId: string) => {
       const windowId = BrowserWindow.fromWebContents(event.sender)?.id;
       if (!windowId) return false;
 
@@ -56,40 +58,43 @@ export class ProgressHandlers {
         }
       }
 
-      this.logger.debug('Progress subscription removed', { sessionId, windowId });
+      this.logger.debug("Progress subscription removed", {
+        sessionId,
+        windowId,
+      });
       return true;
     });
 
     // Get session status
-    ipcMain.handle('session:getStatus', async (_event, sessionId: string) => {
+    ipcMain.handle("session:getStatus", async (_event, sessionId: string) => {
       try {
         const status = await this.orchestrator.getSessionStatus(sessionId);
         return { success: true, data: status };
-      } catch (error: any) {
-        this.logger.error('Failed to get session status', error as Error);
+      } catch (error: unknown) {
+        this.logger.error("Failed to get session status", error as Error);
         return { success: false, error: (error as Error).message };
       }
     });
 
     // Get session history
-    ipcMain.handle('session:getHistory', async (_event, sessionId: string) => {
+    ipcMain.handle("session:getHistory", async (_event, sessionId: string) => {
       try {
         const sessionStateManager = this.orchestrator.getSessionStateManager();
         const history = await sessionStateManager.getHistory(sessionId);
         return { success: true, data: history };
-      } catch (error: any) {
-        this.logger.error('Failed to get session history', error as Error);
+      } catch (error: unknown) {
+        this.logger.error("Failed to get session history", error as Error);
         return { success: false, error: (error as Error).message };
       }
     });
 
     // Get queue metrics
-    ipcMain.handle('queue:getMetrics', async () => {
+    ipcMain.handle("queue:getMetrics", async () => {
       try {
         const metrics = this.orchestrator.getQueueMetrics();
         return { success: true, data: metrics };
-      } catch (error: any) {
-        this.logger.error('Failed to get queue metrics', error as Error);
+      } catch (error: unknown) {
+        this.logger.error("Failed to get queue metrics", error as Error);
         return { success: false, error: (error as Error).message };
       }
     });
@@ -102,21 +107,21 @@ export class ProgressHandlers {
 
     // Subscribe to instruction events
     const eventStream = instructionQueue.getEventStream();
-    
+
     // Process events
     (async () => {
       for await (const event of eventStream) {
         if (event.sessionId === sessionId) {
           this.broadcastProgressEvent({
-            type: event.type as ProgressEvent['type'],
+            type: event.type as ProgressEvent["type"],
             sessionId: event.sessionId,
             timestamp: event.timestamp,
-            data: event.data
+            data: event.data,
           });
         }
       }
-    })().catch(error => {
-      this.logger.error('Error in progress monitoring', error);
+    })().catch((error) => {
+      this.logger.error("Error in progress monitoring", error);
     });
   }
 
@@ -124,7 +129,7 @@ export class ProgressHandlers {
     const subscribers = this.progressSubscribers.get(event.sessionId);
     if (!subscribers || subscribers.size === 0) return;
 
-    subscribers.forEach(windowId => {
+    subscribers.forEach((windowId) => {
       const window = BrowserWindow.fromId(windowId);
       if (window && !window.isDestroyed()) {
         window.webContents.send(`progress:${event.sessionId}`, event);

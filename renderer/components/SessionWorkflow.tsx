@@ -1,17 +1,23 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect } from 'react';
-import { ApiConfiguration } from './ApiConfiguration';
-import { PlanningChat } from './PlanningChat';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { CheckCircle, Circle, ArrowRight, PlayCircle, MessageSquare, Code } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { ApiConfiguration } from "./ApiConfiguration";
+import { PlanningChat } from "./PlanningChat";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import {
+  CheckCircle,
+  Circle,
+  ArrowRight,
+  PlayCircle,
+  MessageSquare,
+  Code,
+} from "lucide-react";
 
 interface Session {
   id: string;
   name: string;
-  status: 'configuring' | 'planning' | 'executing' | 'completed';
+  status: "configuring" | "planning" | "executing" | "completed";
   plan?: string;
   results?: unknown;
 }
@@ -22,15 +28,15 @@ export default function SessionWorkflow() {
   const [isCheckingApiKey, setIsCheckingApiKey] = useState(true);
 
   useEffect(() => {
-    checkApiKey();
+    void checkApiKey();
   }, []);
 
   const checkApiKey = async () => {
     try {
       const hasKey = await window.electronAPI.checkApiKey();
       setHasApiKey(hasKey);
-    } catch (error: any) {
-      console.error('Failed to check API key:', error);
+    } catch (error: unknown) {
+      console.error("Failed to check API key:", error);
     } finally {
       setIsCheckingApiKey(false);
     }
@@ -40,7 +46,7 @@ export default function SessionWorkflow() {
     const session: Session = {
       id: Date.now().toString(),
       name: `Session ${new Date().toLocaleString()}`,
-      status: 'planning',
+      status: "planning",
     };
     setCurrentSession(session);
   };
@@ -49,17 +55,17 @@ export default function SessionWorkflow() {
     if (currentSession) {
       setCurrentSession({
         ...currentSession,
-        status: 'executing',
+        status: "executing",
         plan,
       });
     }
   };
 
-  const handleExecutionComplete = (results: any) => {
+  const handleExecutionComplete = (results: unknown) => {
     if (currentSession) {
       setCurrentSession({
         ...currentSession,
-        status: 'completed',
+        status: "completed",
         results,
       });
     }
@@ -70,7 +76,9 @@ export default function SessionWorkflow() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-400">Loading SessionHub...</p>
+          <p className="mt-4 text-gray-600 dark:text-gray-400">
+            Loading SessionHub...
+          </p>
         </div>
       </div>
     );
@@ -85,13 +93,16 @@ export default function SessionWorkflow() {
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-8">SessionHub</h1>
-          
+
           <Card className="p-8">
-            <h2 className="text-xl font-semibold mb-4">Welcome to SessionHub</h2>
+            <h2 className="text-xl font-semibold mb-4">
+              Welcome to SessionHub
+            </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Create a new session to start planning and building your project with the Two-Actor Model.
+              Create a new session to start planning and building your project
+              with the Two-Actor Model.
             </p>
-            
+
             <div className="space-y-4 mb-8">
               <div className="flex items-center gap-3">
                 <MessageSquare className="h-5 w-5 text-blue-600" />
@@ -102,7 +113,7 @@ export default function SessionWorkflow() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <Code className="h-5 w-5 text-green-600" />
                 <div>
@@ -112,7 +123,7 @@ export default function SessionWorkflow() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-3">
                 <CheckCircle className="h-5 w-5 text-purple-600" />
                 <div>
@@ -123,7 +134,7 @@ export default function SessionWorkflow() {
                 </div>
               </div>
             </div>
-            
+
             <Button onClick={createNewSession} size="lg" className="w-full">
               <PlayCircle className="h-5 w-5 mr-2" />
               Start New Session
@@ -141,37 +152,49 @@ export default function SessionWorkflow() {
         <div className="max-w-4xl mx-auto px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-8">
-              <div className={`flex items-center gap-2 ${
-                currentSession.status === 'planning' ? 'text-blue-600' : 'text-green-600'
-              }`}>
-                {currentSession.status === 'planning' ? (
+              <div
+                className={`flex items-center gap-2 ${
+                  currentSession.status === "planning"
+                    ? "text-blue-600"
+                    : "text-green-600"
+                }`}
+              >
+                {currentSession.status === "planning" ? (
                   <Circle className="h-5 w-5" />
                 ) : (
                   <CheckCircle className="h-5 w-5" />
                 )}
                 <span className="font-medium">Planning</span>
               </div>
-              
+
               <ArrowRight className="h-4 w-4 text-gray-400" />
-              
-              <div className={`flex items-center gap-2 ${
-                currentSession.status === 'executing' ? 'text-blue-600' :
-                currentSession.status === 'completed' ? 'text-green-600' :
-                'text-gray-400'
-              }`}>
-                {currentSession.status === 'completed' ? (
+
+              <div
+                className={`flex items-center gap-2 ${
+                  currentSession.status === "executing"
+                    ? "text-blue-600"
+                    : currentSession.status === "completed"
+                      ? "text-green-600"
+                      : "text-gray-400"
+                }`}
+              >
+                {currentSession.status === "completed" ? (
                   <CheckCircle className="h-5 w-5" />
                 ) : (
                   <Circle className="h-5 w-5" />
                 )}
                 <span className="font-medium">Execution</span>
               </div>
-              
+
               <ArrowRight className="h-4 w-4 text-gray-400" />
-              
-              <div className={`flex items-center gap-2 ${
-                currentSession.status === 'completed' ? 'text-green-600' : 'text-gray-400'
-              }`}>
+
+              <div
+                className={`flex items-center gap-2 ${
+                  currentSession.status === "completed"
+                    ? "text-green-600"
+                    : "text-gray-400"
+                }`}
+              >
                 <Circle className="h-5 w-5" />
                 <span className="font-medium">Review</span>
               </div>
@@ -182,15 +205,15 @@ export default function SessionWorkflow() {
 
       {/* Content Area */}
       <div className="flex-1">
-        {currentSession.status === 'planning' && (
+        {currentSession.status === "planning" && (
           <PlanningChat
             sessionId={currentSession.id}
             sessionName={currentSession.name}
             onPlanComplete={handlePlanComplete}
           />
         )}
-        
-        {currentSession.status === 'executing' && (
+
+        {currentSession.status === "executing" && (
           <div className="p-8">
             <Card className="max-w-4xl mx-auto p-8">
               <h2 className="text-2xl font-bold mb-4">Executing Plan</h2>
@@ -203,15 +226,19 @@ export default function SessionWorkflow() {
                     {currentSession.plan}
                   </pre>
                 </div>
-                <Button onClick={() => handleExecutionComplete({ success: true })}>
+                <Button
+                  onClick={(): void => {
+                    handleExecutionComplete({ success: true });
+                  }}
+                >
                   Complete Execution (Demo)
                 </Button>
               </div>
             </Card>
           </div>
         )}
-        
-        {currentSession.status === 'completed' && (
+
+        {currentSession.status === "completed" && (
           <div className="p-8">
             <Card className="max-w-4xl mx-auto p-8">
               <h2 className="text-2xl font-bold mb-4">Session Complete!</h2>
@@ -219,7 +246,10 @@ export default function SessionWorkflow() {
                 Your project has been successfully built.
               </p>
               <div className="space-y-4">
-                <Button onClick={() => setCurrentSession(null)} variant="primary">
+                <Button
+                  onClick={() => setCurrentSession(null)}
+                  variant="primary"
+                >
                   Start New Session
                 </Button>
               </div>

@@ -1,89 +1,105 @@
-import { ipcMain, dialog } from 'electron';
-import { MacKeychainService } from '../services/mac/MacKeychainService';
-import { ClaudeAPIClient } from '../../src/lib/api/ClaudeAPIClient';
-import Store from 'electron-store';
+import { ipcMain, dialog } from "electron";
+import { MacKeychainService } from "../services/mac/MacKeychainService";
+import { ClaudeAPIClient } from "../../src/lib/api/ClaudeAPIClient";
+import Store from "electron-store";
 
 const store = new Store();
 const keychainService = new MacKeychainService();
 
-export function registerApiHandlers() : void {
+export function registerApiHandlers(): void {
   // Check if API key exists
-  ipcMain.handle('check-api-key', async () => {
+  ipcMain.handle("check-api-key", async () => {
     try {
-      const apiKey = await keychainService.getCredential('sessionhub', 'claude-api-key');
+      const apiKey = await keychainService.getCredential(
+        "sessionhub",
+        "claude-api-key",
+      );
       return !!apiKey;
-    } catch (error: any) {
+    } catch (error: unknown) {
       return false;
     }
   });
 
   // Validate API key
-  ipcMain.handle('validate-api-key', async (_event, apiKey: string) => {
+  ipcMain.handle("validate-api-key", async (_event, apiKey: string) => {
     try {
       const client = new ClaudeAPIClient({ apiKey });
       // Test the API key with a simple request
-      await client.sendMessage('Hello', 'test-validation');
+      await client.sendMessage("Hello", "test-validation");
       return true;
-    } catch (error: any) {
-      console.error('API key validation failed:', error);
+    } catch (error: unknown) {
+      console.error("API key validation failed:", error);
       return false;
     }
   });
 
   // Save API key to keychain
-  ipcMain.handle('save-api-key', async (_event, apiKey: string) => {
+  ipcMain.handle("save-api-key", async (_event, apiKey: string) => {
     try {
-      await keychainService.setCredential('sessionhub', 'claude-api-key', apiKey);
+      await keychainService.setCredential(
+        "sessionhub",
+        "claude-api-key",
+        apiKey,
+      );
       return true;
-    } catch (error: any) {
-      console.error('Failed to save API key:', error);
+    } catch (error: unknown) {
+      console.error("Failed to save API key:", error);
       throw error;
     }
   });
 
   // Send chat message
-  ipcMain.handle('send-chat-message', async (_event, sessionId: string, message: string) => {
-    try {
-      const apiKey = await keychainService.getCredential('sessionhub', 'claude-api-key');
-      if (!apiKey) {
-        throw new Error('API key not found');
-      }
+  ipcMain.handle(
+    "send-chat-message",
+    async (_event, sessionId: string, message: string) => {
+      try {
+        const apiKey = await keychainService.getCredential(
+          "sessionhub",
+          "claude-api-key",
+        );
+        if (!apiKey) {
+          throw new Error("API key not found");
+        }
 
-      const client = new ClaudeAPIClient({ apiKey });
-      
-      // Get conversation history
-      const history = store.get(`sessions.${sessionId}.messages`, []) as unknown[];
-      
-      // Add user message to history
-      history.push({ role: 'user', content: message });
-      
-      // Send to Claude API
-      const response = await client.sendMessage(message, sessionId, history);
-      
-      // Add assistant response to history
-      history.push({ role: 'assistant', content: response });
-      
-      // Save updated history
-      store.set(`sessions.${sessionId}.messages`, history);
-      
-      return response;
-    } catch (error: any) {
-      console.error('Failed to send chat message:', error);
-      throw error;
-    }
-  });
+        const client = new ClaudeAPIClient({ apiKey });
+
+        // Get conversation history
+        const history = store.get(
+          `sessions.${sessionId}.messages`,
+          [],
+        ) as Array<{ role: string; content: string }>;
+
+        // Add user message to history
+        history.push({ role: "user", content: message });
+
+        // Send to Claude API
+        const response = await client.sendMessage(message, sessionId, history);
+
+        // Add assistant response to history
+        history.push({ role: "assistant", content: response });
+
+        // Save updated history
+        store.set(`sessions.${sessionId}.messages`, history);
+
+        return response;
+      } catch (error: unknown) {
+        console.error("Failed to send chat message:", error);
+        throw error;
+      }
+    },
+  );
 
   // GitHub repository selection dialog
-  ipcMain.handle('select-github-repo', async () => {
+  ipcMain.handle("select-github-repo", async () => {
     try {
       // Show dialog to input GitHub URL
       const result = await dialog.showMessageBox({
-        type: 'question',
-        buttons: ['Cancel', 'Import'],
+        type: "question",
+        buttons: ["Cancel", "Import"],
         defaultId: 1,
-        title: 'Import GitHub Repository',
-        message: 'Enter the GitHub repository URL',
-        detail: 'Example: https://github.com/owner/repo'
+        title: "Import GitHub Repository",
+        message: "Enter the GitHub repository URL",
+        detail: "Example: https://github.com/owner/repo",
       });
 
       if (result.response === 0) {
@@ -93,29 +109,43 @@ export function registerApiHandlers() : void {
       // For demo purposes, return mock data
       // In production, this would parse the URL and fetch repo details
       return {
-        url: 'https://github.com/example/project',
-        name: 'project',
-        owner: 'example',
-        defaultBranch: 'main'
+        url: "https://github.com/example/project",
+        name: "project",
+        owner: "example",
+        defaultBranch: "main",
       };
-    } catch (error: any) {
-      console.error('Failed to select GitHub repo:', error);
+    } catch (error: unknown) {
+      console.error("Failed to select GitHub repo:", error);
       return null;
     }
   });
 
   // Analyze repository
-  ipcMain.handle('analyze-repository', async (_event, sessionId: string, repoInfo: any) => {
-    try {
-      const apiKey = await keychainService.getCredential('sessionhub', 'claude-api-key');
-      if (!apiKey) {
-        throw new Error('API key not found');
-      }
+  ipcMain.handle(
+    "analyze-repository",
+    async (
+      _event,
+      sessionId: string,
+      repoInfo: {
+        url: string;
+        owner: string;
+        name: string;
+        defaultBranch: string;
+      },
+    ) => {
+      try {
+        const apiKey = await keychainService.getCredential(
+          "sessionhub",
+          "claude-api-key",
+        );
+        if (!apiKey) {
+          throw new Error("API key not found");
+        }
 
-      const client = new ClaudeAPIClient({ apiKey });
-      
-      // Create analysis prompt
-      const analysisPrompt = `Please analyze this GitHub repository: ${repoInfo.url}
+        const client = new ClaudeAPIClient({ apiKey });
+
+        // Create analysis prompt
+        const analysisPrompt = `Please analyze this GitHub repository: ${repoInfo.url}
 Repository: ${repoInfo.owner}/${repoInfo.name}
 Default Branch: ${repoInfo.defaultBranch}
 
@@ -127,12 +157,13 @@ Provide a comprehensive analysis including:
 5. Potential improvements or issues
 6. Recommendations for development approach`;
 
-      const response = await client.sendMessage(analysisPrompt, sessionId);
-      
-      return response;
-    } catch (error: any) {
-      console.error('Failed to analyze repository:', error);
-      throw error;
-    }
-  });
+        const response = await client.sendMessage(analysisPrompt, sessionId);
+
+        return response;
+      } catch (error: unknown) {
+        console.error("Failed to analyze repository:", error);
+        throw error;
+      }
+    },
+  );
 }

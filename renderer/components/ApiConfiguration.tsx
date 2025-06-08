@@ -1,19 +1,18 @@
+"use client";
 
-'use client';
-
-import { useState, useEffect, useCallback } from 'react';
-import { Button } from '../../components/ui/Button';
-import { Card } from '../../components/ui/Card';
-import { Key, AlertCircle, CheckCircle, Loader } from 'lucide-react';
+import { useState, useEffect, useCallback } from "react";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { Key, AlertCircle, CheckCircle, Loader } from "lucide-react";
 
 interface ApiConfigurationProps {
   onComplete: () => void;
 }
 
 export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
-  const [apiKey, setApiKey] = useState('');
+  const [apiKey, setApiKey] = useState("");
   const [isValidating, setIsValidating] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isValid, setIsValid] = useState(false);
 
   const checkExistingApiKey = useCallback(async () => {
@@ -23,27 +22,27 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
         onComplete();
       }
     } catch (err) {
-      console.error('Error checking API key:', err);
+      console.error("Error checking API key:", err);
     }
   }, [onComplete]);
 
   useEffect(() => {
     // Check if API key already exists
-    checkExistingApiKey();
+    void checkExistingApiKey();
   }, [checkExistingApiKey]);
 
   const validateApiKey = async () => {
     if (!apiKey.trim()) {
-      setError('Please enter your Claude API key');
+      setError("Please enter your Claude API key");
       return;
     }
 
     setIsValidating(true);
-    setError('');
+    setError("");
 
     try {
       const isValid = await window.electronAPI.validateApiKey(apiKey);
-      
+
       if (isValid) {
         await window.electronAPI.saveApiKey(apiKey);
         setIsValid(true);
@@ -51,10 +50,10 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
           onComplete();
         }, 1500);
       } else {
-        setError('Invalid API key. Please check and try again.');
+        setError("Invalid API key. Please check and try again.");
       }
     } catch (err) {
-      setError('Failed to validate API key. Please try again.');
+      setError("Failed to validate API key. Please try again.");
     } finally {
       setIsValidating(false);
     }
@@ -70,14 +69,19 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-center mb-2">Welcome to SessionHub</h1>
+          <h1 className="text-2xl font-bold text-center mb-2">
+            Welcome to SessionHub
+          </h1>
           <p className="text-gray-600 dark:text-gray-400 text-center mb-8">
-            To get started, please enter your Claude API key. This will be stored securely in your Mac&apos;s Keychain.
+            To get started, please enter your Claude API key. This will be
+            stored securely in your Mac&apos;s Keychain.
           </p>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">Claude API Key</label>
+              <label className="block text-sm font-medium mb-2">
+                Claude API Key
+              </label>
               <input
                 type="password"
                 value={apiKey}
@@ -103,7 +107,9 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
             )}
 
             <Button
-              onClick={validateApiKey}
+              onClick={(): void => {
+                void validateApiKey();
+              }}
               disabled={isValidating || isValid || !apiKey.trim()}
               fullWidth
               className="mt-6"
@@ -119,12 +125,13 @@ export function ApiConfiguration({ onComplete }: ApiConfigurationProps) {
                   Success!
                 </>
               ) : (
-                'Continue'
+                "Continue"
               )}
             </Button>
 
             <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
-              Your API key will be stored securely and never shared. You can get your key from{' '}
+              Your API key will be stored securely and never shared. You can get
+              your key from{" "}
               <a
                 href="https://console.anthropic.com/api"
                 target="_blank"
