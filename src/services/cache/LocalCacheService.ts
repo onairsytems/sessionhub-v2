@@ -18,7 +18,7 @@ import * as os from 'os';
 // Conditional electron import for test compatibility
 let electronApp: any;
 try {
-  electronApp = require('electron').app;
+  electronApp = eval("require('electron')").app;
 } catch (e) {
   // Not in electron environment
 }

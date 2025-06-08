@@ -50,7 +50,7 @@ interface SessionHubAPI {
       name: string;
       owner: string;
       defaultBranch: string;
-    },
+    }
   ) => Promise<string>;
 
   // Supabase operations
@@ -91,7 +91,7 @@ interface SessionHubAPI {
   }) => Promise<{ success: boolean; session?: unknown; error?: string }>;
   updateSessionStatus: (
     sessionId: string,
-    status: string,
+    status: string
   ) => Promise<{ success: boolean; session?: unknown; error?: string }>;
   getActiveSessions: () => Promise<{
     success: boolean;
@@ -99,7 +99,7 @@ interface SessionHubAPI {
     error?: string;
   }>;
   getSessionStats: (
-    sessionId?: string,
+    sessionId?: string
   ) => Promise<{ success: boolean; stats: unknown[]; error?: string }>;
 
   // Event listeners
@@ -112,8 +112,7 @@ interface SessionHubAPI {
 contextBridge.exposeInMainWorld("sessionhub", {
   // System health and monitoring
   getSystemHealth: () => ipcRenderer.invoke("get-system-health"),
-  getSelfDevelopmentStatus: () =>
-    ipcRenderer.invoke("get-self-development-status"),
+  getSelfDevelopmentStatus: () => ipcRenderer.invoke("get-self-development-status"),
   getProductionMetrics: () => ipcRenderer.invoke("get-production-metrics"),
   triggerTestIssue: () => ipcRenderer.invoke("trigger-test-issue"),
 
@@ -122,18 +121,15 @@ contextBridge.exposeInMainWorld("sessionhub", {
 
   // API Configuration
   checkApiKey: () => ipcRenderer.invoke("check-api-key"),
-  validateApiKey: (apiKey: string) =>
-    ipcRenderer.invoke("validate-api-key", apiKey),
+  validateApiKey: (apiKey: string) => ipcRenderer.invoke("validate-api-key", apiKey),
   saveApiKey: (apiKey: string) => ipcRenderer.invoke("save-api-key", apiKey),
 
   // Chat functionality
-  sendChatMessage: (sessionId: string, message: string) =>
-    ipcRenderer.invoke("send-chat-message", sessionId, message),
+  sendChatMessage: (sessionId: string, message: string) => ipcRenderer.invoke("send-chat-message", sessionId, message),
 
   // GitHub integration
   selectGitHubRepo: () => ipcRenderer.invoke("select-github-repo"),
-  analyzeRepository: (
-    sessionId: string,
+  analyzeRepository: (sessionId: string,
     repoInfo: {
       url: string;
       name: string;
@@ -148,8 +144,7 @@ contextBridge.exposeInMainWorld("sessionhub", {
     anonKey: string;
     serviceKey?: string;
   }) => ipcRenderer.invoke("configure-supabase", config),
-  checkSupabaseConnection: () =>
-    ipcRenderer.invoke("check-supabase-connection"),
+  checkSupabaseConnection: () => ipcRenderer.invoke("check-supabase-connection"),
   getSupabaseConfig: () => ipcRenderer.invoke("get-supabase-config"),
   initSupabase: () => ipcRenderer.invoke("init-supabase"),
   createProject: (project: {
@@ -166,11 +161,9 @@ contextBridge.exposeInMainWorld("sessionhub", {
     description?: string;
     metadata?: Record<string, unknown>;
   }) => ipcRenderer.invoke("create-session", session),
-  updateSessionStatus: (sessionId: string, status: string) =>
-    ipcRenderer.invoke("update-session-status", sessionId, status),
+  updateSessionStatus: (sessionId: string, status: string) => ipcRenderer.invoke("update-session-status", sessionId, status),
   getActiveSessions: () => ipcRenderer.invoke("get-active-sessions"),
-  getSessionStats: (sessionId?: string) =>
-    ipcRenderer.invoke("get-session-stats", sessionId),
+  getSessionStats: (sessionId?: string) => ipcRenderer.invoke("get-session-stats", sessionId),
 
   // Event listeners
   onNewSession: (callback: () => void) => {
@@ -186,18 +179,15 @@ contextBridge.exposeInMainWorld("sessionhub", {
 contextBridge.exposeInMainWorld("electronAPI", {
   // API Configuration
   checkApiKey: () => ipcRenderer.invoke("check-api-key"),
-  validateApiKey: (apiKey: string) =>
-    ipcRenderer.invoke("validate-api-key", apiKey),
+  validateApiKey: (apiKey: string) => ipcRenderer.invoke("validate-api-key", apiKey),
   saveApiKey: (apiKey: string) => ipcRenderer.invoke("save-api-key", apiKey),
 
   // Chat functionality
-  sendChatMessage: (sessionId: string, message: string) =>
-    ipcRenderer.invoke("send-chat-message", sessionId, message),
+  sendChatMessage: (sessionId: string, message: string) => ipcRenderer.invoke("send-chat-message", sessionId, message),
 
   // GitHub integration
   selectGitHubRepo: () => ipcRenderer.invoke("select-github-repo"),
-  analyzeRepository: (
-    sessionId: string,
+  analyzeRepository: (sessionId: string,
     repoInfo: {
       url: string;
       name: string;
@@ -212,8 +202,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     anonKey: string;
     serviceKey?: string;
   }) => ipcRenderer.invoke("configure-supabase", config),
-  checkSupabaseConnection: () =>
-    ipcRenderer.invoke("check-supabase-connection"),
+  checkSupabaseConnection: () => ipcRenderer.invoke("check-supabase-connection"),
   getSupabaseConfig: () => ipcRenderer.invoke("get-supabase-config"),
   initSupabase: () => ipcRenderer.invoke("init-supabase"),
   createProject: (project: {
@@ -233,8 +222,7 @@ contextBridge.exposeInMainWorld("electron", {
       resolve(() => ipcRenderer.removeAllListeners("session-progress"));
     });
   },
-  getSessionStatus: (sessionId: string) =>
-    ipcRenderer.invoke("get-session-status", sessionId),
+  getSessionStatus: (sessionId: string) => ipcRenderer.invoke("get-session-status", sessionId),
 });
 
 // Export empty object to make this a module

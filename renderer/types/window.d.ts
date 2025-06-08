@@ -28,8 +28,7 @@ declare global {
         owner: string;
         defaultBranch: string;
       } | null>;
-      analyzeRepository: (
-        sessionId: string,
+      analyzeRepository: (sessionId: string,
         repoInfo: {
           url: string;
           name: string;
@@ -72,8 +71,7 @@ declare global {
         description?: string;
         metadata?: Record<string, unknown>;
       }) => Promise<{ success: boolean; session?: unknown; error?: string }>;
-      updateSessionStatus: (
-        sessionId: string,
+      updateSessionStatus: (sessionId: string,
         status: string,
       ) => Promise<{ success: boolean; session?: unknown; error?: string }>;
       getActiveSessions: () => Promise<{
@@ -81,18 +79,15 @@ declare global {
         sessions: unknown[];
         error?: string;
       }>;
-      getSessionStats: (
-        sessionId?: string,
+      getSessionStats: (sessionId?: string,
       ) => Promise<{ success: boolean; stats: unknown[]; error?: string }>;
       onNewSession: (callback: () => void) => void;
       removeAllListeners: (channel: string) => void;
     };
     electron: {
-      onSessionProgress: (
-        callback: (event: { type: string; data: unknown }) => void,
+      onSessionProgress: (callback: (event: { type: string; data: unknown }) => void,
       ) => Promise<() => void>;
-      getSessionStatus: (
-        sessionId: string,
+      getSessionStatus: (sessionId: string,
       ) => Promise<{ state: string } | null>;
     };
     electronAPI: {
@@ -106,8 +101,7 @@ declare global {
         owner: string;
         defaultBranch: string;
       } | null>;
-      analyzeRepository: (
-        sessionId: string,
+      analyzeRepository: (sessionId: string,
         repoInfo: {
           url: string;
           name: string;

@@ -2,7 +2,6 @@
 /**
  * Secure credential management for API keys and sensitive data
  */
-
 import * as crypto from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';

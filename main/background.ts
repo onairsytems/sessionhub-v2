@@ -86,7 +86,7 @@ class SessionHubApp {
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows are closed
     if (process.platform !== "darwin") {
-      app.quit();
+      void app.quit();
     }
   }
 
@@ -239,8 +239,7 @@ class SessionHubApp {
           },
           {
             label: "Support",
-            click: () =>
-              void shell.openExternal("https://sessionhub.com/support"),
+            click: () => void shell.openExternal("https://sessionhub.com/support"),
           },
           { type: "separator" },
           {
@@ -341,7 +340,7 @@ class SessionHubApp {
   }
 
   private showStartupNotification(): void {
-    const { Notification } = require("electron") as { Notification: typeof ElectronNotification };
+    const { Notification } = eval("require('electron')") as { Notification: typeof ElectronNotification };
     if (Notification.isSupported()) {
       const notification = new Notification({
         title: "SessionHub Ready",
@@ -353,7 +352,7 @@ class SessionHubApp {
   }
 
   private showUpdateNotification(title: string, body: string): void {
-    const { Notification } = require("electron") as { Notification: typeof ElectronNotification };
+    const { Notification } = eval("require('electron')") as { Notification: typeof ElectronNotification };
     if (Notification.isSupported()) {
       const notification = new Notification({
         title,

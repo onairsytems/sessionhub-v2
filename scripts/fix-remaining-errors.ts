@@ -72,7 +72,7 @@ class RemainingErrorFixer {
             },
             {
               find: /replacement:\s*\(match:\s*unknown,\s*indent:\s*unknown,\s*call:\s*any\)\s*=>\s*unknown/,
-              replace: 'replacement: (match: string, indent: string, call: string) => string',
+              replace: 'replacement: (match: string, indent: string, call: string) => void string',
               description: 'Fix replacement function type'
             }
           ]

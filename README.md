@@ -1,5 +1,7 @@
 # SessionHub V2
 
+[![Quality Check](https://github.com/onairsytems/sessionhub-v2/actions/workflows/quality-check.yml/badge.svg)](https://github.com/onairsytems/sessionhub-v2/actions/workflows/quality-check.yml)
+
 > AI-Powered Development Environment - Revolutionizing Software Creation Through Self-Development
 
 ## Overview

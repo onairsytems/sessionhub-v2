@@ -63,7 +63,7 @@ async function fixTypeScriptErrors() {
         // Fix interface method signatures
         content = content.replace(
           /(\w+):\s*\(([^)]*)\)\s*=>\s*([^;]+);/g,
-          '$1: ($2: any) => $3;'
+          '$1: ($2: any) => void$3;'
         );
       }
 

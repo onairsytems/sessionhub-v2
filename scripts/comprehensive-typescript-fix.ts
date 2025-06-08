@@ -136,7 +136,7 @@ async function fixMissingImports(filePath: string): Promise<void> {
     // Add fs import if missing and fsPromises is used
     {
       pattern: /^((?!import.*fs.*from.*fs\/promises)[\s\S]*?)(\nimport|^)/,
-      replacement: (match, before, after) => {
+      replacement: (match: string, before: string, after: string) => {
         if (before.includes('fsPromises') || before.includes('fs.')) {
           return `import * as fs from 'fs/promises';\n${before}${after || ''}`;
         }
@@ -216,7 +216,7 @@ async function fixTypeErrors(filePath: string, errors: FileError[]): Promise<voi
     if (error.code === 'TS18046') {
       fixes.push({
         pattern: /(\w+)\.(\w+)/g,
-        replacement: (match, obj, prop) => {
+        replacement: (match: string, obj: string, prop: string) => {
           if (error.message.includes(`'${obj}' is of type 'unknown'`)) {
             return `(${obj} as any).${prop}`;
           }

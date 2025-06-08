@@ -32,7 +32,7 @@ async function finalFix() {
       content = content.replace(/\):\s*void\s*{/g, '): void {');
       
       // Fix Promise return types
-      content = content.replace(/:\s*Promise<void void>/g, ': Promise<void>');
+      content = content.replace(/:\s*Promise<void>/g, ': Promise<void>');
       
       // Fix array type issues
       content = content.replace(/:\s*any\[\]\[\]/g, ': any[][]');

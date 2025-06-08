@@ -27,12 +27,12 @@ class SessionHubApp {
     // Enable live reload for development (only if electron-reload is available)
     if (isDev) {
       try {
-        const electronReload = require("electron-reload") as (
+        const electronReload = require('electron-reload') as (
           watchPath: string,
           options: {
             electron: string;
             hardResetMethod: string;
-          },
+          }
         ) => void;
         electronReload(__dirname, {
           electron: path.join(
@@ -214,7 +214,7 @@ class SessionHubApp {
           {
             label: "New Session",
             accelerator: "CmdOrCtrl+N",
-            click: () => this.newSession(),
+            click: () => void this.newSession(),
           },
           { type: "separator" },
           { role: "close" },
@@ -352,13 +352,13 @@ class SessionHubApp {
     );
 
     // Register API handlers
-    const apiHandlers = require("./ipc/apiHandlers") as {
+    const apiHandlers = require('./ipc/apiHandlers') as {
       registerApiHandlers: () => void;
     };
     apiHandlers.registerApiHandlers();
 
     // Register Supabase handlers
-    const supabaseHandlers = require("./ipc/supabaseHandlers") as {
+    const supabaseHandlers = require('./ipc/supabaseHandlers') as {
       registerSupabaseHandlers: () => void;
     };
     supabaseHandlers.registerSupabaseHandlers();
@@ -405,7 +405,7 @@ class SessionHubApp {
   // }
 
   private showStartupNotification(): void {
-    const { Notification } = require("electron") as { Notification: typeof ElectronNotification };
+    const { Notification } = eval("require('electron')") as { Notification: typeof ElectronNotification };
     if (Notification.isSupported()) {
       const notification = new Notification({
         title: "SessionHub Ready",
