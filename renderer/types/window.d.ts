@@ -83,6 +83,19 @@ declare global {
       ) => Promise<{ success: boolean; stats: unknown[]; error?: string }>;
       onNewSession: (callback: () => void) => void;
       removeAllListeners: (channel: string) => void;
+      // Session Pipeline API
+      executeSession: (request: any) => Promise<any>;
+      importDocuments: (filePaths: string[]) => Promise<any>;
+      importGoogleDocs: (docUrl: string) => Promise<any>;
+      analyzeDocument: (documentMetadata: any) => Promise<any>;
+      analyzeDocumentSet: (documents: any[]) => Promise<any>;
+      getSession: (sessionId: string) => Promise<any>;
+      getUserSessions: (userId: string) => Promise<any>;
+      getSessionMetrics: () => Promise<any>;
+      selectDocuments: () => Promise<any>;
+      getFileInfo: (filePath: string) => Promise<any>;
+      onSessionProgress: (callback: (data: any) => void) => void;
+      removeSessionProgressListener: (callback: (data: any) => void) => void;
     };
     electron: {
       onSessionProgress: (callback: (event: { type: string; data: unknown }) => void,
@@ -174,6 +187,19 @@ declare global {
         projects: unknown[];
         error?: string;
       }>;
+      // Session Pipeline API
+      executeSession: (request: any) => Promise<any>;
+      importDocuments: (filePaths: string[]) => Promise<any>;
+      importGoogleDocs: (docUrl: string) => Promise<any>;
+      analyzeDocument: (documentMetadata: any) => Promise<any>;
+      analyzeDocumentSet: (documents: any[]) => Promise<any>;
+      getSession: (sessionId: string) => Promise<any>;
+      getUserSessions: (userId: string) => Promise<any>;
+      getSessionMetrics: () => Promise<any>;
+      selectDocuments: () => Promise<any>;
+      getFileInfo: (filePath: string) => Promise<any>;
+      onSessionProgress: (callback: (data: any) => void) => void;
+      removeSessionProgressListener: (callback: (data: any) => void) => void;
     };
   }
 }

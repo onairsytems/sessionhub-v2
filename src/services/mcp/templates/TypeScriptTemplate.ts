@@ -72,7 +72,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error('{{name}} MCP server running on stdio');
+// REMOVED: console statement
 }
 
 main().catch(console.error);

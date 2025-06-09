@@ -19,6 +19,8 @@ import { Logger } from '@/src/lib/logging/Logger';
 import { ProtocolValidator } from '@/src/core/protocol/ProtocolValidator';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
 import { PatternRecognitionService } from '@/src/services/intelligence/PatternRecognitionService';
+import { ProjectContextService } from '@/src/services/intelligence/ProjectContextService';
+import { BaseProjectContext } from '@/src/models/ProjectContext';
 import { v4 as uuidv4 } from 'uuid';
 
 export interface UserRequest {
@@ -41,6 +43,7 @@ export class PlanningEngine {
   private readonly validator: ProtocolValidator;
   private readonly claudeApi?: ClaudeAPIClient;
   private readonly patternService: PatternRecognitionService;
+  private readonly contextService: ProjectContextService;
   private readonly useRealApi: boolean;
   private readonly systemPrompt: string;
 
@@ -54,6 +57,7 @@ export class PlanningEngine {
     this.validator = validator;
     this.claudeApi = claudeApi;
     this.patternService = patternService || new PatternRecognitionService();
+    this.contextService = ProjectContextService.getInstance();
     this.useRealApi = !!claudeApi;
     this.systemPrompt = this.buildSystemPrompt();
   }
@@ -103,6 +107,23 @@ The Execution Actor will receive your instructions and implement them perfectly.
     });
 
     try {
+      // Get project context if available
+      let projectContext: BaseProjectContext | null = null;
+      if (request.context?.['projectId']) {
+        projectContext = await this.contextService.getContextForPlanning(request.context['projectId']);
+        if (projectContext) {
+          // Enhance request context with deep project insights
+          request.context = {
+            ...request.context,
+            projectType: projectContext.projectType,
+            language: projectContext.language,
+            framework: projectContext.frameworks[0]?.name,
+            architecturePatterns: projectContext.architecturePatterns,
+            projectSummary: projectContext.summary
+          };
+        }
+      }
+      
       // Get pattern suggestions for the request context
       const patternSuggestions = await this.getPatternSuggestionsForRequest(request);
       
@@ -126,7 +147,8 @@ The Execution Actor will receive your instructions and implement them perfectly.
       
       this.logger.info('PlanningEngine: Instructions generated successfully', {
         instructionId: instructions.metadata.id,
-        patternsApplied: patternSuggestions.length
+        patternsApplied: patternSuggestions.length,
+        contextEnhanced: !!projectContext
       });
       
       return instructions;
@@ -229,8 +251,17 @@ The Execution Actor will receive your instructions and implement them perfectly.
   }
 
   private async analyzeContext(request: UserRequest, patternSuggestions: any[]): Promise<InstructionContext> {
-    // Create context enriched with pattern insights
+    // Create context enriched with pattern insights and project context
     const prerequisites = this.extractPrerequisites(request);
+    
+    // Add project context prerequisites if available
+    if (request.context?.['architecturePatterns']) {
+      request.context['architecturePatterns'].forEach((pattern: any) => {
+        if (pattern.confidence > 0.7) {
+          prerequisites.push(`Architecture: ${pattern.pattern} pattern in use`);
+        }
+      });
+    }
     
     // Add pattern-based prerequisites
     patternSuggestions.forEach(suggestion => {
@@ -247,8 +278,12 @@ The Execution Actor will receive your instructions and implement them perfectly.
       ? `\nRecommended patterns: ${patternSuggestions.slice(0, 3).map(s => s.pattern.description).join(', ')}`
       : '';
     
+    const projectInsights = request.context?.['projectSummary'] 
+      ? `\nProject context: ${request.context['projectSummary']}`
+      : '';
+    
     return {
-      description: `User request: ${request.content}${patternInsights}`,
+      description: `User request: ${request.content}${projectInsights}${patternInsights}`,
       prerequisites,
       relatedSessions: request.context?.['relatedSessions'] || [],
       userRequest: request.content

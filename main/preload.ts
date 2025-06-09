@@ -132,6 +132,20 @@ interface SessionHubAPI {
   // Menu bar
   updateMenuBarStatus: (status: any) => void;
 
+  // Session Pipeline API
+  executeSession: (request: any) => Promise<any>;
+  importDocuments: (filePaths: string[]) => Promise<any>;
+  importGoogleDocs: (docUrl: string) => Promise<any>;
+  analyzeDocument: (documentMetadata: any) => Promise<any>;
+  analyzeDocumentSet: (documents: any[]) => Promise<any>;
+  getSession: (sessionId: string) => Promise<any>;
+  getUserSessions: (userId: string) => Promise<any>;
+  getSessionMetrics: () => Promise<any>;
+  selectDocuments: () => Promise<any>;
+  getFileInfo: (filePath: string) => Promise<any>;
+  onSessionProgress: (callback: (data: any) => void) => void;
+  removeSessionProgressListener: (callback: (data: any) => void) => void;
+
   // Event handlers for navigation and file operations
   onNavigate: (callback: (path: string) => void) => void;
   onOpenProject: (callback: (data: any) => void) => void;
@@ -233,6 +247,24 @@ contextBridge.exposeInMainWorld("sessionhub", {
   updateMenuBarStatus: (status: any) => 
     ipcRenderer.invoke("update-menu-bar-status", status),
 
+  // Session Pipeline API
+  executeSession: (request: any) => ipcRenderer.invoke("session:execute", request),
+  importDocuments: (filePaths: string[]) => ipcRenderer.invoke("document:import", filePaths),
+  importGoogleDocs: (docUrl: string) => ipcRenderer.invoke("document:importGoogleDocs", docUrl),
+  analyzeDocument: (documentMetadata: any) => ipcRenderer.invoke("document:analyze", documentMetadata),
+  analyzeDocumentSet: (documents: any[]) => ipcRenderer.invoke("document:analyzeSet", documents),
+  getSession: (sessionId: string) => ipcRenderer.invoke("session:get", sessionId),
+  getUserSessions: (userId: string) => ipcRenderer.invoke("session:getUserSessions", userId),
+  getSessionMetrics: () => ipcRenderer.invoke("session:getMetrics"),
+  selectDocuments: () => ipcRenderer.invoke("dialog:selectDocuments"),
+  getFileInfo: (filePath: string) => ipcRenderer.invoke("file:getInfo", filePath),
+  onSessionProgress: (callback: (data: any) => void) => {
+    ipcRenderer.on("session:progress", (_event, data) => callback(data));
+  },
+  removeSessionProgressListener: (callback: (data: any) => void) => {
+    ipcRenderer.removeListener("session:progress", callback);
+  },
+
   // Event handlers
   onNavigate: (callback: (path: string) => void) => {
     ipcRenderer.on("navigate", (_event, path) => callback(path));
@@ -304,6 +336,24 @@ contextBridge.exposeInMainWorld("electronAPI", {
     metadata?: Record<string, unknown>;
   }) => ipcRenderer.invoke("create-project", project),
   getProjects: () => ipcRenderer.invoke("get-projects"),
+  
+  // Session Pipeline API (also available via electronAPI)
+  executeSession: (request: any) => ipcRenderer.invoke("session:execute", request),
+  importDocuments: (filePaths: string[]) => ipcRenderer.invoke("document:import", filePaths),
+  importGoogleDocs: (docUrl: string) => ipcRenderer.invoke("document:importGoogleDocs", docUrl),
+  analyzeDocument: (documentMetadata: any) => ipcRenderer.invoke("document:analyze", documentMetadata),
+  analyzeDocumentSet: (documents: any[]) => ipcRenderer.invoke("document:analyzeSet", documents),
+  getSession: (sessionId: string) => ipcRenderer.invoke("session:get", sessionId),
+  getUserSessions: (userId: string) => ipcRenderer.invoke("session:getUserSessions", userId),
+  getSessionMetrics: () => ipcRenderer.invoke("session:getMetrics"),
+  selectDocuments: () => ipcRenderer.invoke("dialog:selectDocuments"),
+  getFileInfo: (filePath: string) => ipcRenderer.invoke("file:getInfo", filePath),
+  onSessionProgress: (callback: (data: any) => void) => {
+    ipcRenderer.on("session:progress", (_event, data) => callback(data));
+  },
+  removeSessionProgressListener: (callback: (data: any) => void) => {
+    ipcRenderer.removeListener("session:progress", callback);
+  },
 });
 
 // Expose electron API for session progress

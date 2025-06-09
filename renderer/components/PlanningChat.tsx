@@ -16,6 +16,10 @@ interface PlanningChatProps {
   sessionId: string;
   sessionName: string;
   onPlanComplete: (plan: string) => void;
+  documentContext?: {
+    documents: any[];
+    analysisAvailable: boolean;
+  };
 }
 
 export function PlanningChat({

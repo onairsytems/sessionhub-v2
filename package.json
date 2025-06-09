@@ -57,7 +57,15 @@
     "deploy:verify": "ts-node scripts/verify-deployment.ts",
     "changelog:generate": "ts-node scripts/generate-changelog.ts",
     "release:beta": "ts-node scripts/release-beta.ts",
-    "release:production": "ts-node scripts/release-production.ts"
+    "release:production": "ts-node scripts/release-production.ts",
+    "build:production": "NODE_ENV=production npm run build:strict && npm run electron:compile",
+    "build:analyze": "ANALYZE=true next build",
+    "test:stress": "ts-node --project tsconfig.node.json tests/stress/production-stress-test.ts",
+    "test:performance": "npm run test:stress -- --performance",
+    "optimize:db": "ts-node --project tsconfig.node.json scripts/optimize-database.ts",
+    "monitor:performance": "ts-node --project tsconfig.node.json scripts/performance-monitor.ts",
+    "profile:memory": "node --expose-gc --inspect scripts/memory-profiler.js",
+    "benchmark": "ts-node --project tsconfig.node.json scripts/run-benchmarks.ts"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
@@ -75,6 +83,9 @@
   },
   "devDependencies": {
     "@jest/globals": "^30.0.0-beta.3",
+    "compression-webpack-plugin": "^11.1.0",
+    "terser-webpack-plugin": "^5.3.10",
+    "webpack-bundle-analyzer": "^4.10.2",
     "@jest/types": "^29.6.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/electron-is-dev": "^0.3.0",

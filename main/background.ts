@@ -18,10 +18,12 @@ import { autoUpdateService } from "./services/AutoUpdateService";
 import { menuBarService } from "./services/mac/MenuBarService";
 import { appLifecycleService } from "./services/AppLifecycleService";
 import { fileAssociationService } from "./services/mac/FileAssociationService";
+import { productionOptimizations } from "../src/config/production-optimizations";
 
 // Import IPC handlers
 import { registerFigmaHandlers } from "./ipc/figmaHandlers";
 import { registerAdminHandlers } from "./ipc/adminHandlers";
+import { registerSessionPipelineHandlers } from "./ipc/sessionPipelineHandlers";
 
 // Configure auto-updater for production
 if (!isDev) {
@@ -87,7 +89,7 @@ class SessionHubApp {
     await this.createMainWindow();
 
     // Initialize SessionHub services
-    this.initializeServices();
+    await this.initializeServices();
 
     // Initialize Mac-specific features
     this.initializeMacFeatures();
@@ -117,8 +119,13 @@ class SessionHubApp {
     }
   }
 
-  private onBeforeQuit(): void {
+  private async onBeforeQuit(): Promise<void> {
     this.isQuitting = true;
+    
+    // Shutdown production optimizations
+    if (!isDev) {
+      await productionOptimizations.shutdown();
+    }
   }
 
   private setSecurityDefaults(): void {
@@ -282,8 +289,13 @@ class SessionHubApp {
     Menu.setApplicationMenu(menu);
   }
 
-  private initializeServices(): void {
+  private async initializeServices(): Promise<void> {
 // REMOVED: console statement
+
+    // Initialize production optimizations
+    if (!isDev) {
+      await productionOptimizations.initialize();
+    }
 
     // Start production monitoring
     void productionMonitor.performHealthChecks();
@@ -365,6 +377,10 @@ class SessionHubApp {
 
     // Energy efficiency handlers
     appLifecycleService.on('on-battery', () => {
+      // Switch to efficiency mode when on battery
+      if (!isDev) {
+        productionOptimizations.optimizeForWorkload('development');
+      }
       // Reduce update check frequency
       autoUpdateService.destroy();
       menuBarService.updateStatus({ syncStatus: 'idle' });
@@ -382,6 +398,9 @@ class SessionHubApp {
 
     // Register Admin handlers
     registerAdminHandlers();
+    
+    // Register Session Pipeline handlers
+    registerSessionPipelineHandlers();
 
     // System health check
     ipcMain.handle("get-system-health", async () => {

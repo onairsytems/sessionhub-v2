@@ -68,21 +68,21 @@ async function collectMetrics(): Promise<QualityMetrics> {
   // 2. ESLint Check
   console.log('🔍 ESLint Analysis...');
   try {
-    execSync('npx eslint . --ext .ts,.tsx,.js,.jsx --format json', { encoding: 'utf-8' });
+    execSync('npm run lint', { encoding: 'utf-8' });
     console.log('✅ ESLint: No violations\n');
   } catch (error: any) {
-    try {
-      const output = JSON.parse(error.stdout || '[]');
-      output.forEach((file: any) => {
-        metrics.eslint.errors += file.errorCount || 0;
-        metrics.eslint.warnings += file.warningCount || 0;
-      });
-      if (metrics.eslint.errors > 0) {
-        metrics.eslint.status = 'fail';
-      }
-    } catch (e) {
+    const output = error.stdout || error.message || '';
+    const errorMatch = output.match(/(\d+)\s+errors?/);
+    const warningMatch = output.match(/(\d+)\s+warnings?/);
+    
+    if (errorMatch) {
+      metrics.eslint.errors = parseInt(errorMatch[1]);
       metrics.eslint.status = 'fail';
     }
+    if (warningMatch) {
+      metrics.eslint.warnings = parseInt(warningMatch[1]);
+    }
+    
     console.log(`❌ ESLint: ${metrics.eslint.errors} errors, ${metrics.eslint.warnings} warnings\n`);
   }
   
