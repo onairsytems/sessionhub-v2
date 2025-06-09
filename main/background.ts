@@ -21,6 +21,7 @@ import { fileAssociationService } from "./services/mac/FileAssociationService";
 
 // Import IPC handlers
 import { registerFigmaHandlers } from "./ipc/figmaHandlers";
+import { registerAdminHandlers } from "./ipc/adminHandlers";
 
 // Configure auto-updater for production
 if (!isDev) {
@@ -378,6 +379,9 @@ class SessionHubApp {
   private setupIpcHandlers(): void {
     // Register Figma handlers
     registerFigmaHandlers();
+
+    // Register Admin handlers
+    registerAdminHandlers();
 
     // System health check
     ipcMain.handle("get-system-health", async () => {

@@ -106,6 +106,7 @@ declare global {
         watchFile: (figmaFileKey: string) => Promise<boolean>;
         getComponentsNeedingUpdate: () => Promise<string[]>;
       };
+      invoke: (channel: string, ...args: any[]) => Promise<any>;
     };
     electronAPI: {
       claude: {

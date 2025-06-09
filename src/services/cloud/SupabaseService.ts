@@ -179,7 +179,7 @@ export class SupabaseService {
   /**
    * Get the Supabase client (ensures initialization)
    */
-  private getClient(): SupabaseClient {
+  public getClient(): SupabaseClient {
     if (!this.client) {
       throw new SupabaseServiceError('Supabase client not initialized. Call initialize() first.');
     }
