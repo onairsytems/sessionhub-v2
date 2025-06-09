@@ -1,0 +1,196 @@
+name: Semantic Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+    - name: Analyze Commits
+      id: analyze
+      run: |
+        echo "🔍 Analyzing commits for version bump..."
+        
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        if [ -z "$LAST_TAG" ]; then
+          echo "No previous tags found. This will be the initial release."
+          COMMITS=$(git log --pretty=format:"%s" --no-merges)
+        else
+          echo "Last tag: $LAST_TAG"
+          COMMITS=$(git log $LAST_TAG..HEAD --pretty=format:"%s" --no-merges)
+        fi
+        
+        # Determine version bump type
+        MAJOR=false
+        MINOR=false
+        PATCH=false
+        
+        while IFS= read -r commit; do
+          if [[ "$commit" =~ ^(BREAKING CHANGE:|feat!:|fix!:) ]]; then
+            MAJOR=true
+          elif [[ "$commit" =~ ^feat(\(.*\))?:|^feature(\(.*\))?: ]]; then
+            MINOR=true
+          elif [[ "$commit" =~ ^(fix|perf|refactor|style|test|build|ci|chore|docs)(\(.*\))?: ]]; then
+            PATCH=true
+          fi
+        done <<< "$COMMITS"
+        
+        if [ "$MAJOR" = true ]; then
+          echo "bump=major" >> $GITHUB_OUTPUT
+        elif [ "$MINOR" = true ]; then
+          echo "bump=minor" >> $GITHUB_OUTPUT
+        elif [ "$PATCH" = true ]; then
+          echo "bump=patch" >> $GITHUB_OUTPUT
+        else
+          echo "bump=none" >> $GITHUB_OUTPUT
+        fi
+        
+    - name: Get Current Version
+      id: current_version
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "current=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Calculate New Version
+      id: new_version
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        CURRENT="${{ steps.current_version.outputs.current }}"
+        BUMP="${{ steps.analyze.outputs.bump }}"
+        
+        # Split version
+        IFS='.' read -ra VERSION_PARTS <<< "$CURRENT"
+        MAJOR=${VERSION_PARTS[0]}
+        MINOR=${VERSION_PARTS[1]}
+        PATCH=${VERSION_PARTS[2]}
+        
+        # Bump version
+        case $BUMP in
+          major)
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+            ;;
+          minor)
+            MINOR=$((MINOR + 1))
+            PATCH=0
+            ;;
+          patch)
+            PATCH=$((PATCH + 1))
+            ;;
+        esac
+        
+        NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+        echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        
+    - name: Update Version
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        NEW_VERSION="${{ steps.new_version.outputs.version }}"
+        echo "📦 Updating version to $NEW_VERSION"
+        
+        # Update package.json
+        npm version $NEW_VERSION --no-git-tag-version
+        
+        # Update package-lock.json
+        npm install --package-lock-only
+        
+    - name: Generate Changelog
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        NEW_VERSION="${{ steps.new_version.outputs.version }}"
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        
+        echo "# Release v$NEW_VERSION" > CHANGELOG_RELEASE.md
+        echo "" >> CHANGELOG_RELEASE.md
+        echo "## What's Changed" >> CHANGELOG_RELEASE.md
+        echo "" >> CHANGELOG_RELEASE.md
+        
+        # Group commits by type
+        if [ -z "$LAST_TAG" ]; then
+          COMMITS=$(git log --pretty=format:"%s|%h|%an" --no-merges)
+        else
+          COMMITS=$(git log $LAST_TAG..HEAD --pretty=format:"%s|%h|%an" --no-merges)
+        fi
+        
+        # Features
+        echo "### 🚀 Features" >> CHANGELOG_RELEASE.md
+        echo "$COMMITS" | grep -E "^feat(\(.*\))?:|^feature(\(.*\))?: " | while IFS='|' read -r msg hash author; do
+          echo "- $msg ($hash) by @$author" >> CHANGELOG_RELEASE.md
+        done || echo "- No new features" >> CHANGELOG_RELEASE.md
+        
+        echo "" >> CHANGELOG_RELEASE.md
+        
+        # Bug Fixes
+        echo "### 🐛 Bug Fixes" >> CHANGELOG_RELEASE.md
+        echo "$COMMITS" | grep -E "^fix(\(.*\))?: " | while IFS='|' read -r msg hash author; do
+          echo "- $msg ($hash) by @$author" >> CHANGELOG_RELEASE.md
+        done || echo "- No bug fixes" >> CHANGELOG_RELEASE.md
+        
+        echo "" >> CHANGELOG_RELEASE.md
+        
+        # Other Changes
+        echo "### 🔧 Other Changes" >> CHANGELOG_RELEASE.md
+        echo "$COMMITS" | grep -E "^(perf|refactor|style|test|build|ci|chore|docs)(\(.*\))?: " | while IFS='|' read -r msg hash author; do
+          echo "- $msg ($hash) by @$author" >> CHANGELOG_RELEASE.md
+        done || echo "- No other changes" >> CHANGELOG_RELEASE.md
+        
+        echo "" >> CHANGELOG_RELEASE.md
+        echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${LAST_TAG}...v${NEW_VERSION}" >> CHANGELOG_RELEASE.md
+        
+    - name: Commit Changes
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        git add package.json package-lock.json
+        git commit -m "chore(release): v${{ steps.new_version.outputs.version }} [skip ci]"
+        
+    - name: Create Tag
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        git tag -a "v${{ steps.new_version.outputs.version }}" -m "Release v${{ steps.new_version.outputs.version }}"
+        
+    - name: Push Changes
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        git push origin main
+        git push origin "v${{ steps.new_version.outputs.version }}"
+        
+    - name: Trigger Release Build
+      if: steps.analyze.outputs.bump != 'none'
+      run: |
+        echo "🚀 Version v${{ steps.new_version.outputs.version }} tagged and pushed"
+        echo "The production-deployment workflow will now trigger automatically"

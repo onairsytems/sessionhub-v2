@@ -1,0 +1,244 @@
+name: Pull Request Automation
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: read
+  statuses: read
+
+jobs:
+  auto-label:
+    name: Auto Label PR
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Label PR by Type
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const { title, body } = context.payload.pull_request;
+          const labels = [];
+          
+          // Determine PR type from title
+          if (title.match(/^feat(\(.*\))?:|^feature(\(.*\))?:/i)) {
+            labels.push('feature');
+          } else if (title.match(/^fix(\(.*\))?:/i)) {
+            labels.push('bug');
+          } else if (title.match(/^docs(\(.*\))?:/i)) {
+            labels.push('documentation');
+          } else if (title.match(/^test(\(.*\))?:/i)) {
+            labels.push('testing');
+          } else if (title.match(/^chore(\(.*\))?:|^ci(\(.*\))?:/i)) {
+            labels.push('maintenance');
+          }
+          
+          // Check for breaking changes
+          if (title.includes('!') || (body && body.includes('BREAKING CHANGE'))) {
+            labels.push('breaking-change');
+          }
+          
+          // Add size labels
+          const { additions, deletions } = context.payload.pull_request;
+          const changes = additions + deletions;
+          
+          if (changes < 10) {
+            labels.push('size/XS');
+          } else if (changes < 50) {
+            labels.push('size/S');
+          } else if (changes < 200) {
+            labels.push('size/M');
+          } else if (changes < 500) {
+            labels.push('size/L');
+          } else {
+            labels.push('size/XL');
+          }
+          
+          if (labels.length > 0) {
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: labels
+            });
+          }
+
+  pr-checks:
+    name: PR Quality Checks
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Check PR Title
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        
+        # Check if title follows conventional commit format
+        if ! echo "$PR_TITLE" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.*\))?: .+"; then
+          echo "❌ PR title does not follow conventional commit format"
+          echo "Expected format: type(scope): description"
+          echo "Example: feat(auth): add login functionality"
+          exit 1
+        fi
+        
+        echo "✅ PR title follows conventional commit format"
+        
+    - name: Check PR Description
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const body = context.payload.pull_request.body;
+          
+          if (!body || body.trim().length < 50) {
+            core.setFailed('PR description is too short. Please provide a detailed description of the changes.');
+          }
+          
+          // Check for required sections
+          const requiredSections = ['## What', '## Why', '## How'];
+          const missingSections = requiredSections.filter(section => !body.includes(section));
+          
+          if (missingSections.length > 0) {
+            core.warning(`PR description is missing sections: ${missingSections.join(', ')}`);
+          }
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v3
+      with:
+        fail-on-severity: high
+        
+  auto-merge-dependabot:
+    name: Auto-merge Dependabot PRs
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.actor == 'dependabot[bot]'
+    
+    steps:
+    - name: Dependabot metadata
+      id: metadata
+      uses: dependabot/fetch-metadata@v1
+      with:
+        github-token: "${{ secrets.GITHUB_TOKEN }}"
+        
+    - name: Auto-merge minor and patch updates
+      if: steps.metadata.outputs.update-type == 'version-update:semver-patch' || steps.metadata.outputs.update-type == 'version-update:semver-minor'
+      run: gh pr merge --auto --merge "$PR_URL"
+      env:
+        PR_URL: ${{ github.event.pull_request.html_url }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  pr-summary:
+    name: Generate PR Summary
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.action == 'opened'
+    
+    steps:
+    - name: Generate Summary Comment
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+          
+          // Generate test command
+          const testCommand = `\`\`\`bash
+          git fetch origin pull/${pr.number}/head:pr-${pr.number}
+          git checkout pr-${pr.number}
+          npm ci
+          npm test
+          \`\`\``;
+          
+          // Create summary comment
+          const comment = `## 🤖 PR Summary
+          
+          **Type**: ${pr.title.split(':')[0]}
+          **Size**: ${pr.additions + pr.deletions} lines changed (+${pr.additions} -${pr.deletions})
+          **Author**: @${pr.user.login}
+          
+          ### 📋 Checklist
+          
+          Before merging, ensure:
+          - [ ] All CI checks are passing
+          - [ ] Code follows project conventions
+          - [ ] Tests have been added/updated
+          - [ ] Documentation has been updated if needed
+          - [ ] No console.log statements in production code
+          - [ ] TypeScript compilation succeeds with no errors
+          
+          ### 🧪 Testing Instructions
+          
+          To test this PR locally:
+          ${testCommand}
+          
+          ### 🔍 Quality Gates Status
+          
+          Waiting for CI checks to complete...
+          `;
+          
+          await github.rest.issues.createComment({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            issue_number: pr.number,
+            body: comment
+          });
+
+  update-pr-status:
+    name: Update PR Status Comment
+    runs-on: ubuntu-latest
+    if: github.event_name == 'check_suite' && github.event.check_suite.conclusion
+    
+    steps:
+    - name: Update Status
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const checkSuite = context.payload.check_suite;
+          const pulls = checkSuite.pull_requests;
+          
+          if (pulls.length === 0) return;
+          
+          for (const pr of pulls) {
+            // Find the bot's comment
+            const comments = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && comment.body.includes('🤖 PR Summary')
+            );
+            
+            if (botComment) {
+              // Update quality gates status
+              const status = checkSuite.conclusion === 'success' ? '✅ All checks passed!' : '❌ Some checks failed';
+              const updatedBody = botComment.body.replace(
+                'Waiting for CI checks to complete...',
+                status
+              );
+              
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: updatedBody
+              });
+            }
+          }

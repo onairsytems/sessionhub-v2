@@ -28,6 +28,7 @@ const EXCLUDE_PATTERNS = [
   '**/.next/**',
   '**/tests/**',
   '**/*.test.{ts,tsx}',
+  '**/templates/**',  // Exclude template files that generate code
   '**/*.spec.{ts,tsx}'
 ];
 

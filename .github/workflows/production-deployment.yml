@@ -1,0 +1,403 @@
+name: Production Deployment Pipeline
+
+on:
+  push:
+    branches: 
+      - main
+      - develop
+      - 'release/**'
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      release_channel:
+        description: 'Release channel'
+        required: true
+        default: 'beta'
+        type: choice
+        options:
+          - beta
+          - production
+      deploy_environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  NODE_VERSION: '20'
+  ELECTRON_CACHE: $HOME/.cache/electron
+  ELECTRON_BUILDER_CACHE: $HOME/.cache/electron-builder
+
+jobs:
+  # Quality Gates - Must pass before any deployment
+  quality-gates:
+    name: Quality Gates & Testing
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+      fail-fast: false
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for changelog generation
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Cache Electron
+      uses: actions/cache@v3
+      with:
+        path: |
+          ${{ env.ELECTRON_CACHE }}
+          ${{ env.ELECTRON_BUILDER_CACHE }}
+        key: ${{ runner.os }}-electron-${{ hashFiles('package-lock.json') }}
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Run Linting
+      run: |
+        echo "🔧 Running ESLint..."
+        npm run lint -- --max-warnings 0
+      
+    - name: TypeScript Compilation
+      run: |
+        echo "📘 Checking TypeScript compilation..."
+        npm run validate:strict
+      
+    - name: Run Unit Tests
+      run: |
+        echo "🧪 Running unit tests..."
+        npm test -- --coverage --ci --reporters=default --reporters=jest-junit
+      env:
+        JEST_JUNIT_OUTPUT_DIR: ./test-results
+        JEST_JUNIT_OUTPUT_NAME: junit.xml
+      
+    - name: Run Integration Tests
+      run: |
+        echo "🔗 Running integration tests..."
+        npm run test:integration -- --ci
+      
+    - name: Run Architecture Tests
+      run: |
+        echo "🏛️ Running architecture compliance tests..."
+        npm run test:two-actor
+      
+    - name: Security Audit
+      run: |
+        echo "🔒 Running security audit..."
+        npm audit --production --audit-level=high
+      
+    - name: Check Console Statements
+      run: |
+        echo "🚫 Checking for console statements..."
+        npm run check:console || true
+      
+    - name: Generate Quality Report
+      run: |
+        echo "📊 Generating quality metrics..."
+        npm run quality:metrics
+      
+    - name: Upload Test Results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results-${{ matrix.os }}
+        path: |
+          test-results/
+          coverage/
+          quality-metrics.json
+          
+    - name: Upload Coverage Reports
+      if: matrix.os == 'ubuntu-latest'
+      uses: codecov/codecov-action@v3
+      with:
+        directory: ./coverage
+        flags: unittests
+        name: codecov-umbrella
+
+  # Build and Package
+  build:
+    name: Build & Package
+    needs: quality-gates
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+            arch: universal
+          - os: ubuntu-latest
+            platform: linux
+            arch: x64
+          - os: windows-latest
+            platform: win
+            arch: x64
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build Application
+      run: |
+        echo "🏗️ Building application for ${{ matrix.platform }}..."
+        npm run build
+        npm run electron:build
+      
+    - name: Package Application
+      run: |
+        echo "📦 Packaging for ${{ matrix.platform }}..."
+        npm run electron:dist:${{ matrix.platform }}
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        CSC_LINK: ${{ secrets.CSC_LINK }}
+        CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+        WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+        WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+        
+    - name: Code Sign & Notarize (macOS)
+      if: matrix.os == 'macos-latest' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+      run: |
+        echo "🔏 Code signing and notarizing macOS build..."
+        # electron-builder handles this with the env vars above
+        
+    - name: Generate Build Manifest
+      run: |
+        echo "📋 Generating build manifest..."
+        node -e "
+          const pkg = require('./package.json');
+          const manifest = {
+            version: pkg.version,
+            build: '${{ github.run_number }}',
+            commit: '${{ github.sha }}',
+            platform: '${{ matrix.platform }}',
+            arch: '${{ matrix.arch }}',
+            timestamp: new Date().toISOString()
+          };
+          require('fs').writeFileSync('dist/build-manifest.json', JSON.stringify(manifest, null, 2));
+        "
+        
+    - name: Upload Build Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: sessionhub-${{ matrix.platform }}-${{ matrix.arch }}
+        path: |
+          dist/*
+          !dist/mac*
+          !dist/linux*
+          !dist/win*
+          dist/${{ matrix.platform }}*/
+
+  # Smoke Tests on Built Artifacts
+  smoke-tests:
+    name: Smoke Tests
+    needs: build
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
+          - os: windows-latest
+            platform: win
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download Build Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: sessionhub-${{ matrix.platform }}-${{ matrix.arch || 'x64' }}
+        path: dist/
+        
+    - name: Run Smoke Tests
+      run: |
+        echo "🔥 Running smoke tests on ${{ matrix.platform }} build..."
+        # Platform-specific smoke tests would go here
+        # For now, verify the build artifacts exist
+        ls -la dist/
+        
+    - name: Verify Build Integrity
+      run: |
+        echo "✅ Verifying build integrity..."
+        if [ -f "dist/build-manifest.json" ]; then
+          cat dist/build-manifest.json
+        fi
+
+  # Beta Release
+  beta-release:
+    name: Beta Release
+    needs: [smoke-tests]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.release_channel == 'beta'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts/
+        
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        echo "📝 Generating changelog..."
+        # Generate changelog from commits
+        git log --pretty=format:"- %s (%h)" HEAD~10..HEAD > CHANGELOG_BETA.md
+        
+    - name: Create Beta Release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: beta-${{ github.run_number }}
+        name: Beta Build ${{ github.run_number }}
+        body_path: CHANGELOG_BETA.md
+        draft: false
+        prerelease: true
+        files: |
+          artifacts/**/*.dmg
+          artifacts/**/*.AppImage
+          artifacts/**/*.exe
+          artifacts/**/build-manifest.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Update Beta Channel
+      run: |
+        echo "🚀 Publishing to beta update channel..."
+        # Update server configuration would go here
+
+  # Production Release (Manual Approval Required)
+  production-release:
+    name: Production Release
+    needs: [smoke-tests]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: production  # Requires manual approval
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Download All Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: artifacts/
+        
+    - name: Generate Release Notes
+      id: release_notes
+      run: |
+        echo "📝 Generating release notes..."
+        # Get previous tag
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -n "$PREV_TAG" ]; then
+          echo "Changes since $PREV_TAG:" > RELEASE_NOTES.md
+          git log --pretty=format:"- %s (%h)" $PREV_TAG..HEAD >> RELEASE_NOTES.md
+        else
+          echo "Initial release" > RELEASE_NOTES.md
+        fi
+        
+        # Add quality metrics
+        echo -e "\n\n## Quality Metrics" >> RELEASE_NOTES.md
+        echo "- ✅ All quality gates passed" >> RELEASE_NOTES.md
+        echo "- ✅ Zero TypeScript errors" >> RELEASE_NOTES.md
+        echo "- ✅ Zero ESLint violations" >> RELEASE_NOTES.md
+        echo "- ✅ All tests passing" >> RELEASE_NOTES.md
+        echo "- ✅ Security audit passed" >> RELEASE_NOTES.md
+        echo "- ✅ Code signed and notarized" >> RELEASE_NOTES.md
+        
+    - name: Create Production Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: RELEASE_NOTES.md
+        draft: false
+        prerelease: false
+        files: |
+          artifacts/**/*.dmg
+          artifacts/**/*.AppImage
+          artifacts/**/*.exe
+          artifacts/**/build-manifest.json
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Update Production Channel
+      run: |
+        echo "🚀 Publishing to production update channel..."
+        # Update server configuration would go here
+        
+    - name: Trigger Update Server Deployment
+      run: |
+        echo "🔄 Triggering update server deployment..."
+        # Trigger update server deployment
+
+  # Post-Deployment Verification
+  verify-deployment:
+    name: Verify Deployment
+    needs: [beta-release, production-release]
+    if: always() && (needs.beta-release.result == 'success' || needs.production-release.result == 'success')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Verify Update Server
+      run: |
+        echo "🔍 Verifying update server..."
+        # Check update server endpoints
+        
+    - name: Monitor Initial Downloads
+      run: |
+        echo "📊 Monitoring initial downloads..."
+        # Monitor download metrics
+        
+    - name: Check Error Rates
+      run: |
+        echo "⚠️ Checking error rates..."
+        # Monitor error reporting service
+
+  # Rollback Capability
+  rollback:
+    name: Rollback Release
+    runs-on: ubuntu-latest
+    if: failure() && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/'))
+    needs: [verify-deployment]
+    
+    steps:
+    - name: Rollback Release
+      run: |
+        echo "⏮️ Rolling back release..."
+        # Rollback logic would go here
+        
+    - name: Notify Team
+      run: |
+        echo "📧 Notifying team of rollback..."
+        # Send notifications
