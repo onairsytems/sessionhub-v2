@@ -3,7 +3,7 @@
 > Living document - Claude Code updates after each session
 > Synced via Google Drive Desktop
 > Version controlled in docs/foundation-versions/
-> Current Version: 1.11
+> Current Version: 1.12
 
 ## 🚨 CRITICAL: Foundation.md Save Requirements
 
@@ -12,6 +12,23 @@
 2. **Google Drive Local Sync**: `/Users/jonathanhoggard/Library/CloudStorage/GoogleDrive-jonathan@onairsystems.org/My Drive/SessionHub/FOUNDATION.md`
 
 **NEVER save to only one location!** The Google Drive local sync folder is the primary reference location.
+
+## 🛡️ ACTOR ROLE ENFORCEMENT: System-Level Protection Active
+
+**SessionHub now enforces actor boundaries at runtime!** The system will:
+- 🚨 **BLOCK** Planning Actors from generating code
+- 🚨 **BLOCK** Execution Actors from making strategic decisions
+- 🚨 **ALERT** users when requesting inappropriate actions from actors
+- ✅ **VALIDATE** all instructions before execution
+- ✅ **DISPLAY** visual indicators showing which actor is active
+
+**Enforcement Documentation:**
+- `docs/two-actor-cheatsheet.md` - Quick reference and violation detection
+- `docs/ACTOR-VIOLATIONS.md` - Examples of correct/incorrect patterns
+- `docs/PLANNING-ACTOR-RULES.md` - Comprehensive planning guidelines
+- `docs/architecture/TWO-ACTOR-ARCHITECTURE.md` - Full architectural blueprint
+
+**Remember:** The Two-Actor Model is not just methodology - it's enforced by the system itself!
 
 ## ⚠️ CRITICAL: The Two-Actor Model - Session Execution Methodology
 
@@ -2749,8 +2766,79 @@ Based on comprehensive codebase analysis (2025-06-08), significant gaps exist be
     - Best practices for developers
     - Future enhancement roadmap
 
+### ✅ Session 1.12: Actor Role Enforcement Controls & System Integration (COMPLETED)
+- **Date**: 2025-06-09
+- **Foundation Version**: v1.12
+- **Status**: ACTOR ENFORCEMENT - ✅ COMPLETE
+- **Completion Time**: 2025-06-09 04:00:00 UTC
+- **Key Achievements**:
+  - **Comprehensive Documentation Created**:
+    - two-actor-cheatsheet.md: Quick reference and violation detection patterns
+    - ACTOR-VIOLATIONS.md: Examples of correct/incorrect patterns
+    - PLANNING-ACTOR-RULES.md: Comprehensive planning guidelines
+    - All documents saved to both repository and Google Drive
+  - **System-Level Enforcement Built**:
+    - Planning Actor system prompt enforces role boundaries
+    - Enhanced ProtocolValidator with comprehensive code pattern detection
+    - ActorViolationService for real-time violation monitoring
+    - ActorCoordinator validates instructions before execution
+  - **Alert System Implementation**:
+    - ActorViolationAlert component for user notifications
+    - Severity levels: CRITICAL, HIGH, MEDIUM, LOW
+    - Auto-dismiss for low severity violations
+    - Links to documentation for guidance
+  - **Visual Actor Indicators**:
+    - ActorStatusIndicator shows active actor (Planning/Execution/Idle)
+    - Real-time status updates with animations
+    - Violation count display
+    - ActorStatusBadge for compact display
+  - **Runtime Validation**:
+    - Pre-execution instruction validation
+    - Code pattern detection in planning instructions
+    - Strategic planning detection in execution code
+    - Comprehensive error messages with suggestions
+
+### 🎯 Future Sessions (Reordered)
+
+**Session 1.13: Admin Mode Architecture & Separation**
+- Separate admin operations from user operations
+- Create admin-only endpoints and authentication
+- Implement audit logging for admin actions
+- Build admin dashboard for system monitoring
+
+**Session 1.14: End-to-End Session Execution Flow**
+- Complete integration of all session components
+- Automated session lifecycle management
+- Progress tracking and reporting
+- Error recovery and rollback mechanisms
+
+**Session 1.15: Project Context Management**
+- Intelligent context gathering from projects
+- Language and framework detection
+- Dependency analysis and recommendations
+- Custom context profiles per project type
+
+**Session 1.16: Generated Code Validation Framework**
+- Syntax validation for all supported languages
+- Security scanning of generated code
+- Performance analysis and optimization
+- Best practices enforcement
+
+**Session 1.17: Integration Testing & Validation**
+- Comprehensive end-to-end testing
+- Multi-language project testing
+- Performance benchmarking
+- User acceptance testing preparation
+
+**Session 2.0: Production Release Preparation**
+- Final optimization and performance tuning
+- Security audit and penetration testing
+- Documentation finalization
+- Marketing and launch preparation
+- App Store submission process
+
 ---
-**Foundation Version**: v1.7
-**Last Session**: 1.7 - Production Deployment Pipeline (COMPLETED)
-**Next Session**: 1.8 - Multi-Language MCP Generator
-**Architecture**: TWO-ACTOR MODEL ✅ | MAC APP COMPLETE ✅ | ZERO-ERROR ENFORCEMENT ✅ | REAL API INTEGRATION ✅ | CI/CD PIPELINE ✅
+**Foundation Version**: v1.12
+**Last Session**: 1.12 - Actor Role Enforcement Controls & System Integration (COMPLETED)
+**Next Session**: 1.13 - Admin Mode Architecture & Separation
+**Architecture**: TWO-ACTOR MODEL ✅ | ENFORCED AT RUNTIME ✅ | MAC APP COMPLETE ✅ | ZERO-ERROR ENFORCEMENT ✅ | REAL API INTEGRATION ✅ | CI/CD PIPELINE ✅

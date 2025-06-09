@@ -10,23 +10,69 @@ import { Logger } from '@/src/lib/logging/Logger';
 export class ProtocolValidator {
   private readonly logger: Logger;
   
-  // Patterns that indicate code in instructions
+  // Enhanced patterns that indicate code in instructions
   private readonly codePatterns = [
+    // Function definitions
     /function\s+\w+\s*\(/,
+    /const\s+\w+\s*=\s*\([^)]*\)\s*=>/,
+    /\w+\s*:\s*\([^)]*\)\s*=>/,
+    
+    // Class definitions
     /class\s+\w+/,
+    /interface\s+\w+/,
+    /type\s+\w+\s*=/,
+    /enum\s+\w+/,
+    
+    // Variable declarations
     /const\s+\w+\s*=/,
     /let\s+\w+\s*=/,
     /var\s+\w+\s*=/,
+    
+    // Import/Export statements
     /import\s+.*from/,
+    /export\s+(default\s+)?/,
     /require\s*\(/,
-    /<[^>]+>/,  // HTML/JSX
-    /```[a-z]*\n[\s\S]*?```/, // Code blocks
+    /module\.exports/,
+    
+    // Control structures
     /\bif\s*\(/,
     /\bfor\s*\(/,
-    /\bwhile\s*\(/
+    /\bwhile\s*\(/,
+    /\bswitch\s*\(/,
+    /\btry\s*{/,
+    /\bcatch\s*\(/,
+    
+    // Code blocks
+    /```[a-z]*\n[\s\S]*?```/,
+    /~~~[a-z]*\n[\s\S]*?~~~/, 
+    
+    // HTML/JSX
+    /<[^>]+>/,
+    /className=/,
+    /onClick=/,
+    
+    // Shell commands
+    /cat\s*>\s*[\w\/.]+\s*<<\s*['"]?EOF/,
+    /npm\s+(install|i)\s+/,
+    /yarn\s+add\s+/,
+    /pip\s+install\s+/,
+    /git\s+(clone|init|add|commit)/,
+    /mkdir\s+-?p?\s+/,
+    
+    // API/Database queries
+    /SELECT\s+.*FROM/i,
+    /INSERT\s+INTO/i,
+    /UPDATE\s+.*SET/i,
+    /DELETE\s+FROM/i,
+    
+    // Method calls and operators
+    /\.\w+\(/,
+    /=>/,
+    /\+=|-=|\*=|\/=/,
+    /===|!==|==|!=/
   ];
 
-  // Patterns that indicate strategic planning in execution
+  // Enhanced patterns that indicate strategic planning in execution
   private readonly planningPatterns = [
     /should\s+we/i,
     /what\s+if/i,
@@ -34,8 +80,24 @@ export class ProtocolValidator {
     /alternative\s+approach/i,
     /better\s+to/i,
     /recommend/i,
-    /suggest/i
+    /suggest/i,
+    /might\s+want\s+to/i,
+    /could\s+try/i,
+    /let's\s+think/i,
+    /analyze\s+the/i,
+    /evaluate\s+whether/i,
+    /pros\s+and\s+cons/i,
+    /trade-?offs?/i,
+    /which\s+is\s+better/i
   ];
+  
+  // Violation tracking for reporting
+  private violationHistory: Array<{
+    timestamp: Date;
+    type: 'code-in-planning' | 'planning-in-execution';
+    pattern: string;
+    context: string;
+  }> = [];
 
   constructor(logger: Logger) {
     this.logger = logger;
@@ -71,17 +133,78 @@ export class ProtocolValidator {
    * Ensure instructions contain no executable code
    */
   ensureNoCode(instructions: InstructionProtocol): void {
-    const instructionText = JSON.stringify(instructions);
+    const instructionText = JSON.stringify(instructions, null, 2);
+    const violations: Array<{pattern: RegExp, match: string, location: string}> = [];
     
+    // Check each pattern
     for (const pattern of this.codePatterns) {
-      if (pattern.test(instructionText)) {
-        const error = new Error(
-          `Planning Actor attempted to include code in instructions. Pattern detected: ${pattern.toString()}`
-        );
-        this.logger.error('ProtocolValidator: Code detected in instructions', error);
-        throw error;
+      const matches = instructionText.match(pattern);
+      if (matches) {
+        // Find approximate location in the instruction
+        const location = this.findViolationLocation(instructions, matches[0]);
+        violations.push({
+          pattern,
+          match: matches[0],
+          location
+        });
       }
     }
+    
+    if (violations.length > 0) {
+      // Log violation to history
+      violations.forEach(v => {
+        this.violationHistory.push({
+          timestamp: new Date(),
+          type: 'code-in-planning',
+          pattern: v.pattern.toString(),
+          context: v.match
+        });
+      });
+      
+      // Create detailed error message
+      const violationDetails = violations.map(v => 
+        `  - Pattern: ${v.pattern.toString()}\n    Found: "${v.match}"\n    Location: ${v.location}`
+      ).join('\n');
+      
+      const error = new Error(
+        `🚨 ACTOR BOUNDARY VIOLATION: Planning Actor attempted to include code in instructions.\n\n` +
+        `Violations detected:\n${violationDetails}\n\n` +
+        `See docs/ACTOR-VIOLATIONS.md for examples of correct patterns.`
+      );
+      
+      this.logger.error('ProtocolValidator: Code detected in planning instructions', error, {
+        violations: violations.length,
+        history: this.violationHistory.length
+      });
+      
+      throw error;
+    }
+  }
+  
+  /**
+   * Find approximate location of violation in instruction structure
+   */
+  private findViolationLocation(instructions: InstructionProtocol, match: string): string {
+    const text = JSON.stringify(instructions, null, 2);
+    const lines = text.split('\n');
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (line && line.includes(match)) {
+        // Try to identify the field
+        for (let j = i; j >= 0; j--) {
+          const prevLine = lines[j];
+          if (prevLine) {
+            const fieldMatch = prevLine.match(/"(\w+)":/);
+            if (fieldMatch && fieldMatch[1]) {
+              return `${fieldMatch[1]} field (line ~${i + 1})`;
+            }
+          }
+        }
+        return `line ~${i + 1}`;
+      }
+    }
+    return 'unknown location';
   }
 
   /**
@@ -219,5 +342,19 @@ export class ProtocolValidator {
     // This would validate that execution results meet the success criteria
     // For now, we'll do basic validation
     return result && result.status !== 'failure';
+  }
+  
+  /**
+   * Get violation history for reporting
+   */
+  getViolationHistory(): typeof this.violationHistory {
+    return [...this.violationHistory];
+  }
+  
+  /**
+   * Clear violation history
+   */
+  clearViolationHistory(): void {
+    this.violationHistory = [];
   }
 }

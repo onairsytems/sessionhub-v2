@@ -117,8 +117,8 @@ export class ActorCoordinator {
       );
       const planningDuration = Date.now() - planningStart;
 
-      // Validate instructions
-      this.protocolValidator.validate(instructions);
+      // Comprehensive instruction validation before execution
+      this.validateInstructionsBeforeExecution(instructions, correlationId);
       
       // Phase 2: Execution
       const executionStart = Date.now();
@@ -160,6 +160,104 @@ export class ActorCoordinator {
       throw error;
     } finally {
       this.activeOperations.delete(session.id);
+    }
+  }
+
+  /**
+   * Comprehensive validation of instructions before passing to execution
+   */
+  private validateInstructionsBeforeExecution(
+    instructions: InstructionProtocol,
+    correlationId: string
+  ): void {
+    this.logger.info('Validating instructions before execution', {
+      instructionId: instructions.metadata.id,
+      correlationId
+    });
+
+    try {
+      // 1. Validate structure and metadata
+      this.protocolValidator.validate(instructions);
+      
+      // 2. Ensure no code patterns in instructions
+      this.protocolValidator.ensureNoCode(instructions);
+      
+      // 3. Validate actor metadata
+      if (instructions.metadata.actor !== 'planning') {
+        throw new Error(
+          `Invalid actor type in instructions: ${instructions.metadata.actor}. ` +
+          `Only planning actor can create instructions.`
+        );
+      }
+      
+      // 4. Check for implementation details in requirements
+      instructions.requirements.forEach(req => {
+        const forbidden = [
+          'npm install', 'yarn add', 'pip install',
+          'import ', 'require(', 'export ',
+          'function ', 'class ', 'const ',
+          '.tsx', '.ts', '.js', '.jsx'
+        ];
+        
+        const reqLower = req.description.toLowerCase();
+        forbidden.forEach(pattern => {
+          if (reqLower.includes(pattern)) {
+            throw new Error(
+              `🚨 ACTOR BOUNDARY VIOLATION: Planning instructions contain implementation details.\n` +
+              `Found: "${pattern}" in requirement: "${req.description}"\n` +
+              `Planning actors must describe WHAT, not HOW. See docs/PLANNING-ACTOR-RULES.md`
+            );
+          }
+        });
+      });
+      
+      // 5. Validate deliverables don't specify exact paths
+      instructions.deliverables.forEach(deliverable => {
+        if (deliverable.path && deliverable.path.includes('/')) {
+          this.logger.warn('Deliverable contains specific path', {
+            path: deliverable.path,
+            instructionId: instructions.metadata.id
+          });
+        }
+      });
+      
+      // 6. Log successful validation
+      this.auditLogger.logEvent({
+        actor: { type: 'system', id: 'coordinator' },
+        operation: {
+          type: 'instruction.validate',
+          description: 'Validated instructions before execution',
+          input: { instructionId: instructions.metadata.id },
+          output: { valid: true }
+        },
+        result: { status: 'success', duration: 0 },
+        metadata: { correlationId }
+      });
+      
+      this.logger.info('Instructions validated successfully', {
+        instructionId: instructions.metadata.id,
+        correlationId
+      });
+      
+    } catch (error: any) {
+      // Log validation failure
+      this.auditLogger.logEvent({
+        actor: { type: 'system', id: 'coordinator' },
+        operation: {
+          type: 'instruction.validate',
+          description: 'Failed to validate instructions',
+          input: { instructionId: instructions.metadata.id },
+          output: { error: error.message }
+        },
+        result: { status: 'failure', duration: 0 },
+        metadata: { correlationId }
+      });
+      
+      // Re-throw with enhanced error message
+      throw new Error(
+        `Instruction validation failed: ${error.message}\n` +
+        `Instructions cannot be passed to execution actor until all violations are resolved.`
+      );
     }
   }
 

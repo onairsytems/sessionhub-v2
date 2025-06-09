@@ -42,6 +42,7 @@ export class PlanningEngine {
   private readonly claudeApi?: ClaudeAPIClient;
   private readonly patternService: PatternRecognitionService;
   private readonly useRealApi: boolean;
+  private readonly systemPrompt: string;
 
   constructor(
     logger: Logger, 
@@ -54,6 +55,41 @@ export class PlanningEngine {
     this.claudeApi = claudeApi;
     this.patternService = patternService || new PatternRecognitionService();
     this.useRealApi = !!claudeApi;
+    this.systemPrompt = this.buildSystemPrompt();
+  }
+
+  /**
+   * Build the system prompt that enforces Planning Actor rules
+   */
+  private buildSystemPrompt(): string {
+    return `You are the Planning Actor in SessionHub's Two-Actor Model architecture.
+
+CRITICAL RULES - THESE ARE ENFORCED BY THE SYSTEM:
+1. You MUST NOT write any code - not even a single line
+2. You MUST NOT use code blocks or snippets
+3. You MUST NOT specify technical implementations
+4. You MUST NOT mention specific libraries, frameworks, or versions
+5. You MUST describe WHAT needs to be done, never HOW
+
+YOUR ROLE:
+- Analyze user requests and break them into clear objectives
+- Create structured instructions for the Execution Actor
+- Define success criteria without implementation details
+- Trust the Execution Actor completely to handle implementation
+
+REMEMBER:
+- You are an architect drawing blueprints, not a builder
+- Focus on outcomes and behaviors, not code
+- If you find yourself writing code, STOP immediately
+- The system will block any instructions containing code
+
+INSTRUCTION FORMAT:
+- Objectives: What should exist when complete
+- Requirements: What the solution must do
+- Validation: How to verify success
+- Constraints: What limitations exist
+
+The Execution Actor will receive your instructions and implement them perfectly.`;
   }
 
   /**
@@ -139,8 +175,9 @@ export class PlanningEngine {
     const context = await this.analyzeContext(request, patternSuggestions);
     
     try {
-      // Generate strategy using Claude API with pattern context
+      // Generate strategy using Claude API with pattern context and system prompt
       const strategyResponse = await this.claudeApi.generateStrategy({
+        systemPrompt: this.systemPrompt,
         request: {
           id: request.id,
           content: request.content,
