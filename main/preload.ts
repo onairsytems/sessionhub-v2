@@ -315,6 +315,43 @@ contextBridge.exposeInMainWorld("electron", {
     });
   },
   getSessionStatus: (sessionId: string) => ipcRenderer.invoke("get-session-status", sessionId),
+  
+  // Figma MCP Integration
+  figma: {
+    checkConnection: () => ipcRenderer.invoke("figma:check-connection"),
+    getApiKey: () => ipcRenderer.invoke("figma:get-api-key"),
+    initialize: (apiKey: string) => ipcRenderer.invoke("figma:initialize", apiKey),
+    
+    // SessionHub UI Update
+    startSessionHubUIUpdate: (figmaFileKey: string) => 
+      ipcRenderer.invoke("figma:start-sessionhub-ui-update", figmaFileKey),
+    getUpdateStatus: (sessionId: string) => 
+      ipcRenderer.invoke("figma:get-update-status", sessionId),
+    previewUIChanges: (figmaFileKey: string) => 
+      ipcRenderer.invoke("figma:preview-ui-changes", figmaFileKey),
+    createUIPullRequest: (figmaFileKey: string, description: string) => 
+      ipcRenderer.invoke("figma:create-ui-pull-request", figmaFileKey, description),
+    applyUIChanges: (sessionId: string) => 
+      ipcRenderer.invoke("figma:apply-ui-changes", sessionId),
+    
+    // Project UI Enhancement
+    registerProject: (project: any) => 
+      ipcRenderer.invoke("figma:register-project", project),
+    startProjectUIUpdate: (projectId: string, figmaFileKey: string) => 
+      ipcRenderer.invoke("figma:start-project-ui-update", projectId, figmaFileKey),
+    getEnhancementStatus: (sessionId: string) => 
+      ipcRenderer.invoke("figma:get-enhancement-status", sessionId),
+    mergeUIChanges: (sessionId: string) => 
+      ipcRenderer.invoke("figma:merge-ui-changes", sessionId),
+    getFigmaEnabledProjects: () => 
+      ipcRenderer.invoke("figma:get-figma-enabled-projects"),
+    
+    // Watch and Components
+    watchFile: (figmaFileKey: string) => 
+      ipcRenderer.invoke("figma:watch-file", figmaFileKey),
+    getComponentsNeedingUpdate: () => 
+      ipcRenderer.invoke("figma:get-components-needing-update"),
+  },
 });
 
 // Export empty object to make this a module

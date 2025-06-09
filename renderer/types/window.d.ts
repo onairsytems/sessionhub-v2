@@ -89,6 +89,23 @@ declare global {
       ) => Promise<() => void>;
       getSessionStatus: (sessionId: string,
       ) => Promise<{ state: string } | null>;
+      figma: {
+        checkConnection: () => Promise<boolean>;
+        getApiKey: () => Promise<string>;
+        initialize: (apiKey: string) => Promise<boolean>;
+        startSessionHubUIUpdate: (figmaFileKey: string) => Promise<string>;
+        getUpdateStatus: (sessionId: string) => Promise<any>;
+        previewUIChanges: (figmaFileKey: string) => Promise<any>;
+        createUIPullRequest: (figmaFileKey: string, description: string) => Promise<string>;
+        applyUIChanges: (sessionId: string) => Promise<void>;
+        registerProject: (project: any) => Promise<boolean>;
+        startProjectUIUpdate: (projectId: string, figmaFileKey: string) => Promise<string>;
+        getEnhancementStatus: (sessionId: string) => Promise<any>;
+        mergeUIChanges: (sessionId: string) => Promise<void>;
+        getFigmaEnabledProjects: () => Promise<any[]>;
+        watchFile: (figmaFileKey: string) => Promise<boolean>;
+        getComponentsNeedingUpdate: () => Promise<string[]>;
+      };
     };
     electronAPI: {
       claude: {

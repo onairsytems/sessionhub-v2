@@ -19,6 +19,9 @@ import { menuBarService } from "./services/mac/MenuBarService";
 import { appLifecycleService } from "./services/AppLifecycleService";
 import { fileAssociationService } from "./services/mac/FileAssociationService";
 
+// Import IPC handlers
+import { registerFigmaHandlers } from "./ipc/figmaHandlers";
+
 // Configure auto-updater for production
 if (!isDev) {
   serve({ directory: "app" });
@@ -373,6 +376,9 @@ class SessionHubApp {
   }
 
   private setupIpcHandlers(): void {
+    // Register Figma handlers
+    registerFigmaHandlers();
+
     // System health check
     ipcMain.handle("get-system-health", async () => {
       return await productionMonitor.performHealthChecks();
