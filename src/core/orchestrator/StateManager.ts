@@ -103,6 +103,15 @@ export class StateManager {
   }
 
   /**
+   * Set system state (used for recovery/restore operations)
+   */
+  setState(state: SystemState): void {
+    this.currentState = JSON.parse(JSON.stringify(state));
+    this.currentState.lastUpdated = new Date().toISOString();
+    this.saveStateImmediate();
+  }
+
+  /**
    * Update sessions in state
    */
   updateSessions(sessions: Record<string, Session>): void {
@@ -166,6 +175,15 @@ export class StateManager {
       this.logger.error('Failed to save state', error as Error);
       throw error;
     }
+  }
+
+  /**
+   * Save state immediately (synchronous wrapper)
+   */
+  saveStateImmediate(): void {
+    this.saveState().catch(error => {
+      this.logger.error('Failed to save state immediately', error as Error);
+    });
   }
 
   /**

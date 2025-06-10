@@ -233,6 +233,17 @@ export class SystemOrchestrator {
   }
 
   /**
+   * Process a user request (alias for submitRequest)
+   */
+  async processRequest(
+    userId: string,
+    requestContent: string,
+    context?: Record<string, any>
+  ): Promise<string> {
+    return this.submitRequest(userId, requestContent, context);
+  }
+
+  /**
    * Get session status
    */
   async getSessionStatus(sessionId: string): Promise<Session | null> {
