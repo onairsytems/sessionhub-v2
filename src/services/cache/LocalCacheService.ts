@@ -1166,9 +1166,9 @@ export class LocalCacheService {
 
       // Import new data
       for (const table of tables) {
-        if (data.tables[table]) {
-          const columns = Object.keys(data.tables[table][0] || {}).join(', ');
-          const placeholders = Object.keys(data.tables[table][0] || {}).map(() => '?').join(', ');
+        if (data.tables[table] && data.tables[table].length > 0) {
+          const columns = Object.keys(data.tables[table][0]).join(', ');
+          const placeholders = Object.keys(data.tables[table][0]).map(() => '?').join(', ');
           const insert = this.db!.prepare(`INSERT INTO ${table} (${columns}) VALUES (${placeholders})`);
           
           for (const row of data.tables[table]) {

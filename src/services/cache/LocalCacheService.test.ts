@@ -171,11 +171,11 @@ describe('LocalCacheService', () => {
   describe('Offline Queue', () => {
     it('should track pending syncs', async () => {
       // Create project offline
-      // const project = await cacheService.createProject({ // Commented out for future use
-      //   name: 'Offline Test',
-      //   path: '/offline/test',
-      //   type: 'other'
-      // });
+      await cacheService.createProject({
+        name: 'Offline Test',
+        path: '/offline/test',
+        type: 'other'
+      });
 
       const queueSize = await cacheService.getOfflineQueueSize();
       expect(queueSize).toBeGreaterThan(0);
