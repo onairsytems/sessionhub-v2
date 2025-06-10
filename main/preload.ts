@@ -290,6 +290,24 @@ contextBridge.exposeInMainWorld("sessionhub", {
   onDownloadProgress: (callback: (progress: any) => void) => {
     ipcRenderer.on("download-progress", (_event, progress) => callback(progress));
   },
+
+  // Context Management API
+  analyzeProjectContext: (projectId: string, projectPath: string) => 
+    ipcRenderer.invoke("analyze-project-context", projectId, projectPath),
+  getProjectContext: (projectId: string) => 
+    ipcRenderer.invoke("get-project-context", projectId),
+  searchSimilarContexts: (projectId: string, limit?: number) => 
+    ipcRenderer.invoke("search-similar-contexts", projectId, limit),
+  getPatterns: (projectId?: string) => 
+    ipcRenderer.invoke("get-patterns", projectId),
+  learnPattern: (pattern: {
+    type: string;
+    pattern: string;
+    example: string;
+    projectId: string;
+  }) => ipcRenderer.invoke("learn-pattern", pattern),
+  refreshContextCache: (projectId: string) => 
+    ipcRenderer.invoke("refresh-context-cache", projectId),
 } as SessionHubAPI);
 
 // Also expose electronAPI for compatibility
@@ -353,6 +371,48 @@ contextBridge.exposeInMainWorld("electronAPI", {
   },
   removeSessionProgressListener: (callback: (data: any) => void) => {
     ipcRenderer.removeListener("session:progress", callback);
+  },
+
+  // MCP Server API
+  mcp: {
+    // Server management
+    startServer: () => ipcRenderer.invoke("mcp:server:start"),
+    stopServer: () => ipcRenderer.invoke("mcp:server:stop"),
+    getServerStatus: () => ipcRenderer.invoke("mcp:server:status"),
+    
+    // Integration management
+    listIntegrations: () => ipcRenderer.invoke("mcp:integrations:list"),
+    registerIntegration: (integration: any) => 
+      ipcRenderer.invoke("mcp:integrations:register", integration),
+    unregisterIntegration: (id: string) => 
+      ipcRenderer.invoke("mcp:integrations:unregister", id),
+    
+    // Tool execution
+    executeTool: (integrationId: string, tool: string, params: any) => 
+      ipcRenderer.invoke("mcp:tool:execute", integrationId, tool, params),
+    testTool: (integrationId: string, tool: string, params: any) => 
+      ipcRenderer.invoke("mcp:tool:test", integrationId, tool, params),
+    
+    // Marketplace
+    marketplace: {
+      search: (options: any) => ipcRenderer.invoke("mcp:marketplace:search", options),
+      getFeatured: () => ipcRenderer.invoke("mcp:marketplace:getFeatured"),
+      getTrending: () => ipcRenderer.invoke("mcp:marketplace:getTrending"),
+      getIntegration: (id: string) => ipcRenderer.invoke("mcp:marketplace:getIntegration", id),
+      install: (integrationId: string) => ipcRenderer.invoke("mcp:marketplace:install", integrationId),
+      getCategories: () => ipcRenderer.invoke("mcp:marketplace:getCategories"),
+    },
+    
+    // Events
+    onIntegrationRegistered: (callback: (integration: any) => void) => {
+      ipcRenderer.on("mcp:event:integration:registered", (_event, integration) => callback(integration));
+    },
+    onIntegrationUnregistered: (callback: (integration: any) => void) => {
+      ipcRenderer.on("mcp:event:integration:unregistered", (_event, integration) => callback(integration));
+    },
+    onError: (callback: (error: any) => void) => {
+      ipcRenderer.on("mcp:event:error", (_event, error) => callback(error));
+    },
   },
 });
 

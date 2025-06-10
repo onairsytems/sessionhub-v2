@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import { SupabaseService } from "../../src/services/cloud/SupabaseService";
 import { Logger } from "../../src/lib/logging/Logger";
+import { SessionStatus } from "../../src/models/Session";
 
 const logger = new Logger("SupabaseHandlers");
 const supabaseService = new SupabaseService(logger);
@@ -127,7 +128,24 @@ export function registerSupabaseHandlers(): void {
       },
     ) => {
       try {
-        const result = await supabaseService.createSession(session);
+        // Convert to Session format
+        const sessionData = {
+          name: session.title || 'Untitled Session',
+          description: session.description || '',
+          status: 'pending' as const,
+          userId: session.user_id,
+          projectId: session.project_id,
+          request: {
+            id: '',  // Will be set by service
+            sessionId: '', // Will be set by service
+            userId: session.user_id,
+            content: session.description || '',
+            context: {},
+            timestamp: new Date().toISOString()
+          },
+          metadata: session.metadata || {}
+        };
+        const result = await supabaseService.createSession(sessionData);
         return { success: true, session: result };
       } catch (error: unknown) {
         logger.error("Failed to create session", error as Error);
@@ -144,13 +162,18 @@ export function registerSupabaseHandlers(): void {
     "update-session-status",
     async (_event, sessionId: string, status: string) => {
       try {
-        const validStatus = status as
-          | "completed"
-          | "active"
-          | "paused"
-          | "cancelled";
+        // Map the status to SessionStatus
+        const statusMap: Record<string, SessionStatus> = {
+          'active': 'executing',
+          'completed': 'completed',
+          'paused': 'pending',
+          'cancelled': 'cancelled'
+        };
+        
+        const sessionStatus = statusMap[status] || 'pending';
+        
         const result = await supabaseService.updateSession(sessionId, {
-          status: validStatus,
+          status: sessionStatus,
         });
         return { success: true, session: result };
       } catch (error: unknown) {

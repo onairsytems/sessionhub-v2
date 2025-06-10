@@ -16,6 +16,17 @@ interface PowerMetrics {
   efficiency: number; // Performance per watt
 }
 
+interface ChipCapabilities {
+  name: string;
+  cpuCores: number;
+  performanceCores: number;
+  efficiencyCores: number;
+  gpuCores: number;
+  neuralEngineCores: number;
+  maxPowerWatts: number;
+  supportedFeatures: string[];
+}
+
 interface PerformanceProfile {
   name: string;
   description: string;
@@ -35,6 +46,51 @@ export class AppleSiliconOptimization extends EventEmitter {
   private powerMetrics: PowerMetrics | null = null;
   private currentProfile: PerformanceProfile;
   private monitoringInterval: NodeJS.Timeout | null = null;
+  private chipCapabilities: ChipCapabilities | null = null;
+  
+  // Known chip configurations
+  private readonly chipConfigs: Record<string, ChipCapabilities> = {
+    'M4 Pro': {
+      name: 'Apple M4 Pro',
+      cpuCores: 12,
+      performanceCores: 8,
+      efficiencyCores: 4,
+      gpuCores: 16,
+      neuralEngineCores: 16,
+      maxPowerWatts: 40,
+      supportedFeatures: ['ProMotion', 'RayTracing', 'AV1Decode', 'ProRes', 'NeuralEngine3']
+    },
+    'M3 Pro': {
+      name: 'Apple M3 Pro',
+      cpuCores: 12,
+      performanceCores: 6,
+      efficiencyCores: 6,
+      gpuCores: 18,
+      neuralEngineCores: 16,
+      maxPowerWatts: 30,
+      supportedFeatures: ['ProMotion', 'RayTracing', 'AV1Decode', 'ProRes', 'NeuralEngine2']
+    },
+    'M2 Pro': {
+      name: 'Apple M2 Pro',
+      cpuCores: 12,
+      performanceCores: 8,
+      efficiencyCores: 4,
+      gpuCores: 19,
+      neuralEngineCores: 16,
+      maxPowerWatts: 30,
+      supportedFeatures: ['ProMotion', 'ProRes', 'NeuralEngine2']
+    },
+    'M1 Pro': {
+      name: 'Apple M1 Pro',
+      cpuCores: 10,
+      performanceCores: 8,
+      efficiencyCores: 2,
+      gpuCores: 16,
+      neuralEngineCores: 16,
+      maxPowerWatts: 30,
+      supportedFeatures: ['ProMotion', 'ProRes', 'NeuralEngine1']
+    }
+  };
 
   private readonly profiles: Record<string, PerformanceProfile> = {
     efficiency: {
@@ -88,20 +144,59 @@ export class AppleSiliconOptimization extends EventEmitter {
   private async detectAppleSilicon(): Promise<void> {
     try {
       const { stdout } = await execAsync('sysctl -n machdep.cpu.brand_string');
-      this.isM1OrNewer = /Apple M\d/.test(stdout);
+      const chipString = stdout.trim();
+      this.isM1OrNewer = /Apple M\d/.test(chipString);
       
       if (this.isM1OrNewer) {
+        // Detect specific chip model
+        const chipMatch = chipString.match(/Apple (M\d+\s*(?:Pro|Max|Ultra)?)/);
+        if (chipMatch) {
+          const chipModel = chipMatch[1]!;
+          this.chipCapabilities = this.chipConfigs[chipModel as keyof typeof this.chipConfigs] || this.detectChipCapabilities();
+        }
+        
         // Check for ProMotion display
         const { stdout: displayInfo } = await execAsync('system_profiler SPDisplaysDataType');
         this.hasProMotion = /ProMotion|120Hz|Variable Refresh Rate/.test(displayInfo);
         
+        // Get actual core counts
+        const { stdout: cpuInfo } = await execAsync('sysctl -n hw.ncpu');
+        const { stdout: perfCores } = await execAsync('sysctl -n hw.perflevel0.logicalcpu').catch(() => ({ stdout: '0' }));
+        const { stdout: effCores } = await execAsync('sysctl -n hw.perflevel1.logicalcpu').catch(() => ({ stdout: '0' }));
+        
         this.emit('silicon-detected', {
-          chip: stdout.trim(),
+          chip: chipString,
+          model: this.chipCapabilities?.name || chipString,
           hasProMotion: this.hasProMotion,
+          capabilities: this.chipCapabilities,
+          actualCores: {
+            total: parseInt(cpuInfo),
+            performance: parseInt(perfCores),
+            efficiency: parseInt(effCores)
+          }
         });
       }
     } catch (error) {
       this.emit('detection-error', error);
+    }
+  }
+  
+  private detectChipCapabilities(): ChipCapabilities {
+    // Fallback detection based on system info
+    try {
+      const cpuCount = os.cpus().length;
+      return {
+        name: 'Apple Silicon',
+        cpuCores: cpuCount,
+        performanceCores: Math.floor(cpuCount * 0.67), // Estimate
+        efficiencyCores: Math.ceil(cpuCount * 0.33),
+        gpuCores: 10, // Conservative estimate
+        neuralEngineCores: 16, // Standard for M-series
+        maxPowerWatts: 30,
+        supportedFeatures: ['NeuralEngine']
+      };
+    } catch {
+      return this.chipConfigs['M1 Pro']!; // Safe fallback
     }
   }
 
@@ -137,10 +232,20 @@ export class AppleSiliconOptimization extends EventEmitter {
       const qosFlag = qosMap[profile.settings.qosClass] || '-t 3';
       await execAsync(`taskpolicy ${qosFlag} -p ${pid}`);
 
-      // Configure core affinity for efficiency cores
-      if (this.isM1OrNewer && profile.settings.preferEfficiencyCores) {
-        // M1/M2 chips have efficiency cores on CPU 4-7 (varies by model)
-        await execAsync(`taskpolicy -c background -p ${pid}`);
+      // Configure core affinity based on chip capabilities
+      if (this.isM1OrNewer && this.chipCapabilities) {
+        if (profile.settings.preferEfficiencyCores) {
+          // Use efficiency cores
+          await execAsync(`taskpolicy -c background -p ${pid}`);
+        } else if (profile.name === 'performance') {
+          // For M4 Pro, leverage all 8 performance cores
+          if (this.chipCapabilities.name === 'Apple M4 Pro') {
+            // Prefer performance cores for compute-intensive tasks
+            await execAsync(`taskpolicy -c default -p ${pid}`);
+            // Set thread pool size to match performance cores
+            process.env['UV_THREADPOOL_SIZE'] = String(this.chipCapabilities.performanceCores);
+          }
+        }
       }
 
       // Configure Metal acceleration (affects Electron rendering)
@@ -197,11 +302,14 @@ export class AppleSiliconOptimization extends EventEmitter {
       const { stdout: thermalState } = await execAsync('sysctl -n machdep.xcpm.cpu_thermal_level').catch(() => ({ stdout: '0' }));
       const { stdout: cpuFreq } = await execAsync('sysctl -n hw.cpufrequency_max').catch(() => ({ stdout: '0' }));
       
-      // Simulate power readings (in production, use actual powermetrics)
+      // Simulate power readings based on chip capabilities
       const cpuUsage = os.loadavg()[0]! / os.cpus().length;
-      const estimatedCpuPower = cpuUsage * 15; // Rough estimate: 15W max for M1
-      const estimatedGpuPower = 2; // Base GPU power
-      const estimatedAnePower = 0.5; // Base ANE power
+      const maxPower = this.chipCapabilities?.maxPowerWatts || 30;
+      const estimatedCpuPower = cpuUsage * (maxPower * 0.6); // CPU typically uses 60% of total
+      const estimatedGpuPower = this.chipCapabilities?.gpuCores ? 
+        (this.chipCapabilities.gpuCores / 10) * 1.5 : 2; // Scale with GPU cores
+      const estimatedAnePower = this.chipCapabilities?.neuralEngineCores ? 
+        (this.chipCapabilities.neuralEngineCores / 16) * 0.8 : 0.5; // Scale with ANE cores
       
       const totalPower = estimatedCpuPower + estimatedGpuPower + estimatedAnePower;
       const efficiency = (1 / totalPower) * 100; // Performance per watt metric
@@ -242,17 +350,28 @@ export class AppleSiliconOptimization extends EventEmitter {
 
   // Neural Engine acceleration for AI tasks
   async enableNeuralEngineAcceleration(): Promise<boolean> {
-    if (!this.isM1OrNewer) return false;
+    if (!this.isM1OrNewer || !this.chipCapabilities) return false;
 
     try {
       // Check for Core ML availability
       const { stdout } = await execAsync('system_profiler SPiBridgeDataType | grep "Neural Engine"');
       const hasNeuralEngine = stdout.includes('Neural Engine');
       
-      if (hasNeuralEngine) {
+      if (hasNeuralEngine && this.chipCapabilities.neuralEngineCores > 0) {
         process.env['ENABLE_NEURAL_ENGINE'] = '1';
         process.env['COREML_DELEGATE_ENABLE'] = '1';
-        this.emit('neural-engine-enabled');
+        process.env['ANE_CORE_COUNT'] = String(this.chipCapabilities.neuralEngineCores);
+        
+        // M4 Pro specific optimizations
+        if (this.chipCapabilities.name === 'Apple M4 Pro') {
+          process.env['ANE_ENABLE_ADVANCED'] = '1';
+          process.env['ANE_BATCH_SIZE'] = '16'; // Leverage 16-core ANE
+        }
+        
+        this.emit('neural-engine-enabled', {
+          cores: this.chipCapabilities.neuralEngineCores,
+          features: this.chipCapabilities.supportedFeatures
+        });
         return true;
       }
       
@@ -268,27 +387,80 @@ export class AppleSiliconOptimization extends EventEmitter {
     const optimizations: Record<typeof workloadType, () => Promise<void>> = {
       'cpu-intensive': async () => {
         await this.setPerformanceProfile('performance');
-        process.env['UV_THREADPOOL_SIZE'] = String(os.cpus().length);
+        // M4 Pro: Use all 12 cores (8 performance + 4 efficiency)
+        if (this.chipCapabilities?.name === 'Apple M4 Pro') {
+          process.env['UV_THREADPOOL_SIZE'] = String(this.chipCapabilities.cpuCores);
+          process.env['NODE_OPTIONS'] = '--max-old-space-size=8192'; // 8GB for heavy workloads
+        } else {
+          process.env['UV_THREADPOOL_SIZE'] = String(os.cpus().length);
+        }
       },
       'memory-intensive': async () => {
         await this.optimizeUnifiedMemory();
         await this.setPerformanceProfile('balanced');
+        // M4 Pro has excellent memory bandwidth
+        if (this.chipCapabilities?.name === 'Apple M4 Pro') {
+          process.env['NODE_OPTIONS'] = '--max-old-space-size=12288'; // 12GB
+        }
       },
       'io-intensive': async () => {
         await this.setPerformanceProfile('balanced');
-        process.env['UV_THREADPOOL_SIZE'] = String(Math.max(4, os.cpus().length / 2));
+        // Use efficiency cores for I/O bound tasks
+        const threadCount = this.chipCapabilities ? 
+          Math.max(4, this.chipCapabilities.efficiencyCores + 2) : 
+          Math.max(4, os.cpus().length / 2);
+        process.env['UV_THREADPOOL_SIZE'] = String(threadCount);
       },
       'ai-compute': async () => {
         await this.enableNeuralEngineAcceleration();
         await this.setPerformanceProfile('performance');
+        // M4 Pro: Leverage 16-core Neural Engine + 16-core GPU
+        if (this.chipCapabilities?.name === 'Apple M4 Pro') {
+          process.env['METAL_DEVICE_WRAPPER'] = '1';
+          process.env['GPU_CORE_COUNT'] = String(this.chipCapabilities.gpuCores);
+        }
       },
     };
 
     const optimization = optimizations[workloadType];
     if (optimization) {
       await optimization();
-      this.emit('workload-optimized', { type: workloadType });
+      this.emit('workload-optimized', { 
+        type: workloadType,
+        chip: this.chipCapabilities?.name,
+        optimizations: this.getWorkloadOptimizations(workloadType)
+      });
     }
+  }
+  
+  private getWorkloadOptimizations(workloadType: string): string[] {
+    const optimizations: string[] = [];
+    
+    if (this.chipCapabilities?.name === 'Apple M4 Pro') {
+      switch (workloadType) {
+        case 'cpu-intensive':
+          optimizations.push('Using all 12 CPU cores');
+          optimizations.push('8 performance cores prioritized');
+          optimizations.push('8GB heap allocation');
+          break;
+        case 'memory-intensive':
+          optimizations.push('Unified memory optimization');
+          optimizations.push('12GB heap allocation');
+          optimizations.push('Memory compression enabled');
+          break;
+        case 'io-intensive':
+          optimizations.push('Efficiency cores for I/O');
+          optimizations.push('Optimized thread pool');
+          break;
+        case 'ai-compute':
+          optimizations.push('16-core Neural Engine active');
+          optimizations.push('16-core GPU acceleration');
+          optimizations.push('Metal Performance Shaders');
+          break;
+      }
+    }
+    
+    return optimizations;
   }
 
   // Get optimization recommendations
@@ -298,6 +470,19 @@ export class AppleSiliconOptimization extends EventEmitter {
     if (!this.isM1OrNewer) {
       recommendations.push('Upgrade to Apple Silicon for better performance and efficiency');
       return recommendations;
+    }
+    
+    // M4 Pro specific recommendations
+    if (this.chipCapabilities?.name === 'Apple M4 Pro') {
+      recommendations.push('M4 Pro detected - Optimal configuration for SessionHub');
+      recommendations.push('Leverage 16-core Neural Engine for AI operations');
+      recommendations.push('Use performance profile for maximum speed');
+      
+      // Check if we're using all cores
+      const threadPoolSize = parseInt(process.env['UV_THREADPOOL_SIZE'] || '4');
+      if (threadPoolSize < this.chipCapabilities.cpuCores) {
+        recommendations.push(`Increase thread pool size to ${this.chipCapabilities.cpuCores} to use all cores`);
+      }
     }
 
     if (this.powerMetrics) {
@@ -384,11 +569,17 @@ export class AppleSiliconOptimization extends EventEmitter {
     return {
       benchmarks,
       system: {
-        chip: this.isM1OrNewer ? 'Apple Silicon' : 'Intel',
+        chip: this.chipCapabilities?.name || (this.isM1OrNewer ? 'Apple Silicon' : 'Intel'),
+        model: this.chipCapabilities ? `${this.chipCapabilities.cpuCores}-core CPU, ${this.chipCapabilities.gpuCores}-core GPU` : 'Unknown',
         cores: os.cpus().length,
+        performanceCores: this.chipCapabilities?.performanceCores || 0,
+        efficiencyCores: this.chipCapabilities?.efficiencyCores || 0,
+        gpuCores: this.chipCapabilities?.gpuCores || 0,
+        neuralEngineCores: this.chipCapabilities?.neuralEngineCores || 0,
         memory: Math.round(os.totalmem() / 1024 / 1024 / 1024) + 'GB',
       },
       profile: this.currentProfile.name,
+      capabilities: this.chipCapabilities?.supportedFeatures || [],
     };
   }
 

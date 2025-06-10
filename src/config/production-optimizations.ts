@@ -43,17 +43,17 @@ export const PRODUCTION_OPTIMIZATIONS: ProductionOptimizationConfig = {
     memoryManagement: {
       enableAggressiveGC: true,
       cacheTimeout: 300000, // 5 minutes
-      heapSizeLimit: 4096, // 4GB
+      heapSizeLimit: 8192, // 8GB - optimized for M4 Pro
     },
     documentAnalysis: {
-      maxConcurrentAnalyses: 4,
-      chunkSize: 65536, // 64KB
+      maxConcurrentAnalyses: 8, // Leverage M4 Pro's 8 performance cores
+      chunkSize: 131072, // 128KB - larger chunks for M4 Pro's memory bandwidth
       enableParallelProcessing: true,
     },
     database: {
-      cacheSize: 50000, // ~400MB
+      cacheSize: 100000, // ~800MB - M4 Pro has excellent memory
       walMode: true,
-      mmapSize: 1073741824, // 1GB
+      mmapSize: 2147483648, // 2GB - leverage unified memory
     },
   },
   monitoring: {

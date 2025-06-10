@@ -40,10 +40,20 @@ async function exampleUsage() {
 
     // Step 5: Create a session
     const newSession = await supabaseService.createSession({
-      user_id: user!.id,
-      project_id: project.id!,
-      title: 'Initial setup and configuration',
-      description: 'Setting up the project structure and dependencies'
+      userId: user!.id,
+      projectId: project.id!,
+      name: 'Initial setup and configuration',
+      description: 'Setting up the project structure and dependencies',
+      status: 'pending' as const,
+      request: {
+        id: `req_${Date.now()}`,
+        sessionId: `session_${Date.now()}`,
+        userId: user!.id,
+        content: 'Initial setup and configuration',
+        context: {},
+        timestamp: new Date().toISOString()
+      },
+      metadata: {}
     });
     logger.info('Session created', { sessionId: newSession.id });
 

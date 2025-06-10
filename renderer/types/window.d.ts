@@ -1,5 +1,15 @@
 declare global {
   interface Window {
+    api: {
+      context: {
+        getProjectContext: () => Promise<any>;
+        getAvailablePatterns: () => Promise<any[]>;
+        analyzeProjectContext: () => Promise<any>;
+      };
+      getPatterns: () => Promise<any[]>;
+      getProjectContext: () => Promise<any>;
+      analyzeProjectContext: () => Promise<any>;
+    };
     sessionhub: {
       getSystemHealth: () => Promise<{
         status: string;
@@ -200,6 +210,56 @@ declare global {
       getFileInfo: (filePath: string) => Promise<any>;
       onSessionProgress: (callback: (data: any) => void) => void;
       removeSessionProgressListener: (callback: (data: any) => void) => void;
+      // MCP Server API
+      mcp: {
+        startServer: () => Promise<void>;
+        stopServer: () => Promise<void>;
+        getServerStatus: () => Promise<{
+          running: boolean;
+          port?: number;
+          integrations?: number;
+          uptime?: number;
+        }>;
+        listIntegrations: () => Promise<any[]>;
+        registerIntegration: (integration: any) => Promise<string>;
+        unregisterIntegration: (id: string) => Promise<void>;
+        executeTool: (integrationId: string, tool: string, params: any) => Promise<any>;
+        testTool: (integrationId: string, tool: string, params: any) => Promise<any>;
+        marketplace: {
+          search: (options: any) => Promise<any[]>;
+          getFeatured: () => Promise<any[]>;
+          getTrending: () => Promise<any[]>;
+          getIntegration: (id: string) => Promise<any>;
+          install: (integrationId: string) => Promise<string>;
+          getCategories: () => Promise<any[]>;
+        };
+        onIntegrationRegistered: (callback: (integration: any) => void) => void;
+        onIntegrationUnregistered: (callback: (integration: any) => void) => void;
+        onError: (callback: (error: any) => void) => void;
+      };
+      // Actor Status API
+      getRealAPIStatus: () => Promise<{
+        operational: boolean;
+        message: string;
+        lastCheck: string;
+      }>;
+      getViolations: () => Promise<Array<{
+        id: string;
+        type: string;
+        severity: 'critical' | 'high' | 'medium' | 'low';
+        message: string;
+        timestamp: string;
+        actor: string;
+      }>>;
+      getActivities: () => Promise<Array<{
+        id: string;
+        actor: string;
+        action: string;
+        timestamp: string;
+        details?: any;
+      }>>;
+      openAPIConfiguration: () => Promise<void>;
+      clearViolations: () => Promise<{ success: boolean }>;
     };
   }
 }

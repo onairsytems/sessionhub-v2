@@ -16,6 +16,7 @@ import { DocumentAnalysisService, DocumentAnalysis, DocumentMetadata } from '../
 // import { PatternRecognitionService } from '../intelligence/PatternRecognitionService';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
 import { InstructionProtocol } from '@/src/models/Instruction';
+import { EventEmitter } from 'events';
 
 export interface SessionDocument {
   source: { type: 'file' | 'url' | 'google-docs'; path: string };
@@ -47,7 +48,7 @@ export interface EnhancedSession extends Session {
   progress?: SessionProgress[];
 }
 
-export class SessionExecutionPipeline {
+export class SessionExecutionPipeline extends EventEmitter {
   private readonly logger: Logger;
   // private readonly _auditLogger: AuditLogger;
   private readonly protocolValidator: ProtocolValidator;
@@ -66,6 +67,7 @@ export class SessionExecutionPipeline {
     auditLogger: AuditLogger,
     claudeClient: ClaudeAPIClient
   ) {
+    super();
     this.logger = logger;
     // this._auditLogger = auditLogger;
     

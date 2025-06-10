@@ -4,7 +4,8 @@
  */
 
 import { ICloudSyncService, SyncStatus, SyncResult, SyncConflict } from '@/src/interfaces/ICloudSyncService';
-import { SupabaseService, Project, Session } from './SupabaseService';
+import { SupabaseService, Project } from './SupabaseService';
+import { Session } from '../../models/Session';
 import { Logger } from '@/src/lib/logging/Logger';
 
 export class SupabaseCloudSync implements ICloudSyncService {
@@ -243,7 +244,7 @@ export class SupabaseCloudSync implements ICloudSyncService {
           try {
             await this.supabaseService.createSession({
               ...localSession,
-              user_id: userId
+              userId: userId
             });
             result.uploaded++;
           } catch (error) {
@@ -508,13 +509,13 @@ export class SupabaseCloudSync implements ICloudSyncService {
   }
 
   private mergeSessions(local: Session, remote: Session): Session {
-    const localTime = new Date(local.updated_at || 0).getTime();
-    const remoteTime = new Date(remote.updated_at || 0).getTime();
+    const localTime = new Date(local.updatedAt || 0).getTime();
+    const remoteTime = new Date(remote.updatedAt || 0).getTime();
     
     return {
       ...local,
       ...remote,
-      updated_at: localTime > remoteTime ? local.updated_at : remote.updated_at,
+      updatedAt: localTime > remoteTime ? local.updatedAt : remote.updatedAt,
       metadata: {
         ...remote.metadata,
         ...local.metadata,

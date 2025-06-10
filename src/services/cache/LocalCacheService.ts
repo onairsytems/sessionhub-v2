@@ -11,6 +11,7 @@ import {
   Project,
   SupabaseService 
 } from '@/src/services/cloud/SupabaseService';
+import { Session } from '@/src/models/Session';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -74,6 +75,7 @@ export class LocalCacheService {
   private cacheHits = 0;
   private cacheMisses = 0;
   private readonly defaultCachePath: string;
+  private readonly defaultTTL: number = 3600; // 1 hour default TTL
 
   // Default configuration
   private static readonly DEFAULT_CONFIG: Required<CacheConfig> = {
@@ -747,6 +749,175 @@ export class LocalCacheService {
     return cached.map((row: any) => this.deserializeProject(row));
   }
 
+  /**
+   * Get a session (cache-first with optional refresh)
+   */
+  async getSession(id: string, forceRefresh = false): Promise<Session | null> {
+    if (!this.db) throw new Error('Cache not initialized');
+
+    if (!forceRefresh) {
+      // Check cache first
+      const getStmt = this.db.prepare('SELECT * FROM sessions WHERE id = ?');
+      const cached = getStmt.get(id);
+      
+      if (cached && typeof cached === 'object' && 'cached_at' in cached && this.isCacheValid((cached as any).cached_at, (cached as any).ttl || this.defaultTTL)) {
+        return this.deserializeSession(cached);
+      }
+    }
+
+    // Refresh from Supabase if possible
+    if (this.supabaseService && this.supabaseService.isServiceOnline()) {
+      try {
+        const session = await this.supabaseService.getSession(id);
+        if (session) {
+          await this.upsertSession(session);
+          return session;
+        }
+      } catch (error: any) {
+        this.logger.warn('Failed to fetch session from Supabase', error as Error);
+      }
+    }
+
+    // Fall back to stale cache if exists
+    const getStmt = this.db.prepare('SELECT * FROM sessions WHERE id = ?');
+    const cached = getStmt.get(id);
+    return cached ? this.deserializeSession(cached) : null;
+  }
+
+  /**
+   * Upsert a session
+   */
+  async upsertSession(session: Session): Promise<void> {
+    if (!this.db) throw new Error('Cache not initialized');
+
+    const upsertStmt = this.db.prepare(`
+      INSERT OR REPLACE INTO sessions (
+        id, user_id, project_id, status, created_at, updated_at, 
+        metadata, title, description, total_duration, cached_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    // Store complete session data in metadata
+    const fullMetadata = {
+      ...session.metadata,
+      request: session.request,
+      instructions: session.instructions,
+      result: session.result,
+      error: session.error
+    };
+
+    upsertStmt.run(
+      session.id,
+      session.userId,
+      session.projectId,
+      session.status,
+      session.createdAt,
+      session.updatedAt,
+      JSON.stringify(fullMetadata),
+      session.name,
+      session.description,
+      session.metadata.totalDuration?.toString(),
+      new Date().toISOString()
+    );
+
+    // Track for sync
+    this.trackSync(session.id, 'sessions', 'update', 1);
+  }
+
+  /**
+   * Create a session
+   */
+  async createSession(session: Omit<Session, 'id' | 'createdAt' | 'updatedAt'>): Promise<Session> {
+    if (!this.db) throw new Error('Cache not initialized');
+
+    const id = this.generateId();
+    const now = new Date().toISOString();
+    const newSession: Session = {
+      ...session,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    // Cache locally first
+    await this.upsertSession(newSession);
+
+    // Track for sync
+    this.trackSync(id, 'sessions', 'create', 1);
+
+    // Try to sync immediately if online
+    if (this.supabaseService && this.supabaseService.isServiceOnline()) {
+      try {
+        const remoteSession = await this.supabaseService.upsertSession(newSession);
+        if (remoteSession.id && remoteSession.id !== id) {
+          // Update local cache with remote ID if different
+          const update = this.db.prepare('UPDATE sessions SET id = ? WHERE id = ?');
+          update.run(remoteSession.id, id);
+          this.updateSyncStatus(remoteSession.id, 'sessions', 'synced');
+          return remoteSession;
+        }
+        this.updateSyncStatus(id, 'sessions', 'synced');
+        return remoteSession;
+      } catch (error: any) {
+        this.logger.warn('Failed to sync session creation', error as Error);
+        this.updateSyncStatus(id, 'sessions', 'error', (error as Error).message);
+      }
+    }
+
+    return newSession;
+  }
+
+  /**
+   * Delete a session
+   */
+  async deleteSession(id: string): Promise<void> {
+    if (!this.db) throw new Error('Cache not initialized');
+
+    // Track for sync before deleting
+    this.trackSync(id, 'sessions', 'delete', 0);
+
+    // Delete from cache
+    const deleteStmt = this.db.prepare('DELETE FROM sessions WHERE id = ?');
+    deleteStmt.run(id);
+
+    // Try to sync immediately if online
+    if (this.supabaseService && this.supabaseService.isServiceOnline()) {
+      try {
+        await this.supabaseService.deleteSession(id);
+        this.updateSyncStatus(id, 'sessions', 'synced');
+      } catch (error: any) {
+        this.logger.warn('Failed to sync session deletion', error as Error);
+        this.updateSyncStatus(id, 'sessions', 'error', (error as Error).message);
+      }
+    }
+  }
+
+  /**
+   * Get user sessions
+   */
+  async getUserSessions(userId: string): Promise<Session[]> {
+    if (!this.db) throw new Error('Cache not initialized');
+
+    // Always try to refresh from Supabase if online
+    if (this.supabaseService && this.supabaseService.isServiceOnline()) {
+      try {
+        const sessions = await this.supabaseService.getUserSessions(userId);
+        // Cache all sessions
+        for (const session of sessions) {
+          await this.upsertSession(session);
+        }
+        return sessions;
+      } catch (error: any) {
+        this.logger.warn('Failed to fetch user sessions from Supabase', error as Error);
+      }
+    }
+
+    // Fall back to cache
+    const getAll = this.db.prepare('SELECT * FROM sessions WHERE user_id = ? ORDER BY created_at DESC');
+    const cached = getAll.all(userId);
+    return cached.map((row: any) => this.deserializeSession(row));
+  }
+
   // Similar implementations for Sessions, Instructions, ExecutionResults, and Patterns...
   // (The pattern is the same: cache locally, track syncs, sync when online)
 
@@ -846,9 +1017,25 @@ export class LocalCacheService {
   /**
    * Sync a session record
    */
-  private async syncSession(_sync: SyncStatus): Promise<void> {
-    // Similar implementation to syncProject
-    // ... implementation details ...
+  private async syncSession(sync: SyncStatus): Promise<void> {
+    if (!this.db || !this.supabaseService) return;
+
+    switch (sync.operation) {
+      case 'create':
+      case 'update':
+        const getSession = this.db.prepare('SELECT * FROM sessions WHERE id = ?');
+        const session = getSession.get(sync.id);
+        if (session) {
+          const sessionData = this.deserializeSession(session);
+          await this.supabaseService.upsertSession(sessionData);
+        }
+        break;
+      case 'delete':
+        await this.supabaseService.deleteSession(sync.id);
+        break;
+    }
+
+    this.updateSyncStatus(sync.id, sync.table_name, 'synced');
   }
 
   /**
@@ -1009,6 +1196,16 @@ export class LocalCacheService {
   // Utility methods
 
   /**
+   * Check if cached data is still valid
+   */
+  private isCacheValid(cachedAt: string, ttl: number): boolean {
+    const cachedTime = new Date(cachedAt).getTime();
+    const now = Date.now();
+    const ttlMs = ttl * 1000; // Convert seconds to milliseconds
+    return (now - cachedTime) < ttlMs;
+  }
+
+  /**
    * Generate a UUID
    */
   private generateId(): string {
@@ -1020,8 +1217,40 @@ export class LocalCacheService {
   }
 
   /**
-   * Deserialize a project from cache
+   * Deserialize a session from cache
    */
+  private deserializeSession(row: any): Session {
+    const metadata = JSON.parse(row.metadata || '{}');
+    const { request, instructions, result, error, ...sessionMetadata } = metadata;
+
+    return {
+      id: row.id,
+      name: row.title || 'Untitled Session',
+      description: row.description || '',
+      status: row.status || 'pending',
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+      completedAt: row.status === 'completed' ? row.updated_at : undefined,
+      userId: row.user_id,
+      projectId: row.project_id,
+      request: request || {
+        id: row.id,
+        sessionId: row.id,
+        userId: row.user_id,
+        content: row.description || '',
+        context: {},
+        timestamp: row.created_at
+      },
+      instructions: instructions,
+      result: result,
+      error: error,
+      metadata: {
+        ...sessionMetadata,
+        totalDuration: row.total_duration ? Number(row.total_duration) : undefined
+      }
+    };
+  }
+
   private deserializeProject(row: any): Project {
     return {
       id: row.id,

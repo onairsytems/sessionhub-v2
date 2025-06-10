@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Logger } from '@/src/lib/logging/Logger';
+import { Logger } from '../../lib/logging/Logger';
 import {
   Framework,
   Library,
@@ -9,7 +9,7 @@ import {
   BuildTool,
   LanguageStats,
   ProjectStructure
-} from '@/src/models/ProjectContext';
+} from '../../models/ProjectContext';
 
 export class MetadataExtractor {
   private logger = new Logger('MetadataExtractor');

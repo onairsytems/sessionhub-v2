@@ -19,11 +19,16 @@ import { menuBarService } from "./services/mac/MenuBarService";
 import { appLifecycleService } from "./services/AppLifecycleService";
 import { fileAssociationService } from "./services/mac/FileAssociationService";
 import { productionOptimizations } from "../src/config/production-optimizations";
+import { EmergencyRecoverySystem } from "../src/services/pipeline/EmergencyRecoverySystem";
 
 // Import IPC handlers
 import { registerFigmaHandlers } from "./ipc/figmaHandlers";
 import { registerAdminHandlers } from "./ipc/adminHandlers";
 import { registerSessionPipelineHandlers } from "./ipc/sessionPipelineHandlers";
+import { registerContextHandlers } from "./ipc/contextHandlers";
+import { registerSessionHandlers } from "./ipc/sessionHandlers";
+import { registerPipelineHandlers } from "./ipc/pipelineHandlers";
+import { registerMCPServerHandlers } from "./ipc/mcpServerHandlers";
 
 // Configure auto-updater for production
 if (!isDev) {
@@ -76,6 +81,14 @@ class SessionHubApp {
   private async onReady(): Promise<void> {
 // REMOVED: console statement
 
+    // Check for recovery needs before anything else
+    const recovery = EmergencyRecoverySystem.getInstance();
+    const recoverySuccess = await recovery.checkAndRecover();
+    if (!recoverySuccess) {
+      app.quit();
+      return;
+    }
+
     // Initialize app lifecycle service
     await appLifecycleService.initialize();
 
@@ -121,6 +134,10 @@ class SessionHubApp {
 
   private async onBeforeQuit(): Promise<void> {
     this.isQuitting = true;
+    
+    // Clear crash marker for clean shutdown
+    const recovery = EmergencyRecoverySystem.getInstance();
+    recovery.clearCrashMarker();
     
     // Shutdown production optimizations
     if (!isDev) {
@@ -304,6 +321,35 @@ class SessionHubApp {
     selfDevelopmentProduction.getSelfDevelopmentStatus();
 // REMOVED: console statement
 
+    // Initialize self-development pipeline
+    const pipelineConfig = {
+      github: {
+        webhookSecret: process.env['GITHUB_WEBHOOK_SECRET'] || '',
+        apiToken: '', // Will be loaded from credential manager
+        repos: ['sessionhub/sessionhub-v2'],
+        labelFilter: ['sessionhub-auto']
+      },
+      production: {
+        errorThreshold: 5,
+        monitoringInterval: 60000
+      },
+      deployment: {
+        autoDeployEnabled: !isDev,
+        requiresApproval: true,
+        signatureKeyPath: path.join(app.getPath('userData'), 'keys', 'deploy.key'),
+        updateChannels: ['stable', 'beta', 'alpha']
+      },
+      emergency: {
+        recoveryEndpoint: 'http://localhost:3000/recovery',
+        fallbackVersion: '1.0.0'
+      }
+    };
+    
+    // Initialize pipeline through IPC when ready
+    setTimeout(() => {
+      this.mainWindow?.webContents.send('pipeline:initialize', pipelineConfig);
+    }, 5000);
+
     // Initialize Claude auto-accept service
     void claudeAutoAcceptService.initialize();
 
@@ -401,6 +447,18 @@ class SessionHubApp {
     
     // Register Session Pipeline handlers
     registerSessionPipelineHandlers();
+
+    // Register Context handlers
+    registerContextHandlers();
+
+    // Register Session handlers
+    registerSessionHandlers();
+
+    // Register Pipeline handlers
+    registerPipelineHandlers();
+
+    // Register MCP Server handlers
+    registerMCPServerHandlers();
 
     // System health check
     ipcMain.handle("get-system-health", async () => {

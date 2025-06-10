@@ -19,6 +19,7 @@ import { Logger } from '@/src/lib/logging/Logger';
 import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
 import { ClaudeCodeAPIClient } from '@/src/lib/api/ClaudeCodeAPIClient';
+import { APIAuthenticationManager } from '@/src/lib/api/APIAuthenticationManager';
 import { CredentialManager } from '@/src/lib/security/CredentialManager';
 import { SecuritySandbox } from '@/src/core/execution/SecuritySandbox';
 import { MacKeychainService } from '@/src/lib/security/MacKeychainService';
@@ -53,6 +54,7 @@ export class SystemOrchestrator {
   private readonly stateManager: StateManager;
   private readonly sessionStateManager: SessionStateManager;
   private readonly credentialManager: CredentialManager;
+  private readonly apiAuthManager: APIAuthenticationManager;
   private readonly protocolValidator: ProtocolValidator;
   private readonly boundaryEnforcer: ActorBoundaryEnforcer;
   private readonly errorHandler: ErrorHandler;
@@ -69,28 +71,32 @@ export class SystemOrchestrator {
   
   private readonly requestQueue: RequestQueueItem[] = [];
   private isProcessing: boolean = false;
-  private readonly config: SystemConfig;
-
   constructor(config: SystemConfig = {}) {
-    this.config = config;
+    const sysConfig = config as SystemConfig;
     
     // Initialize logging
     this.logger = new Logger('SystemOrchestrator');
     this.auditLogger = new AuditLogger();
     
     // Initialize security with Mac-specific paths
-    const credentialsPath = config.dataDir 
-      ? `${config.dataDir}/credentials`
+    const credentialsPath = sysConfig.dataDir 
+      ? `${sysConfig.dataDir}/credentials`
       : MAC_CONFIG.paths.appSupport + '/credentials';
       
     this.credentialManager = new CredentialManager(
       this.logger,
-      config.masterKey,
+      sysConfig.masterKey,
       credentialsPath
     );
     
+    // Initialize API Authentication Manager
+    this.apiAuthManager = new APIAuthenticationManager(
+      this.logger,
+      this.credentialManager
+    );
+    
     // Initialize Mac Keychain service if enabled
-    if (config.useMacKeychain !== false && process.platform === 'darwin') {
+    if (sysConfig.useMacKeychain !== false && process.platform === 'darwin') {
       this.keychainService = new MacKeychainService(this.logger);
     }
     
@@ -135,6 +141,9 @@ export class SystemOrchestrator {
       // Initialize credential manager
       await this.credentialManager.initialize();
       
+      // Initialize API Authentication Manager
+      await this.apiAuthManager.initialize();
+      
       // Initialize state manager
       await this.stateManager.initialize();
       
@@ -149,10 +158,9 @@ export class SystemOrchestrator {
       // Initialize pattern recognition service
       this.patternService = new PatternRecognitionService(this.supabaseService);
       
-      // Setup API client if configured
-      if (this.config.useRealApi) {
-        await this.setupClaudeAPI();
-      }
+      // Get API clients from authentication manager
+      this.claudeApiClient = this.apiAuthManager.getPlanningClient() || undefined;
+      this.claudeCodeApiClient = this.apiAuthManager.getExecutionClient() || undefined;
       
       // Initialize actor engines
       await this.initializeActors();
@@ -320,6 +328,57 @@ export class SystemOrchestrator {
   }
 
   /**
+   * Get API authentication manager
+   */
+  getAPIAuthenticationManager(): APIAuthenticationManager {
+    return this.apiAuthManager;
+  }
+
+  /**
+   * Get real API availability status
+   */
+  getRealAPIStatus(): { planning: boolean; execution: boolean } {
+    return this.apiAuthManager.isRealAPIAvailable();
+  }
+
+  /**
+   * Configure API credentials
+   */
+  async configureAPICredentials(credentials: {
+    anthropicApiKey?: string;
+    supabaseUrl?: string;
+    supabaseKey?: string;
+    figmaToken?: string;
+    githubToken?: string;
+  }): Promise<void> {
+    await this.apiAuthManager.storeAPICredentials(credentials);
+    
+    // Refresh API clients
+    this.claudeApiClient = this.apiAuthManager.getPlanningClient() || undefined;
+    this.claudeCodeApiClient = this.apiAuthManager.getExecutionClient() || undefined;
+    
+    // Reinitialize actors with new clients
+    await this.initializeActors();
+    
+    this.logger.info('API credentials configured and actors reinitialized', {
+      planningEnabled: !!this.claudeApiClient,
+      executionEnabled: !!this.claudeCodeApiClient
+    });
+  }
+
+  /**
+   * Validate all API credentials
+   */
+  async validateAPICredentials(): Promise<{
+    anthropic: { valid: boolean; error?: string };
+    supabase: { valid: boolean; error?: string };
+    figma: { valid: boolean; error?: string };
+    github: { valid: boolean; error?: string };
+  }> {
+    return this.apiAuthManager.validateCredentials();
+  }
+
+  /**
    * Get queue metrics
    */
   getQueueMetrics(): unknown {
@@ -356,59 +415,6 @@ export class SystemOrchestrator {
     this.logger.info('SystemOrchestrator shutdown complete');
   }
 
-  private async setupClaudeAPI(): Promise<void> {
-    let apiKey = this.config.apiKey;
-    
-    // Try Mac Keychain first
-    if (!apiKey && this.keychainService) {
-      apiKey = await this.keychainService.getAPIKey('claude') || undefined;
-    }
-    
-    // Try to get API key from credential manager if not provided
-    if (!apiKey) {
-      const credential = await this.credentialManager.getCredentialByName('claude-api-key');
-      if (credential) {
-        apiKey = credential.value;
-      } else if (process.env['ANTHROPIC_API_KEY']) {
-        apiKey = process.env['ANTHROPIC_API_KEY'];
-        
-        // Store in both credential manager and keychain
-        await this.credentialManager.storeCredential({
-          name: 'claude-api-key',
-          type: 'api_key',
-          value: apiKey
-        });
-        
-        if (this.keychainService) {
-          await this.keychainService.storeAPIKey('claude', apiKey);
-        }
-      }
-    }
-    
-    if (!apiKey) {
-      this.logger.warn('No Claude API key configured, using mock implementation');
-      return;
-    }
-    
-    // Initialize Claude Chat API client for Planning Actor
-    this.claudeApiClient = new ClaudeAPIClient({ apiKey }, this.logger);
-    
-    // Validate API key
-    const isValid = await this.claudeApiClient.validateApiKey();
-    if (!isValid) {
-      this.logger.error('Invalid Claude API key');
-      this.claudeApiClient = undefined;
-      return;
-    }
-    
-    // Initialize Claude Code API client for Execution Actor
-    this.claudeCodeApiClient = new ClaudeCodeAPIClient({ 
-      apiKey,
-      workspaceDir: `${this.config.dataDir || MAC_CONFIG.paths.appSupport}/execution`
-    }, this.logger);
-    
-    this.logger.info('Claude API clients initialized successfully');
-  }
 
   private async initializeActors(): Promise<void> {
     // Initialize Planning Engine with pattern service
@@ -629,5 +635,13 @@ export class SystemOrchestrator {
 
   private generateRequestId(): string {
     return `req_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  // Keychain helpers
+  async getKeychainCredential(account: string): Promise<string | null> {
+    if (this.keychainService) {
+      return this.keychainService.getCredential(account);
+    }
+    return null;
   }
 }

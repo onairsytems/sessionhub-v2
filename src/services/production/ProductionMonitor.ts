@@ -4,6 +4,8 @@
  * Real-time monitoring and health checks for production deployment
  */
 
+import { EventEmitter } from 'events';
+
 export interface SystemHealth {
   status: 'healthy' | 'degraded' | 'unhealthy';
   uptime: number;
@@ -42,13 +44,16 @@ export interface ProductionAlert {
   resolved: boolean;
 }
 
-export class ProductionMonitoringService {
+export class ProductionMonitoringService extends EventEmitter {
   private startTime: number = Date.now();
   private healthChecks: Map<string, HealthCheck> = new Map();
   private alerts: ProductionAlert[] = [];
   private metrics: Map<string, number[]> = new Map();
+  private monitoringInterval?: NodeJS.Timeout;
+  private metricsInterval?: NodeJS.Timeout;
   
   constructor() {
+    super();
     this.initializeHealthChecks();
     this.startMonitoring();
   }
@@ -76,14 +81,35 @@ export class ProductionMonitoringService {
   
   private startMonitoring(): void {
     // Start health check interval
-    setInterval(() => {
+    this.monitoringInterval = setInterval(() => {
       this.performHealthChecks();
     }, 60000); // Every minute
     
     // Start metrics collection
-    setInterval(() => {
+    this.metricsInterval = setInterval(() => {
       this.collectMetrics();
     }, 30000); // Every 30 seconds
+  }
+  
+  public start(): void {
+    if (!this.monitoringInterval) {
+      this.startMonitoring();
+    }
+  }
+  
+  public stop(): void {
+    if (this.monitoringInterval) {
+      clearInterval(this.monitoringInterval);
+      this.monitoringInterval = undefined;
+    }
+    if (this.metricsInterval) {
+      clearInterval(this.metricsInterval);
+      this.metricsInterval = undefined;
+    }
+  }
+  
+  public async getHealth(): Promise<SystemHealth> {
+    return this.performHealthChecks();
   }
   
   // Perform comprehensive health checks

@@ -1,5 +1,5 @@
-import { SupabaseService } from '@/src/services/cloud/SupabaseService';
-import { Logger } from '@/src/lib/logging/Logger';
+import { SupabaseService } from '../cloud/SupabaseService';
+import { Logger } from '../../lib/logging/Logger';
 
 interface CodePattern {
   id: string;
@@ -472,8 +472,8 @@ export class PatternRecognitionService {
         
         if (!currentSession || !nextSession) continue;
         
-        const timeDiff = new Date(nextSession.created_at || '').getTime() - 
-                        new Date(currentSession.created_at || '').getTime();
+        const timeDiff = new Date(nextSession.createdAt || '').getTime() - 
+                        new Date(currentSession.createdAt || '').getTime();
         
         const currentType = currentSession.metadata?.['type'] || 'unknown';
         const nextType = nextSession.metadata?.['type'] || 'unknown';

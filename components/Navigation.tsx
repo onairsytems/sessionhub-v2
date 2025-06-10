@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Menu, X, Home, FolderOpen, Settings, Zap, Code2, FileText } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { Button } from './ui/Button';
+import { QuickActionsMenu } from './ui/QuickActions';
 import { clsx } from 'clsx';
 
 const navItems = [
@@ -21,7 +22,7 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+    <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand */}
@@ -36,7 +37,7 @@ export function Navigation() {
                   priority
                 />
               </div>
-              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 dark:from-blue-400 dark:to-blue-300 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent">
                 SessionHub
               </span>
               <Zap className="h-5 w-5 text-yellow-500 animate-pulse" />
@@ -51,8 +52,8 @@ export function Navigation() {
                 href={item.href}
                 className={clsx(
                   'flex items-center space-x-2 px-3 py-2 rounded-lg text-sm font-medium',
-                  'text-gray-700 dark:text-gray-300',
-                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                  'text-foreground/80',
+                  'hover:bg-secondary hover:text-foreground',
                   'transition-all duration-200 hover:scale-105'
                 )}
               >
@@ -64,6 +65,7 @@ export function Navigation() {
 
           {/* Right side actions */}
           <div className="flex items-center space-x-4">
+            <QuickActionsMenu />
             <ThemeToggle />
             
             {/* Mobile menu button */}
@@ -91,15 +93,15 @@ export function Navigation() {
           mobileMenuOpen ? 'max-h-screen opacity-100' : 'max-h-0 opacity-0 overflow-hidden'
         )}
       >
-        <div className="px-2 pt-2 pb-3 space-y-1 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+        <div className="px-2 pt-2 pb-3 space-y-1 bg-background border-t">
           {navItems.map((item) => (
             <Link
               key={item.name}
               href={item.href}
               className={clsx(
                 'flex items-center space-x-3 px-3 py-2 rounded-lg text-base font-medium',
-                'text-gray-700 dark:text-gray-300',
-                'hover:bg-gray-100 dark:hover:bg-gray-800',
+                'text-foreground/80',
+                'hover:bg-secondary hover:text-foreground',
                 'transition-all duration-200'
               )}
               onClick={() => setMobileMenuOpen(false)}

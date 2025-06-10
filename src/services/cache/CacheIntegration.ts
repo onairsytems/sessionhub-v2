@@ -6,7 +6,8 @@
  */
 
 import { LocalCacheService } from './LocalCacheService';
-import { SupabaseService, Project, Session, Instruction } from '../cloud/SupabaseService';
+import { SupabaseService, Project, Instruction } from '../cloud/SupabaseService';
+import { Session } from '../../models/Session';
 import { Logger } from '@/src/lib/logging/Logger';
 
 export interface DataServiceConfig {
@@ -372,4 +373,5 @@ export async function exampleUsage() {
 }
 
 // Export types for convenience
-export type { Project, Session, Instruction, ExecutionResult, Pattern } from '../cloud/SupabaseService';
+export type { Project, Instruction, ExecutionResult, Pattern } from '../cloud/SupabaseService';
+export type { Session } from '../../models/Session';

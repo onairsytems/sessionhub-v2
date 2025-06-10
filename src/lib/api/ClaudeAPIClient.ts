@@ -47,13 +47,15 @@ export class ClaudeAPIClient {
   private readonly logger: Logger;
   private readonly config: Required<ClaudeAPIConfig>;
   private readonly defaultSystemPrompt: string;
+  private rateLimiter: Map<string, number> = new Map();
+  private readonly maxRequestsPerMinute = 60;
 
   constructor(config: ClaudeAPIConfig, logger?: Logger) {
     this.logger = logger || new Logger('ClaudeAPIClient');
     this.config = {
       apiKey: config.apiKey,
       apiUrl: config.apiUrl || 'https://api.anthropic.com/v1/messages',
-      model: config.model || 'claude-3-opus-20240229',
+      model: config.model || 'claude-3-5-sonnet-20241022',
       maxTokens: config.maxTokens || 4000,
       temperature: config.temperature || 0.7,
       timeout: config.timeout || 30000
@@ -184,9 +186,11 @@ Please analyze this request and generate a comprehensive instruction protocol th
   }
 
   /**
-   * Send request to Claude API
+   * Send request to Claude API with rate limiting and retry logic
    */
   private async sendRequest(request: ClaudeRequest): Promise<ClaudeResponse> {
+    await this.checkRateLimit();
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.config.timeout);
 
@@ -196,24 +200,8 @@ Please analyze this request and generate a comprehensive instruction protocol th
         messageCount: request.messages.length
       });
 
-      const response = await fetch(this.config.apiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': this.config.apiKey,
-          'anthropic-version': '2023-06-01'
-        },
-        body: JSON.stringify(request),
-        signal: controller.signal
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          `Claude API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
-        );
-      }
-
+      const response = await this.makeRequestWithRetry(request, controller.signal);
+      
       const data = await response.json() as ClaudeResponse;
 
       this.logger.debug('Claude API response received', {
@@ -228,10 +216,111 @@ Please analyze this request and generate a comprehensive instruction protocol th
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error(`Claude API request timed out after ${this.config.timeout}ms`);
       }
+      this.logger.error('Claude API request failed', error as Error);
       throw error;
     } finally {
       clearTimeout(timeoutId);
     }
+  }
+
+  /**
+   * Make API request with retry logic
+   */
+  private async makeRequestWithRetry(
+    request: ClaudeRequest, 
+    signal: AbortSignal,
+    maxRetries = 3
+  ): Promise<Response> {
+    let lastError: Error;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        const response = await fetch(this.config.apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': this.config.apiKey,
+            'anthropic-version': '2023-06-01'
+          },
+          body: JSON.stringify(request),
+          signal
+        });
+
+        if (response.ok) {
+          return response;
+        }
+
+        // Handle specific error codes
+        if (response.status === 429) {
+          // Rate limited - wait and retry
+          const retryAfter = parseInt(response.headers.get('retry-after') || '60');
+          this.logger.warn(`Rate limited, waiting ${retryAfter}s before retry ${attempt}/${maxRetries}`);
+          await this.delay(retryAfter * 1000);
+          continue;
+        }
+
+        if (response.status >= 500 && attempt < maxRetries) {
+          // Server error - retry with exponential backoff
+          const backoffDelay = Math.pow(2, attempt) * 1000;
+          this.logger.warn(`Server error ${response.status}, retrying in ${backoffDelay}ms`);
+          await this.delay(backoffDelay);
+          continue;
+        }
+
+        // Client error or final attempt - throw error
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          `Claude API error: ${response.status} ${response.statusText} - ${JSON.stringify(errorData)}`
+        );
+      } catch (error: any) {
+        lastError = error as Error;
+        if (attempt === maxRetries || error.name === 'AbortError') {
+          throw error;
+        }
+        
+        // Wait before retry
+        const backoffDelay = Math.pow(2, attempt) * 1000;
+        this.logger.warn(`Request failed, retrying in ${backoffDelay}ms`, error as Error);
+        await this.delay(backoffDelay);
+      }
+    }
+    
+    throw lastError!;
+  }
+
+  /**
+   * Check rate limit before making request
+   */
+  private async checkRateLimit(): Promise<void> {
+    const now = Date.now();
+    const windowStart = now - 60000; // 1 minute window
+    
+    // Clean old entries
+    for (const [timestamp] of this.rateLimiter.entries()) {
+      if (parseInt(timestamp) < windowStart) {
+        this.rateLimiter.delete(timestamp);
+      }
+    }
+    
+    // Check if we're at the limit
+    if (this.rateLimiter.size >= this.maxRequestsPerMinute) {
+      const oldestRequest = Math.min(...Array.from(this.rateLimiter.keys()).map(k => parseInt(k)));
+      const waitTime = oldestRequest + 60000 - now;
+      
+      this.logger.warn(`Rate limit reached, waiting ${waitTime}ms`);
+      await this.delay(waitTime);
+      return this.checkRateLimit();
+    }
+    
+    // Record this request
+    this.rateLimiter.set(now.toString(), now);
+  }
+
+  /**
+   * Utility function for delays
+   */
+  private delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
   /**

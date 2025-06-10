@@ -1,5 +1,5 @@
-import { Logger } from '@/src/lib/logging/Logger';
-import { SupabaseService } from '@/src/services/cloud/SupabaseService';
+import { Logger } from '../../lib/logging/Logger';
+import { SupabaseService } from '../cloud/SupabaseService';
 import { PatternRecognitionService } from './PatternRecognitionService';
 import { MetadataExtractor } from './MetadataExtractor';
 import {
@@ -17,7 +17,7 @@ import {
   ContextVersion,
   ContextChange,
   ContextAnalysisResult
-} from '@/src/models/ProjectContext';
+} from '../../models/ProjectContext';
 import * as fs from 'fs';
 import * as path from 'path';
 import { createHash } from 'crypto';
@@ -549,35 +549,178 @@ export class ProjectContextService {
   }
   
   /**
-   * Search similar contexts using embeddings
+   * Search similar contexts using embeddings and similarity metrics
    */
   async searchSimilarContexts(
     context: BaseProjectContext,
     limit: number = 5
   ): Promise<BaseProjectContext[]> {
-    if (!context.embeddings) {
-      return [];
-    }
-    
     try {
-      // In a real implementation, this would use vector similarity search
-      // For now, we'll do a simple type and language match
+      // Get all contexts for comparison
       const { data, error } = await this.supabase.getClient()
         .from('project_contexts')
-        .select('context_data')
-        .eq('context_data->projectType', context.projectType)
-        .eq('context_data->language', context.language)
-        .limit(limit);
+        .select('context_data, embeddings')
+        .neq('project_id', context.projectId);
       
       if (error || !data) {
         return [];
       }
       
-      return data.map((d: any) => d.context_data as BaseProjectContext);
+      // Calculate similarity scores
+      const similarities: Array<{
+        context: BaseProjectContext;
+        similarity: number;
+      }> = [];
+      
+      for (const row of data) {
+        const otherContext = row.context_data as BaseProjectContext;
+        const similarity = this.calculateContextSimilarity(context, otherContext, row.embeddings);
+        
+        similarities.push({
+          context: otherContext,
+          similarity
+        });
+      }
+      
+      // Sort by similarity and return top results
+      return similarities
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, limit)
+        .filter(s => s.similarity > 0.3) // Only return contexts with meaningful similarity
+        .map(s => s.context);
+        
     } catch (error) {
       this.logger.error('Failed to search similar contexts', error as Error);
       return [];
     }
+  }
+
+  /**
+   * Calculate similarity between two project contexts
+   */
+  private calculateContextSimilarity(
+    contextA: BaseProjectContext,
+    contextB: BaseProjectContext,
+    embeddingsB?: number[]
+  ): number {
+    let totalScore = 0;
+    let weightSum = 0;
+    
+    // Language similarity (weight: 0.3)
+    const languageWeight = 0.3;
+    const languageScore = contextA.language === contextB.language ? 1 : 0;
+    totalScore += languageScore * languageWeight;
+    weightSum += languageWeight;
+    
+    // Project type similarity (weight: 0.25)
+    const typeWeight = 0.25;
+    const typeScore = contextA.projectType === contextB.projectType ? 1 : 
+                     this.getProjectTypeSimilarity(contextA.projectType, contextB.projectType);
+    totalScore += typeScore * typeWeight;
+    weightSum += typeWeight;
+    
+    // Framework similarity (weight: 0.2)
+    const frameworkWeight = 0.2;
+    const frameworkScore = this.calculateFrameworkSimilarity(contextA.frameworks, contextB.frameworks);
+    totalScore += frameworkScore * frameworkWeight;
+    weightSum += frameworkWeight;
+    
+    // Architecture pattern similarity (weight: 0.15)
+    const architectureWeight = 0.15;
+    const architectureScore = this.calculateArchitectureSimilarity(
+      contextA.architecturePatterns, 
+      contextB.architecturePatterns
+    );
+    totalScore += architectureScore * architectureWeight;
+    weightSum += architectureWeight;
+    
+    // Embedding similarity (weight: 0.1) - if available
+    if (contextA.embeddings && embeddingsB) {
+      const embeddingWeight = 0.1;
+      const embeddingScore = this.calculateEmbeddingSimilarity(contextA.embeddings, embeddingsB);
+      totalScore += embeddingScore * embeddingWeight;
+      weightSum += embeddingWeight;
+    }
+    
+    return weightSum > 0 ? totalScore / weightSum : 0;
+  }
+
+  /**
+   * Calculate similarity between project types
+   */
+  private getProjectTypeSimilarity(typeA: string, typeB: string): number {
+    // Define related project types
+    const typeGroups = [
+      ['WEB_APP', 'NEXTJS', 'REACT', 'VUE', 'ANGULAR'],
+      ['API', 'MICROSERVICE', 'BACKEND'],
+      ['MOBILE', 'REACT_NATIVE', 'FLUTTER'],
+      ['DESKTOP', 'ELECTRON', 'TAURI'],
+      ['MACHINE_LEARNING', 'DATA_SCIENCE', 'AI']
+    ];
+    
+    // Find if both types are in the same group
+    for (const group of typeGroups) {
+      if (group.includes(typeA) && group.includes(typeB)) {
+        return 0.7; // High similarity for related types
+      }
+    }
+    
+    return 0; // No similarity
+  }
+
+  /**
+   * Calculate similarity between framework lists
+   */
+  private calculateFrameworkSimilarity(frameworksA: Framework[], frameworksB: Framework[]): number {
+    if (frameworksA.length === 0 && frameworksB.length === 0) return 1;
+    if (frameworksA.length === 0 || frameworksB.length === 0) return 0;
+    
+    const namesA = new Set(frameworksA.map(f => f.name.toLowerCase()));
+    const namesB = new Set(frameworksB.map(f => f.name.toLowerCase()));
+    
+    const intersection = new Set([...namesA].filter(name => namesB.has(name)));
+    const union = new Set([...namesA, ...namesB]);
+    
+    return intersection.size / union.size; // Jaccard similarity
+  }
+
+  /**
+   * Calculate similarity between architecture patterns
+   */
+  private calculateArchitectureSimilarity(
+    patternsA: ArchitecturePattern[], 
+    patternsB: ArchitecturePattern[]
+  ): number {
+    if (patternsA.length === 0 && patternsB.length === 0) return 1;
+    if (patternsA.length === 0 || patternsB.length === 0) return 0;
+    
+    const namesA = new Set(patternsA.map(p => p.pattern.toLowerCase()));
+    const namesB = new Set(patternsB.map(p => p.pattern.toLowerCase()));
+    
+    const intersection = new Set([...namesA].filter(name => namesB.has(name)));
+    const union = new Set([...namesA, ...namesB]);
+    
+    return intersection.size / union.size;
+  }
+
+  /**
+   * Calculate cosine similarity between embeddings
+   */
+  private calculateEmbeddingSimilarity(embeddingsA: number[], embeddingsB: number[]): number {
+    if (embeddingsA.length !== embeddingsB.length) return 0;
+    
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < embeddingsA.length; i++) {
+      dotProduct += embeddingsA[i]! * embeddingsB[i]!;
+      normA += embeddingsA[i]! * embeddingsA[i]!;
+      normB += embeddingsB[i]! * embeddingsB[i]!;
+    }
+    
+    const magnitude = Math.sqrt(normA) * Math.sqrt(normB);
+    return magnitude > 0 ? dotProduct / magnitude : 0;
   }
   
   // Utility methods
@@ -690,19 +833,122 @@ export class ProjectContextService {
     };
   }
   
-  private async _detectWebFramework(_projectPath: string): Promise<'next' | 'react' | 'vue' | 'angular' | 'svelte' | 'other'> {
-    // Implementation would detect web framework
-    return 'other';
+  private async _detectWebFramework(projectPath: string): Promise<'next' | 'react' | 'vue' | 'angular' | 'svelte' | 'other'> {
+    try {
+      // Check for Next.js
+      if (this.hasFile(projectPath, 'next.config.js') || 
+          this.hasFile(projectPath, 'next.config.ts') ||
+          this.hasFile(projectPath, 'next.config.mjs')) {
+        return 'next';
+      }
+      
+      // Check package.json for framework dependencies
+      if (this.hasFile(projectPath, 'package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        if (deps.next) return 'next';
+        if (deps.vue || deps['@vue/cli-service']) return 'vue';
+        if (deps['@angular/core']) return 'angular';
+        if (deps.svelte || deps['@sveltejs/kit']) return 'svelte';
+        if (deps.react) return 'react';
+      }
+      
+      // Check for framework-specific files
+      const files = await this.getProjectFiles(projectPath);
+      if (files.some(f => f.endsWith('.vue'))) return 'vue';
+      if (files.some(f => f.includes('angular.json'))) return 'angular';
+      if (files.some(f => f.endsWith('.svelte'))) return 'svelte';
+      
+      return 'other';
+    } catch (error) {
+      this.logger.error('Failed to detect web framework', error as Error);
+      return 'other';
+    }
   }
   
-  private async _detectCSSFramework(_projectPath: string): Promise<'tailwind' | 'mui' | 'bootstrap' | 'styled-components' | 'other' | undefined> {
-    // Implementation would detect CSS framework
-    return undefined;
+  private async _detectCSSFramework(projectPath: string): Promise<'tailwind' | 'mui' | 'bootstrap' | 'styled-components' | 'other' | undefined> {
+    try {
+      // Check for Tailwind
+      if (this.hasFile(projectPath, 'tailwind.config.js') || 
+          this.hasFile(projectPath, 'tailwind.config.ts') ||
+          this.hasFile(projectPath, 'postcss.config.js')) {
+        const postcssPath = path.join(projectPath, 'postcss.config.js');
+        if (fs.existsSync(postcssPath)) {
+          const content = fs.readFileSync(postcssPath, 'utf-8');
+          if (content.includes('tailwindcss')) return 'tailwind';
+        }
+        return 'tailwind';
+      }
+      
+      // Check package.json
+      if (this.hasFile(projectPath, 'package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        if (deps.tailwindcss) return 'tailwind';
+        if (deps['@mui/material'] || deps['@material-ui/core']) return 'mui';
+        if (deps.bootstrap || deps['react-bootstrap']) return 'bootstrap';
+        if (deps['styled-components'] || deps['@emotion/styled']) return 'styled-components';
+      }
+      
+      // Check imports in source files
+      const files = await this.getProjectFiles(projectPath);
+      const cssFiles = files.filter(f => f.endsWith('.css') || f.endsWith('.scss'));
+      
+      for (const file of cssFiles.slice(0, 5)) { // Check first 5 CSS files
+        const content = fs.readFileSync(path.join(projectPath, file), 'utf-8');
+        if (content.includes('@tailwind')) return 'tailwind';
+        if (content.includes('bootstrap')) return 'bootstrap';
+      }
+      
+      return undefined;
+    } catch (error) {
+      this.logger.error('Failed to detect CSS framework', error as Error);
+      return undefined;
+    }
   }
   
-  private async _detectStateManagement(_projectPath: string): Promise<'redux' | 'zustand' | 'mobx' | 'context' | 'other' | undefined> {
-    // Implementation would detect state management
-    return undefined;
+  private async _detectStateManagement(projectPath: string): Promise<'redux' | 'zustand' | 'mobx' | 'context' | 'other' | undefined> {
+    try {
+      // Check package.json
+      if (this.hasFile(projectPath, 'package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        if (deps['redux'] || deps['@reduxjs/toolkit']) return 'redux';
+        if (deps['zustand']) return 'zustand';
+        if (deps['mobx'] || deps['mobx-react']) return 'mobx';
+      }
+      
+      // Check for Redux store
+      const files = await this.getProjectFiles(projectPath);
+      if (files.some(f => f.includes('store') && (f.endsWith('.ts') || f.endsWith('.js')))) {
+        const storeFiles = files.filter(f => f.includes('store'));
+        for (const file of storeFiles.slice(0, 3)) {
+          const content = fs.readFileSync(path.join(projectPath, file), 'utf-8');
+          if (content.includes('createStore') || content.includes('configureStore')) return 'redux';
+          if (content.includes('create(') && content.includes('zustand')) return 'zustand';
+        }
+      }
+      
+      // Check for React Context usage
+      const tsxFiles = files.filter(f => f.endsWith('.tsx') || f.endsWith('.jsx')).slice(0, 10);
+      let contextCount = 0;
+      for (const file of tsxFiles) {
+        const content = fs.readFileSync(path.join(projectPath, file), 'utf-8');
+        if (content.includes('createContext') || content.includes('useContext')) {
+          contextCount++;
+        }
+      }
+      
+      if (contextCount > 3) return 'context';
+      
+      return undefined;
+    } catch (error) {
+      this.logger.error('Failed to detect state management', error as Error);
+      return undefined;
+    }
   }
   
   private async _detectRouting(_projectPath: string): Promise<'pages' | 'app' | 'react-router' | 'other' | undefined> {
@@ -710,12 +956,51 @@ export class ProjectContextService {
     return undefined;
   }
   
-  private async _detectAPIIntegration(_projectPath: string): Promise<{
+  private async _detectAPIIntegration(projectPath: string): Promise<{
     type: 'rest' | 'graphql' | 'trpc' | 'other';
     client?: string;
   } | undefined> {
-    // Implementation would detect API integration
-    return undefined;
+    try {
+      // Check package.json
+      if (this.hasFile(projectPath, 'package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        // GraphQL detection
+        if (deps['graphql'] || deps['@apollo/client'] || deps['urql']) {
+          return {
+            type: 'graphql',
+            client: deps['@apollo/client'] ? 'apollo' : deps['urql'] ? 'urql' : 'graphql'
+          };
+        }
+        
+        // tRPC detection
+        if (deps['@trpc/client'] || deps['@trpc/server']) {
+          return { type: 'trpc', client: 'trpc' };
+        }
+        
+        // REST clients
+        if (deps['axios']) return { type: 'rest', client: 'axios' };
+        if (deps['swr']) return { type: 'rest', client: 'swr' };
+        if (deps['@tanstack/react-query']) return { type: 'rest', client: 'react-query' };
+      }
+      
+      // Check for API files
+      const files = await this.getProjectFiles(projectPath);
+      const apiFiles = files.filter(f => f.includes('api') || f.includes('service')).slice(0, 5);
+      
+      for (const file of apiFiles) {
+        const content = fs.readFileSync(path.join(projectPath, file), 'utf-8');
+        if (content.includes('graphql') || content.includes('gql`')) return { type: 'graphql' };
+        if (content.includes('trpc') || content.includes('createTRPCClient')) return { type: 'trpc' };
+        if (content.includes('fetch(') || content.includes('axios')) return { type: 'rest' };
+      }
+      
+      return undefined;
+    } catch (error) {
+      this.logger.error('Failed to detect API integration', error as Error);
+      return undefined;
+    }
   }
   
   private async _extractBuildConfig(_projectPath: string): Promise<{
@@ -741,13 +1026,70 @@ export class ProjectContextService {
     return 'rest';
   }
   
-  private async _detectDatabases(_projectPath: string): Promise<{
+  private async _detectDatabases(projectPath: string): Promise<{
     type: 'postgres' | 'mysql' | 'mongodb' | 'redis' | 'other';
     orm?: string;
     migrations?: boolean;
   }[] | undefined> {
-    // Implementation would detect databases
-    return undefined;
+    try {
+      const databases: {
+        type: 'postgres' | 'mysql' | 'mongodb' | 'redis' | 'other';
+        orm?: string;
+        migrations?: boolean;
+      }[] = [];
+      
+      // Check package.json
+      if (this.hasFile(projectPath, 'package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        // PostgreSQL
+        if (deps['pg'] || deps['postgres'] || deps['@supabase/supabase-js']) {
+          databases.push({
+            type: 'postgres',
+            orm: deps['prisma'] ? 'prisma' : deps['typeorm'] ? 'typeorm' : deps['sequelize'] ? 'sequelize' : undefined,
+            migrations: this.hasFile(projectPath, 'migrations') || this.hasFile(projectPath, 'prisma/migrations')
+          });
+        }
+        
+        // MySQL
+        if (deps['mysql'] || deps['mysql2']) {
+          databases.push({
+            type: 'mysql',
+            orm: deps['prisma'] ? 'prisma' : deps['typeorm'] ? 'typeorm' : deps['sequelize'] ? 'sequelize' : undefined
+          });
+        }
+        
+        // MongoDB
+        if (deps['mongodb'] || deps['mongoose']) {
+          databases.push({
+            type: 'mongodb',
+            orm: deps['mongoose'] ? 'mongoose' : undefined
+          });
+        }
+        
+        // Redis
+        if (deps['redis'] || deps['ioredis']) {
+          databases.push({ type: 'redis' });
+        }
+      }
+      
+      // Check for database configuration files
+      if (this.hasFile(projectPath, 'prisma/schema.prisma')) {
+        const content = fs.readFileSync(path.join(projectPath, 'prisma/schema.prisma'), 'utf-8');
+        if (content.includes('postgresql')) {
+          const hasPostgres = databases.some(db => db.type === 'postgres');
+          if (!hasPostgres) {
+            databases.push({ type: 'postgres', orm: 'prisma', migrations: true });
+          }
+        }
+      }
+      
+      return databases.length > 0 ? databases : undefined;
+    } catch (error) {
+      this.logger.error('Failed to detect databases', error as Error);
+      return undefined;
+    }
   }
   
   private async _detectAPIDocumentation(_projectPath: string): Promise<{
@@ -758,12 +1100,57 @@ export class ProjectContextService {
     return undefined;
   }
   
-  private async _detectAuthentication(_projectPath: string): Promise<{
+  private async _detectAuthentication(projectPath: string): Promise<{
     type: 'jwt' | 'oauth' | 'basic' | 'api-key' | 'other';
     provider?: string;
   } | undefined> {
-    // Implementation would detect authentication
-    return undefined;
+    try {
+      // Check package.json
+      if (this.hasFile(projectPath, 'package.json')) {
+        const pkg = JSON.parse(fs.readFileSync(path.join(projectPath, 'package.json'), 'utf-8'));
+        const deps = { ...pkg.dependencies, ...pkg.devDependencies };
+        
+        // JWT
+        if (deps['jsonwebtoken'] || deps['jose']) {
+          return { type: 'jwt' };
+        }
+        
+        // OAuth providers
+        if (deps['passport']) {
+          return { type: 'oauth', provider: 'passport' };
+        }
+        if (deps['next-auth'] || deps['@auth/core']) {
+          return { type: 'oauth', provider: 'next-auth' };
+        }
+        if (deps['@supabase/supabase-js'] || deps['@supabase/auth-helpers-nextjs']) {
+          return { type: 'oauth', provider: 'supabase' };
+        }
+        if (deps['@clerk/nextjs'] || deps['@clerk/clerk-sdk-node']) {
+          return { type: 'oauth', provider: 'clerk' };
+        }
+        if (deps['firebase'] || deps['firebase-admin']) {
+          return { type: 'oauth', provider: 'firebase' };
+        }
+      }
+      
+      // Check for auth-related files
+      const files = await this.getProjectFiles(projectPath);
+      const authFiles = files.filter(f => 
+        f.includes('auth') || f.includes('jwt') || f.includes('token')
+      ).slice(0, 5);
+      
+      for (const file of authFiles) {
+        const content = fs.readFileSync(path.join(projectPath, file), 'utf-8');
+        if (content.includes('jwt.sign') || content.includes('jsonwebtoken')) return { type: 'jwt' };
+        if (content.includes('Bearer')) return { type: 'jwt' };
+        if (content.includes('OAuth') || content.includes('oauth')) return { type: 'oauth' };
+      }
+      
+      return undefined;
+    } catch (error) {
+      this.logger.error('Failed to detect authentication', error as Error);
+      return undefined;
+    }
   }
   
   private async _analyzeMainProcess(_projectPath: string): Promise<{

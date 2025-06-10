@@ -1,7 +1,10 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import './simple.css';
-// import { Navigation } from '@/components/Navigation';
+import './globals.css';
+import { Navigation } from '@/components/Navigation';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { ToastProvider } from '@/components/ui/Toast';
+import { KeyboardShortcutsProvider } from '@/components/ui/KeyboardShortcuts';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -39,19 +42,28 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${inter.className} bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
-        <div className="min-h-screen flex flex-col">
-          <main className="flex-1">
-            {children}
-          </main>
-          <footer className="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-8 mt-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
-                <p>© 2025 SessionHub. Built with the Two-Actor Model.</p>
+      <body className={`${inter.className} bg-background text-foreground`}>
+        <ErrorBoundary>
+          <ToastProvider>
+            <KeyboardShortcutsProvider>
+              <div className="min-h-screen flex flex-col">
+                <Navigation />
+                <main className="flex-1">
+                  <ErrorBoundary>
+                    {children}
+                  </ErrorBoundary>
+                </main>
+                <footer className="bg-card border-t py-8 mt-auto">
+                  <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center text-sm text-muted-foreground">
+                      <p>© 2025 SessionHub. Built with the Two-Actor Model.</p>
+                    </div>
+                  </div>
+                </footer>
               </div>
-            </div>
-          </footer>
-        </div>
+            </KeyboardShortcutsProvider>
+          </ToastProvider>
+        </ErrorBoundary>
       </body>
     </html>
   );

@@ -65,27 +65,34 @@
     "optimize:db": "ts-node --project tsconfig.node.json scripts/optimize-database.ts",
     "monitor:performance": "ts-node --project tsconfig.node.json scripts/performance-monitor.ts",
     "profile:memory": "node --expose-gc --inspect scripts/memory-profiler.js",
-    "benchmark": "ts-node --project tsconfig.node.json scripts/run-benchmarks.ts"
+    "benchmark": "ts-node --project tsconfig.node.json scripts/run-benchmarks.ts",
+    "production:health": "ts-node --project tsconfig.node.json scripts/production-health-check.ts",
+    "production:deploy": "npm run build:production && npm run test:stress && npm run electron:dist",
+    "production:monitor": "ts-node --project tsconfig.node.json scripts/start-production-monitor.ts",
+    "scale:test": "ts-node --project tsconfig.node.json scripts/run-scale-tests.ts",
+    "test:m4pro": "ts-node --project tsconfig.node.json scripts/test-m4-pro-optimization.ts"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",
     "@supabase/supabase-js": "^2.50.0",
+    "@types/express": "^5.0.3",
+    "autoprefixer": "^10.4.21",
     "better-sqlite3": "^11.10.0",
     "clsx": "^2.1.0",
+    "date-fns": "^4.1.0",
     "electron-serve": "^1.3.0",
     "electron-store": "^8.2.0",
     "electron-updater": "^6.1.7",
+    "express": "^5.1.0",
     "lucide-react": "^0.323.0",
     "next": "14.1.0",
     "react": "^18",
     "react-dom": "^18",
+    "tailwindcss": "^3.4.17",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@jest/globals": "^30.0.0-beta.3",
-    "compression-webpack-plugin": "^11.1.0",
-    "terser-webpack-plugin": "^5.3.10",
-    "webpack-bundle-analyzer": "^4.10.2",
     "@jest/types": "^29.6.3",
     "@types/better-sqlite3": "^7.6.13",
     "@types/electron-is-dev": "^0.3.0",
@@ -97,6 +104,7 @@
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
     "chokidar": "^4.0.3",
+    "compression-webpack-plugin": "^11.1.0",
     "concurrently": "^8.2.2",
     "electron": "^28.2.0",
     "electron-builder": "^24.9.1",
@@ -108,9 +116,11 @@
     "husky": "^9.1.7",
     "jest": "^29.7.0",
     "jest-junit": "^16.0.0",
+    "terser-webpack-plugin": "^5.3.10",
     "ts-jest": "^29.3.4",
     "ts-node": "^10.9.2",
-    "typescript": "^5"
+    "typescript": "^5",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "engines": {
     "node": ">=20.0.0"
@@ -157,18 +167,24 @@
     "protocols": [
       {
         "name": "SessionHub Protocol",
-        "schemes": ["sessionhub"]
+        "schemes": [
+          "sessionhub"
+        ]
       }
     ],
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": ["universal"]
+          "arch": [
+            "universal"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["universal"]
+          "arch": [
+            "universal"
+          ]
         }
       ],
       "category": "public.app-category.developer-tools",
@@ -182,7 +198,9 @@
         "LSUIElement": false,
         "CFBundleURLTypes": [
           {
-            "CFBundleURLSchemes": ["sessionhub"],
+            "CFBundleURLSchemes": [
+              "sessionhub"
+            ],
             "CFBundleURLName": "SessionHub Protocol"
           }
         ],

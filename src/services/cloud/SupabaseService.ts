@@ -8,6 +8,8 @@
 import { createClient, SupabaseClient, User, Session as SupabaseSession } from '@supabase/supabase-js';
 import { MacKeychainService } from '@/src/lib/security/MacKeychainService';
 import { Logger } from '@/src/lib/logging/Logger';
+import { Session } from '@/src/models/Session';
+import { SessionConverter } from '@/src/services/converters/SessionConverter';
 
 // Database types based on schema
 export interface Project {
@@ -20,7 +22,7 @@ export interface Project {
   metadata?: Record<string, any>;
 }
 
-export interface Session {
+export interface SupabaseSessionRecord {
   id?: string;
   user_id: string;
   project_id: string;
@@ -343,7 +345,7 @@ export class SupabaseService {
   /**
    * Get current session
    */
-  async getSession(): Promise<SupabaseSession | null> {
+  async getAuthSession(): Promise<SupabaseSession | null> {
     const client = this.getClient();
     const { data: { session } } = await client.auth.getSession();
     return session;
@@ -485,13 +487,13 @@ export class SupabaseService {
   // CRUD operations for Sessions
 
   /**
-   * Create a new session
+   * Create a new session (Supabase record format)
    */
-  async createSession(session: Omit<Session, 'id' | 'created_at' | 'updated_at'>): Promise<Session> {
+  async createSessionRecord(session: Omit<SupabaseSessionRecord, 'id' | 'created_at' | 'updated_at'>): Promise<SupabaseSessionRecord> {
     const client = this.getClient();
     
     if (!this.isOnline) {
-      this.queueOfflineOperation(() => this.createSession(session));
+      this.queueOfflineOperation(() => this.createSessionRecord(session));
       throw new SupabaseServiceError('Offline mode - operation queued');
     }
     
@@ -507,7 +509,30 @@ export class SupabaseService {
       }
       
       return data;
-    }, 'createSession');
+    }, 'createSessionRecord');
+  }
+
+  /**
+   * Create a new session (domain model format)
+   */
+  async createSession(session: Omit<Session, 'id' | 'createdAt' | 'updatedAt'>): Promise<Session> {
+    const id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+    
+    const now = new Date().toISOString();
+    const fullSession: Session = {
+      ...session,
+      id,
+      createdAt: now,
+      updatedAt: now
+    };
+    
+    const record = SessionConverter.toSupabaseRecord(fullSession);
+    const createdRecord = await this.createSessionRecord(record);
+    return SessionConverter.toSession(createdRecord);
   }
 
   /**
@@ -527,26 +552,27 @@ export class SupabaseService {
         throw new SupabaseServiceError('Failed to fetch sessions', error.code, error);
       }
       
-      return data || [];
+      return SessionConverter.toSessions(data || []);
     }, 'getProjectSessions');
   }
 
   /**
    * Get active sessions
    */
-  async getActiveSessions(): Promise<any[]> {
+  async getActiveSessions(): Promise<Session[]> {
     const client = this.getClient();
     
     return this.executeWithRetry(async () => {
       const { data, error } = await client
-        .from('active_sessions')
-        .select('*');
+        .from('sessions')
+        .select('*')
+        .eq('status', 'active');
       
       if (error) {
         throw new SupabaseServiceError('Failed to fetch active sessions', error.code, error);
       }
       
-      return data || [];
+      return SessionConverter.toSessions(data || []);
     }, 'getActiveSessions');
   }
 
@@ -573,13 +599,13 @@ export class SupabaseService {
   }
 
   /**
-   * Update session
+   * Update session (Supabase record format)
    */
-  async updateSession(id: string, updates: Partial<Session>): Promise<Session> {
+  async updateSessionRecord(id: string, updates: Partial<SupabaseSessionRecord>): Promise<SupabaseSessionRecord> {
     const client = this.getClient();
     
     if (!this.isOnline) {
-      this.queueOfflineOperation(() => this.updateSession(id, updates));
+      this.queueOfflineOperation(() => this.updateSessionRecord(id, updates));
       throw new SupabaseServiceError('Offline mode - operation queued');
     }
     
@@ -596,7 +622,16 @@ export class SupabaseService {
       }
       
       return data;
-    }, 'updateSession');
+    }, 'updateSessionRecord');
+  }
+
+  /**
+   * Update session (domain model format)
+   */
+  async updateSession(id: string, updates: Partial<Session>): Promise<Session> {
+    const recordUpdates = SessionConverter.toSupabaseUpdate(updates);
+    const updatedRecord = await this.updateSessionRecord(id, recordUpdates);
+    return SessionConverter.toSession(updatedRecord);
   }
 
   /**
@@ -1132,6 +1167,172 @@ export class SupabaseService {
         throw new SupabaseServiceError('Failed to cleanup old sessions', error.code, error);
       }
     }, 'cleanupOldSessions');
+  }
+
+  /**
+   * Create a session template
+   */
+  async createSessionTemplate(template: any): Promise<any> {
+    const client = this.getClient();
+    
+    if (!this.isOnline) {
+      this.queueOfflineOperation(() => this.createSessionTemplate(template));
+      throw new SupabaseServiceError('Offline mode - operation queued');
+    }
+    
+    return this.executeWithRetry(async () => {
+      const { data, error } = await client
+        .from('session_templates')
+        .insert(template)
+        .select()
+        .single();
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to create session template', error.code, error);
+      }
+      
+      return data;
+    }, 'createSessionTemplate');
+  }
+
+  /**
+   * Get session templates
+   */
+  async getSessionTemplates(category?: string, isPublic?: boolean): Promise<any[]> {
+    const client = this.getClient();
+    
+    return this.executeWithRetry(async () => {
+      let query = client.from('session_templates').select('*');
+      
+      if (category) {
+        query = query.eq('category', category);
+      }
+      
+      if (isPublic !== undefined) {
+        query = query.eq('is_public', isPublic);
+      }
+      
+      const { data, error } = await query.order('created_at', { ascending: false });
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to fetch session templates', error.code, error);
+      }
+      
+      return data || [];
+    }, 'getSessionTemplates');
+  }
+
+  /**
+   * Get a specific session template
+   */
+  async getSessionTemplate(templateId: string): Promise<any> {
+    const client = this.getClient();
+    
+    return this.executeWithRetry(async () => {
+      const { data, error } = await client
+        .from('session_templates')
+        .select('*')
+        .eq('id', templateId)
+        .single();
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to fetch session template', error.code, error);
+      }
+      
+      return data;
+    }, 'getSessionTemplate');
+  }
+
+  /**
+   * Increment template usage count
+   */
+  async incrementTemplateUsage(templateId: string): Promise<void> {
+    const client = this.getClient();
+    
+    if (!this.isOnline) {
+      this.queueOfflineOperation(() => this.incrementTemplateUsage(templateId));
+      return;
+    }
+    
+    return this.executeWithRetry(async () => {
+      const { error } = await client.rpc('increment_template_usage', {
+        template_id: templateId
+      });
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to increment template usage', error.code, error);
+      }
+    }, 'incrementTemplateUsage');
+  }
+
+
+  /**
+   * Get a specific session
+   */
+  async getSession(sessionId: string): Promise<Session | null> {
+    const client = this.getClient();
+    
+    return this.executeWithRetry(async () => {
+      const { data, error } = await client
+        .from('sessions')
+        .select('*')
+        .eq('id', sessionId)
+        .single();
+      
+      if (error && error.code !== 'PGRST116') {
+        throw new SupabaseServiceError('Failed to fetch session', error.code, error);
+      }
+      
+      return data ? SessionConverter.toSession(data) : null;
+    }, 'getSession');
+  }
+
+  /**
+   * Get user sessions
+   */
+  async getUserSessions(userId: string): Promise<Session[]> {
+    const client = this.getClient();
+    
+    return this.executeWithRetry(async () => {
+      const { data, error } = await client
+        .from('sessions')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to fetch user sessions', error.code, error);
+      }
+      
+      return SessionConverter.toSessions(data || []);
+    }, 'getUserSessions');
+  }
+
+  /**
+   * Upsert a session (insert or update)
+   */
+  async upsertSession(session: Session): Promise<Session> {
+    const client = this.getClient();
+    
+    if (!this.isOnline) {
+      this.queueOfflineOperation(() => this.upsertSession(session));
+      throw new SupabaseServiceError('Offline mode - operation queued');
+    }
+    
+    return this.executeWithRetry(async () => {
+      const record = SessionConverter.toSupabaseRecord(session);
+      const { data, error } = await client
+        .from('sessions')
+        .upsert(record)
+        .select()
+        .single();
+      
+      if (error) {
+        throw new SupabaseServiceError('Failed to upsert session', error.code, error);
+      }
+      
+      return SessionConverter.toSession(data);
+    }, 'upsertSession');
   }
 
 }
