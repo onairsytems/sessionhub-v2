@@ -117,8 +117,8 @@ class PostBuildValidator {
       if (fs.existsSync(foundationPath)) {
         const foundation = fs.readFileSync(foundationPath, 'utf8');
         const match = foundation.match(/Version[^:]*:\s*v?([\d.]+)/);
-        if (match) {
-          foundationVersion = match[1]!;
+        if (match && match[1]) {
+          foundationVersion = match[1];
         }
       }
 

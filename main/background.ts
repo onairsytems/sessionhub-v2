@@ -29,6 +29,7 @@ import { registerContextHandlers } from "./ipc/contextHandlers";
 import { registerSessionHandlers } from "./ipc/sessionHandlers";
 import { registerPipelineHandlers } from "./ipc/pipelineHandlers";
 import { registerMCPServerHandlers } from "./ipc/mcpServerHandlers";
+import { registerZedHandlers } from "./ipc/zedHandlers";
 
 // Configure auto-updater for production
 if (!isDev) {
@@ -459,6 +460,9 @@ class SessionHubApp {
 
     // Register MCP Server handlers
     registerMCPServerHandlers();
+
+    // Register Zed IDE handlers
+    registerZedHandlers();
 
     // System health check
     ipcMain.handle("get-system-health", async () => {

@@ -72,8 +72,8 @@ async function main() {
       try {
         // Extract a summary of what we're doing
         const firstLine = statement.split('\n')[0];
-        const action = firstLine ? (firstLine.match(/(CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|GRANT)/i)?.[0] || 'EXECUTE') : 'EXECUTE';
-        const target = firstLine ? (firstLine.match(/(TABLE|VIEW|FUNCTION|POLICY|INDEX|TRIGGER)\s+(\S+)/i)?.[2] || 'statement') : 'statement';
+        const action = firstLine && firstLine.match(/(CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|GRANT)/i)?.[0] || 'EXECUTE';
+        const target = firstLine && firstLine.match(/(TABLE|VIEW|FUNCTION|POLICY|INDEX|TRIGGER)\s+(\S+)/i)?.[2] || 'statement';
         
         process.stdout.write(`${action} ${target}... `);
 
@@ -125,7 +125,7 @@ async function main() {
 }
 
 // Note: If the exec_sql function doesn't exist, create it first
-// const createExecSqlFunction = `
+// Example:
 // CREATE OR REPLACE FUNCTION exec_sql(sql text)
 // RETURNS void AS $$
 // BEGIN

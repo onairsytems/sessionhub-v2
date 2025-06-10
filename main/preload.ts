@@ -462,6 +462,68 @@ contextBridge.exposeInMainWorld("electron", {
     getComponentsNeedingUpdate: () => 
       ipcRenderer.invoke("figma:get-components-needing-update"),
   },
+
+  // Zed IDE Integration
+  zed: {
+    // Connection Management
+    storeCredentials: (credentials: { email: string; apiToken: string }) =>
+      ipcRenderer.invoke("zed:store-credentials", credentials),
+    testConnection: () => ipcRenderer.invoke("zed:test-connection"),
+    getConnectionHealth: () => ipcRenderer.invoke("zed:get-connection-health"),
+    reconnect: () => ipcRenderer.invoke("zed:reconnect"),
+    
+    // IDE Operations
+    connect: () => ipcRenderer.invoke("zed:connect"),
+    disconnect: () => ipcRenderer.invoke("zed:disconnect"),
+    openWorkspace: (workspacePath: string) => 
+      ipcRenderer.invoke("zed:open-workspace", workspacePath),
+    getWorkspaceInfo: () => ipcRenderer.invoke("zed:get-workspace-info"),
+    openFile: (filePath: string) => ipcRenderer.invoke("zed:open-file", filePath),
+    saveFile: (filePath: string, content: string) => 
+      ipcRenderer.invoke("zed:save-file", filePath, content),
+    
+    // Two-Actor Integration
+    sendToExecution: (instruction: string, context: any) =>
+      ipcRenderer.invoke("zed:send-to-execution", instruction, context),
+    getExecutionStatus: () => ipcRenderer.invoke("zed:get-execution-status"),
+    getActorStatus: () => ipcRenderer.invoke("zed:get-actor-status"),
+    syncActors: () => ipcRenderer.invoke("zed:sync-actors"),
+    
+    // Git Operations
+    getGitStatus: () => ipcRenderer.invoke("zed:git-status"),
+    stageFiles: (files: string[]) => ipcRenderer.invoke("zed:stage-files", files),
+    commit: (message: string) => ipcRenderer.invoke("zed:commit", message),
+    
+    // Quality Gates
+    runLinter: () => ipcRenderer.invoke("zed:run-linter"),
+    runTypeCheck: () => ipcRenderer.invoke("zed:run-typecheck"),
+    
+    // Utility
+    openExternal: (url: string) => ipcRenderer.invoke("zed:open-external", url),
+  },
+  
+  // Shell operations
+  shell: {
+    openExternal: (url: string) => ipcRenderer.invoke("zed:open-external", url),
+  },
+  
+  // Generic API operations
+  api: {
+    on: (channel: string, callback: (...args: any[]) => void) => {
+      ipcRenderer.on(channel, callback);
+    },
+    off: (channel: string, callback: (...args: any[]) => void) => {
+      ipcRenderer.removeListener(channel, callback);
+    },
+    showNotification: (options: { title: string; body: string; type?: string }) => {
+      ipcRenderer.send("show-notification", options);
+    },
+  },
+  
+  // Project operations (needed by ZedProjectSwitcher)
+  projects: {
+    list: () => ipcRenderer.invoke("get-projects"),
+  },
 });
 
 // Export empty object to make this a module

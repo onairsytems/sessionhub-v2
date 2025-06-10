@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "../../components/ui/Card";
+import { Card } from "./ui/Card";
 
 export interface SessionProgressProps {
   sessionId: string;
@@ -50,7 +50,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
       stepId: string,
       status: ProgressStep["status"],
       details?: string,
-    ) => {
+    ): void => {
       setSteps((prevSteps) =>
         prevSteps.map((step) => {
           if (step.id === stepId) {
@@ -184,8 +184,8 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
     const connect = async () => {
       try {
         // Subscribe to session progress events
-        const unsubscribe = await window.electron.onSessionProgress(
-          (event: { type: string; data: unknown }) => {
+        window.sessionhub.onSessionProgress(
+          (event: any) => {
             const typedData = event.data as {
               position?: number;
               status?: string;
@@ -202,7 +202,7 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
         setIsConnected(true);
 
         // Get initial status
-        const status = (await window.electron.getSessionStatus(sessionId)) as {
+        const status = (await window.electronAPI.getSession(sessionId)) as {
           state: string;
         } | null;
         if (status) {
@@ -210,7 +210,9 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
         }
 
         cleanup = () => {
-          unsubscribe?.();
+          window.sessionhub.removeSessionProgressListener((event: any) => {
+            handleProgressEvent({ type: event.type, data: event.data });
+          });
           setIsConnected(false);
         };
       } catch (err) {

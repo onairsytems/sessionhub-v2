@@ -11,3 +11,4 @@ export type {
 } from './ExecutionResult';
 export * from './Session';
 export * from './ActorConfig';
+export * from './ProjectContext';

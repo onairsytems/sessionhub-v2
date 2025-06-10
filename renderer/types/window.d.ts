@@ -260,6 +260,106 @@ declare global {
       }>>;
       openAPIConfiguration: () => Promise<void>;
       clearViolations: () => Promise<{ success: boolean }>;
+      
+      // Zed IDE Integration
+      zed: {
+        // Connection Management
+        storeCredentials: (credentials: { email: string; apiToken: string }) => Promise<void>;
+        testConnection: () => Promise<{
+          success: boolean;
+          diagnostics: {
+            zedInstalled: boolean;
+            zedRunning: boolean;
+            mcpConfigured: boolean;
+            credentialsValid: boolean;
+          };
+          errors: string[];
+        }>;
+        getConnectionHealth: () => Promise<{
+          isConnected: boolean;
+          isZedRunning: boolean;
+          isMCPAvailable: boolean;
+          lastHealthCheck: Date;
+          connectionUptime: number;
+          errors: string[];
+        }>;
+        reconnect: () => Promise<{ success: boolean }>;
+        
+        // IDE Operations
+        connect: () => Promise<{ success: boolean }>;
+        disconnect: () => Promise<{ success: boolean }>;
+        openWorkspace: (workspacePath: string) => Promise<{ success: boolean }>;
+        getWorkspaceInfo: () => Promise<any>;
+        openFile: (filePath: string) => Promise<{ success: boolean }>;
+        saveFile: (filePath: string, content: string) => Promise<{ success: boolean }>;
+        
+        // Two-Actor Integration
+        sendToExecution: (instruction: string, context: any) => Promise<{ success: boolean }>;
+        getExecutionStatus: () => Promise<{ active: boolean; currentTask?: string }>;
+        getActorStatus: () => Promise<any>;
+        syncActors: () => Promise<{ success: boolean }>;
+        
+        // Git Operations
+        getGitStatus: () => Promise<{ branch: string; changes: string[] }>;
+        stageFiles: (files: string[]) => Promise<{ success: boolean }>;
+        commit: (message: string) => Promise<{ success: boolean }>;
+        
+        // Quality Gates
+        runLinter: () => Promise<{ passed: boolean; errors: any[] }>;
+        runTypeCheck: () => Promise<{ passed: boolean; errors: any[] }>;
+        openExternal: (url: string) => Promise<{ success: boolean }>;
+      };
+      
+      shell: {
+        openExternal: (url: string) => Promise<{ success: boolean }>;
+      };
+      
+      api: {
+        on: (channel: string, callback: (...args: any[]) => void) => void;
+        off: (channel: string, callback: (...args: any[]) => void) => void;
+        showNotification: (options: { title: string; body: string; type?: string }) => void;
+      };
+      
+      projects: {
+        list: () => Promise<any[]>;
+      };
+    };
+    
+    // Add the api property for Zed components
+    api: {
+      zed: {
+        storeCredentials: (credentials: { email: string; apiToken: string }) => Promise<void>;
+        testConnection: () => Promise<any>;
+        getConnectionHealth: () => Promise<any>;
+        reconnect: () => Promise<{ success: boolean }>;
+        connect: () => Promise<{ success: boolean }>;
+        disconnect: () => Promise<{ success: boolean }>;
+        openWorkspace: (workspacePath: string) => Promise<{ success: boolean }>;
+        getWorkspaceInfo: () => Promise<any>;
+        openFile: (filePath: string) => Promise<{ success: boolean }>;
+        saveFile: (filePath: string, content: string) => Promise<{ success: boolean }>;
+        sendToExecution: (instruction: string, context: any) => Promise<{ success: boolean }>;
+        getExecutionStatus: () => Promise<{ active: boolean; currentTask?: string }>;
+        getActorStatus: () => Promise<any>;
+        syncActors: () => Promise<{ success: boolean }>;
+        getGitStatus: () => Promise<{ branch: string; changes: string[] }>;
+        stageFiles: (files: string[]) => Promise<{ success: boolean }>;
+        commit: (message: string) => Promise<{ success: boolean }>;
+        runLinter: () => Promise<{ passed: boolean; errors: any[] }>;
+        runTypeCheck: () => Promise<{ passed: boolean; errors: any[] }>;
+      };
+      
+      shell: {
+        openExternal: (url: string) => Promise<{ success: boolean }>;
+      };
+      
+      projects: {
+        list: () => Promise<any[]>;
+      };
+      
+      on: (channel: string, callback: (...args: any[]) => void) => void;
+      off: (channel: string, callback: (...args: any[]) => void) => void;
+      showNotification: (options: { title: string; body: string; type?: string }) => void;
     };
   }
 }

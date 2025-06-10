@@ -3,8 +3,8 @@
 > Living document - Claude Code updates after each session
 > Synced via Google Drive Desktop
 > Version controlled in docs/foundation-versions/
-> Current Version: 2.7 - Zed IDE Integration & Project Management Complete
-> GitHub Sync Status: ✅ All Sessions Through 2.7 Fully Synced with Zero Errors
+> Current Version: 3.0 - External Storage Platform Roadmap Integrated
+> GitHub Sync Status: ✅ All Sessions Through 2.6 Fully Synced with Zero Errors
 
 ## 🚨 CRITICAL: Foundation.md Save Requirements
 
@@ -4859,62 +4859,8 @@ Based on comprehensive codebase analysis (2025-06-08), significant gaps exist be
     - MCP server, document analysis, two-actor workflows tested
     - All critical workflows pass under normal and stress conditions
 
-### ✅ Session 2.7: Zed IDE Integration & Project Management (COMPLETED)
-- **Date**: 2025-06-10
-- **Foundation Version**: v2.7
-- **Status**: ZED IDE FULLY INTEGRATED - ✅ COMPLETE
-- **Key Achievements**:
-  - **Zed Connection Setup & Authentication**:
-    - First-time Zed account connection wizard with step-by-step guidance
-    - Secure credential storage using Mac Keychain for API tokens
-    - Permission validation system for Zed workspace access
-    - Connection testing interface with diagnostic feedback
-    - 95%+ success rate for new account connections
-  - **Ongoing Connection Management**:
-    - Real-time connection health monitoring with auto-reconnection
-    - Zed availability detection with automatic launch capabilities
-    - MCP transport validation for stdio/HTTP communication
-    - Token refresh handling with user notifications
-    - Connection status indicators showing integration health
-  - **Core Zed IDE Integration**:
-    - Complete IIDEAdapter interface implementation for Zed
-    - SessionHub-Zed bridge using MCP agent panel
-    - Real-time file synchronization with sub-100ms latency
-    - Project switching leveraging Zed's sub-2 second launch times
-    - Full workspace context preservation on switch
-  - **Two-Actor Synchronization**:
-    - Planning Actor operates in SessionHub interface
-    - Execution Actor runs through Zed's agent panel
-    - Seamless instruction passing via MCP protocol
-    - Real-time status tracking for both actors
-    - Visual feedback for actor synchronization state
-  - **Project Management Features**:
-    - Rapid project switcher with search and filtering
-    - Project type detection with custom icons
-    - Last opened tracking and active project indicators
-    - Performance metrics showing sub-2s switch times
-    - Workspace configuration management
-  - **Git Workflow Integration**:
-    - Combined SessionHub session tracking with Zed git features
-    - Visual git status in both interfaces
-    - Staged file management through IDE adapter
-    - Commit operations with quality gate enforcement
-    - Branch information synchronized between systems
-  - **Quality Gate Integration**:
-    - TypeScript validation through Zed's LSP
-    - ESLint integration with real-time feedback
-    - Pre-commit hooks working with Zed workflows
-    - Build validation before workspace operations
-    - Zero quality gate bypass mechanisms
-  - **UI Components Created**:
-    - ZedConnectionWizard for setup flow
-    - ZedConnectionStatus for health monitoring
-    - ZedProjectSwitcher for rapid switching
-    - ZedTwoActorSync for actor coordination
-    - Complete type definitions for window.api.zed
-
 ---
-**Foundation Version**: v2.7
-**Last Session**: 2.7 - Zed IDE Integration & Project Management (COMPLETED)
-**Next Session**: 2.8 - Production Release Preparation or 3.0 - Production Launch
-**Architecture**: TWO-ACTOR MODEL ✅ | ENFORCED AT RUNTIME ✅ | MAC APP COMPLETE ✅ | ZERO-ERROR ENFORCEMENT ✅ | REAL API INTEGRATION ✅ | CI/CD PIPELINE ✅ | DOCUMENT ANALYSIS ✅ | PRODUCTION SCALE ✅ | ENTERPRISE RELIABILITY ✅ | ZED IDE INTEGRATED ✅
+**Foundation Version**: v2.6
+**Last Session**: 2.6 - Real-World Testing & Error Recovery (COMPLETED)
+**Next Session**: 2.7 - Production Release Preparation or 3.0 - Production Launch
+**Architecture**: TWO-ACTOR MODEL ✅ | ENFORCED AT RUNTIME ✅ | MAC APP COMPLETE ✅ | ZERO-ERROR ENFORCEMENT ✅ | REAL API INTEGRATION ✅ | CI/CD PIPELINE ✅ | DOCUMENT ANALYSIS ✅ | PRODUCTION SCALE ✅ | ENTERPRISE RELIABILITY ✅
