@@ -30,9 +30,9 @@ export const ProjectContextViewer: React.FC<ProjectContextViewerProps> = ({
     setError(null);
     try {
       // Mock data for now
-      const result: { success: boolean; error?: string; data?: any } = { success: false, error: 'API not available' };
+      const result: { success: boolean; error?: string; data?: unknown } = { success: false, error: 'API not available' };
       if (result.success && result.data) {
-        setContext(result.data);
+        setContext(result.data as BaseProjectContext);
       } else {
         setError(result.error || 'Failed to load context');
       }
@@ -79,7 +79,7 @@ export const ProjectContextViewer: React.FC<ProjectContextViewerProps> = ({
     return (
       <Card className="p-4">
         <div className="text-red-500 mb-4">{error}</div>
-        <Button onClick={loadContext} size="sm">Retry</Button>
+        <Button onClick={() => void loadContext()} size="sm">Retry</Button>
       </Card>
     );
   }
@@ -88,7 +88,7 @@ export const ProjectContextViewer: React.FC<ProjectContextViewerProps> = ({
     return (
       <Card className="p-4">
         <p className="text-gray-500 mb-4">No context available</p>
-        <Button onClick={handleRefresh} size="sm">Analyze Project</Button>
+        <Button onClick={() => void handleRefresh()} size="sm">Analyze Project</Button>
       </Card>
     );
   }
@@ -98,7 +98,7 @@ export const ProjectContextViewer: React.FC<ProjectContextViewerProps> = ({
       {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Project Context</h2>
-        <Button onClick={handleRefresh} size="sm" variant="secondary" disabled={loading}>
+        <Button onClick={() => void handleRefresh()} size="sm" variant="secondary" disabled={loading}>
           Refresh Context
         </Button>
       </div>
@@ -244,10 +244,10 @@ export const ProjectContextViewer: React.FC<ProjectContextViewerProps> = ({
                 type="percentage"
               />
             )}
-            {(context.metrics as any).technicalDebt && (
+            {(context.metrics as any)?.technicalDebt && (
               <MetricCard
                 label="Technical Debt"
-                value={(context.metrics as any).technicalDebt}
+                value={(context.metrics as any).technicalDebt as string}
                 type="rating"
               />
             )}
@@ -286,7 +286,7 @@ const ContextSection: React.FC<ContextSectionProps> = ({
     <Card className="p-4">
       <div
         className="flex justify-between items-center cursor-pointer"
-        onClick={onToggle}
+        onClick={() => void onToggle()}
       >
         <h3 className="text-lg font-medium">{title}</h3>
         <svg

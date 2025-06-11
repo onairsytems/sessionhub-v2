@@ -1,16 +1,13 @@
 /**
  * Enhanced Actor Status Dashboard - Real-time Two-Actor Integration Monitoring
  */
-
 import React, { useState, useEffect } from 'react';
 import { Card } from './ui/Card';
 import { ActorStatusIndicator, useActorStatus } from './ActorStatusIndicator';
-
 interface APIStatus {
   planning: boolean;
   execution: boolean;
 }
-
 interface ViolationAlert {
   id: string;
   actorType: 'planning' | 'execution';
@@ -20,7 +17,6 @@ interface ViolationAlert {
   timestamp: string;
   blocked: boolean;
 }
-
 interface ActorActivity {
   actorId: string;
   actorType: 'planning' | 'execution';
@@ -29,7 +25,6 @@ interface ActorActivity {
   status: 'started' | 'completed' | 'failed' | 'blocked';
   duration?: number;
 }
-
 interface ActorStatusDashboardProps {
   apiStatus: APIStatus;
   violations: ViolationAlert[];
@@ -37,7 +32,6 @@ interface ActorStatusDashboardProps {
   onConfigureAPI: () => void;
   onClearViolations: () => void;
 }
-
 export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
   apiStatus,
   violations,
@@ -47,7 +41,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
 }) => {
   const actorStatus = useActorStatus();
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
-
   // Get violation counts by severity
   const violationStats = {
     critical: violations.filter(v => v.severity === 'critical').length,
@@ -56,12 +49,10 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
     low: violations.filter(v => v.severity === 'low').length,
     total: violations.length
   };
-
   // Get recent activities
   const recentActivities = activities
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
     .slice(0, 10);
-
   const getSeverityColor = (severity: string) => {
     switch (severity) {
       case 'critical': return 'text-red-600 bg-red-100 border-red-300';
@@ -71,7 +62,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
       default: return 'text-gray-600 bg-gray-100 border-gray-300';
     }
   };
-
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed': return 'text-green-600';
@@ -81,16 +71,13 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
       default: return 'text-gray-600';
     }
   };
-
   const formatDuration = (duration?: number) => {
     if (!duration) return 'N/A';
     return duration < 1000 ? `${duration}ms` : `${(duration / 1000).toFixed(1)}s`;
   };
-
   const formatTime = (timestamp: string) => {
     return new Date(timestamp).toLocaleTimeString();
   };
-
   return (
     <div className="space-y-4 p-4">
       {/* Main Actor Status */}
@@ -107,7 +94,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
             </span>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Planning Actor Status */}
           <div className="border rounded p-3">
@@ -129,7 +115,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
               </div>
             )}
           </div>
-
           {/* Execution Actor Status */}
           <div className="border rounded p-3">
             <div className="flex items-center gap-3 mb-2">
@@ -151,7 +136,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
             )}
           </div>
         </div>
-
         {/* API Configuration */}
         {(!apiStatus.planning || !apiStatus.execution) && (
           <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
@@ -163,7 +147,7 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
                 </p>
               </div>
               <button
-                onClick={onConfigureAPI}
+                onClick={() => void onConfigureAPI()}
                 className="px-3 py-1 bg-yellow-600 text-white rounded text-sm hover:bg-yellow-700"
               >
                 Configure
@@ -172,7 +156,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
           </div>
         )}
       </Card>
-
       {/* Boundary Violations */}
       {violationStats.total > 0 && (
         <Card className="p-4">
@@ -182,13 +165,12 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
               Boundary Violations ({violationStats.total})
             </h3>
             <button
-              onClick={onClearViolations}
+              onClick={() => void onClearViolations()}
               className="text-sm text-red-600 hover:text-red-800"
             >
               Clear All
             </button>
           </div>
-
           {/* Violation Summary */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
             {violationStats.critical > 0 && (
@@ -216,7 +198,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
               </div>
             )}
           </div>
-
           {/* Recent Violations */}
           <div className="space-y-2 max-h-48 overflow-y-auto">
             {violations.slice(0, 5).map((violation) => (
@@ -244,7 +225,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
               </div>
             ))}
           </div>
-
           {violations.length > 5 && (
             <button
               onClick={() => setExpandedSection(expandedSection === 'violations' ? null : 'violations')}
@@ -253,7 +233,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
               {expandedSection === 'violations' ? 'Show Less' : `Show All ${violations.length} Violations`}
             </button>
           )}
-
           {expandedSection === 'violations' && (
             <div className="mt-4 space-y-2 max-h-64 overflow-y-auto">
               {violations.slice(5).map((violation) => (
@@ -273,14 +252,12 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
           )}
         </Card>
       )}
-
       {/* Recent Activities */}
       <Card className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Recent Actor Activities</h3>
           <span className="text-sm text-gray-600">{activities.length} total</span>
         </div>
-
         {recentActivities.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             No recent activities
@@ -317,7 +294,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
             ))}
           </div>
         )}
-
         {activities.length > 10 && (
           <button
             onClick={() => setExpandedSection(expandedSection === 'activities' ? null : 'activities')}
@@ -326,7 +302,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
             {expandedSection === 'activities' ? 'Show Less' : `Show All ${activities.length} Activities`}
           </button>
         )}
-
         {expandedSection === 'activities' && (
           <div className="mt-4 space-y-1 max-h-64 overflow-y-auto">
             {activities.slice(10).map((activity, index) => (
@@ -341,7 +316,6 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
           </div>
         )}
       </Card>
-
       {/* Floating Actor Status Indicator */}
       <ActorStatusIndicator
         activeActor={actorStatus.activeActor}
@@ -351,13 +325,11 @@ export const ActorStatusDashboard: React.FC<ActorStatusDashboardProps> = ({
     </div>
   );
 };
-
 // Hook for managing dashboard data
 export const useActorDashboard = () => {
   const [apiStatus, setApiStatus] = useState<APIStatus>({ planning: false, execution: false });
   const [violations, setViolations] = useState<ViolationAlert[]>([]);
   const [activities, setActivities] = useState<ActorActivity[]>([]);
-
   useEffect(() => {
     // Load initial data
     const loadData = async () => {
@@ -374,33 +346,25 @@ export const useActorDashboard = () => {
         setViolations([]);
         setActivities([]);
       } catch (error) {
-// REMOVED: console statement
       }
     };
-
     loadData();
-
     // Set up listeners for updates (commented out for now)
     // TODO: Implement these when the IPC handlers are available
   }, []);
-
   const configureAPI = async () => {
     try {
       await window.electronAPI?.openAPIConfiguration?.();
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   const clearViolations = async () => {
     try {
       await window.electronAPI?.clearViolations?.();
       setViolations([]);
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   return {
     apiStatus,
     violations,

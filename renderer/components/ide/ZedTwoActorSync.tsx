@@ -37,43 +37,43 @@ export const ZedTwoActorSync: React.FC = () => {
     checkActorStatus();
 
     // Listen for actor updates
-    const handlePlanningUpdate = (_event: any, status: any) => {
+    const handlePlanningUpdate = (_event: unknown, status: unknown) => {
       setActorStatus(prev => ({
         ...prev,
-        planning: status
+        planning: status as ActorStatus['planning']
       }));
     };
 
-    const handleExecutionUpdate = (_event: any, status: any) => {
+    const handleExecutionUpdate = (_event: unknown, status: unknown) => {
       setActorStatus(prev => ({
         ...prev,
-        execution: status
+        execution: status as ActorStatus['execution']
       }));
     };
 
-    const handleInstructionSent = (_event: any, instruction: Instruction) => {
+    const handleInstructionSent = (_event: unknown, instruction: Instruction) => {
       setInstructions(prev => [instruction, ...prev].slice(0, 10)); // Keep last 10
     };
 
-    window.electronAPI.api.on('actor:planning-update', handlePlanningUpdate);
-    window.electronAPI.api.on('actor:execution-update', handleExecutionUpdate);
-    window.electronAPI.api.on('actor:instruction-sent', handleInstructionSent);
+    window.electronAPI.api.on('actor:planning-update', handlePlanningUpdate as (...args: any[]) => void);
+    window.electronAPI.api.on('actor:execution-update', handleExecutionUpdate as (...args: any[]) => void);
+    window.electronAPI.api.on('actor:instruction-sent', handleInstructionSent as (...args: any[]) => void);
 
     // Poll for status updates
     const interval = setInterval(checkActorStatus, 3000);
 
     return () => {
       clearInterval(interval);
-      window.electronAPI.api.off('actor:planning-update', handlePlanningUpdate);
-      window.electronAPI.api.off('actor:execution-update', handleExecutionUpdate);
-      window.electronAPI.api.off('actor:instruction-sent', handleInstructionSent);
+      window.electronAPI.api.off('actor:planning-update', handlePlanningUpdate as (...args: any[]) => void);
+      window.electronAPI.api.off('actor:execution-update', handleExecutionUpdate as (...args: any[]) => void);
+      window.electronAPI.api.off('actor:instruction-sent', handleInstructionSent as (...args: any[]) => void);
     };
   }, []);
 
   const checkActorStatus = async () => {
     try {
       const status = await window.electronAPI.zed.getActorStatus();
-      setActorStatus(status);
+      setActorStatus(status as ActorStatus);
     } catch (error) {
       // Silently handle error - status will remain unchanged
       // The UI will show the last known state
@@ -116,7 +116,7 @@ export const ZedTwoActorSync: React.FC = () => {
             </h3>
             <Button
               size="sm"
-              onClick={handleSync}
+              onClick={() => void handleSync()}
               disabled={isSyncing}
             >
               {isSyncing ? 'Syncing...' : 'Sync Actors'}

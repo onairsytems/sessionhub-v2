@@ -3,13 +3,11 @@
  * 
  * Main interface for managing MCP integrations
  */
-
 import React, { useState, useEffect } from 'react';
 import { MCPIntegration } from '../../../src/services/mcp/server/types';
 import { MCPIntegrationBuilder } from './MCPIntegrationBuilder';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-
 export const MCPIntegrationManager: React.FC = () => {
   const [integrations, setIntegrations] = useState<MCPIntegration[]>([]);
   const [showBuilder, setShowBuilder] = useState(false);
@@ -17,24 +15,20 @@ export const MCPIntegrationManager: React.FC = () => {
   const [serverStatus, setServerStatus] = useState<'running' | 'stopped' | 'error'>('stopped');
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-
   // Load integrations
   useEffect(() => {
-    loadIntegrations();
+    void loadIntegrations();
     checkServerStatus();
   }, []);
-
   const loadIntegrations = async () => {
     try {
       const result = await window.electronAPI.mcp.listIntegrations();
       setIntegrations(result);
     } catch (error) {
-// REMOVED: console statement
     } finally {
       setLoading(false);
     }
   };
-
   const checkServerStatus = async () => {
     try {
       const status = await window.electronAPI.mcp.getServerStatus();
@@ -43,27 +37,22 @@ export const MCPIntegrationManager: React.FC = () => {
       setServerStatus('error');
     }
   };
-
   const handleStartServer = async () => {
     try {
       await window.electronAPI.mcp.startServer();
       setServerStatus('running');
       await loadIntegrations();
     } catch (error) {
-// REMOVED: console statement
       setServerStatus('error');
     }
   };
-
   const handleStopServer = async () => {
     try {
       await window.electronAPI.mcp.stopServer();
       setServerStatus('stopped');
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   const handleSaveIntegration = async (integration: MCPIntegration) => {
     try {
       await window.electronAPI.mcp.registerIntegration(integration);
@@ -71,23 +60,18 @@ export const MCPIntegrationManager: React.FC = () => {
       setShowBuilder(false);
       setEditingIntegration(undefined);
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   const handleDeleteIntegration = async (id: string) => {
     if (!confirm('Are you sure you want to delete this integration?')) {
       return;
     }
-
     try {
       await window.electronAPI.mcp.unregisterIntegration(id);
       await loadIntegrations();
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   const handleTestIntegration = async (integration: MCPIntegration) => {
     try {
       // Test the first tool of the integration
@@ -99,7 +83,6 @@ export const MCPIntegrationManager: React.FC = () => {
             tool.name,
             {}
           );
-          
           alert(`Test successful!\n\nResult: ${JSON.stringify(result, null, 2)}`);
         }
       }
@@ -107,13 +90,11 @@ export const MCPIntegrationManager: React.FC = () => {
       alert(`Test failed: ${(error as Error).message}`);
     }
   };
-
   const filteredIntegrations = integrations.filter(integration =>
     integration.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     integration.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
     integration.author.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const categorizedIntegrations = filteredIntegrations.reduce((acc, integration) => {
     const category = integration.category || 'other';
     if (!acc[category]) {
@@ -122,7 +103,6 @@ export const MCPIntegrationManager: React.FC = () => {
     acc[category].push(integration);
     return acc;
   }, {} as Record<string, MCPIntegration[]>);
-
   if (showBuilder) {
     return (
       <MCPIntegrationBuilder
@@ -135,7 +115,6 @@ export const MCPIntegrationManager: React.FC = () => {
       />
     );
   }
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -146,7 +125,6 @@ export const MCPIntegrationManager: React.FC = () => {
             Manage and create Model Context Protocol integrations
           </p>
         </div>
-        
         <div className="flex items-center space-x-3">
           {/* Server Status */}
           <div className="flex items-center space-x-2">
@@ -159,23 +137,20 @@ export const MCPIntegrationManager: React.FC = () => {
               Server {serverStatus}
             </span>
           </div>
-          
           {serverStatus === 'stopped' ? (
-            <Button onClick={handleStartServer} size="sm">
+            <Button onClick={() => void handleStartServer()} size="sm">
               Start Server
             </Button>
           ) : serverStatus === 'running' ? (
-            <Button onClick={handleStopServer} size="sm" variant="secondary">
+            <Button onClick={() => void handleStopServer()} size="sm" variant="secondary">
               Stop Server
             </Button>
           ) : null}
-          
           <Button onClick={() => setShowBuilder(true)}>
             Create Integration
           </Button>
         </div>
       </div>
-
       {/* Search */}
       <div className="relative">
         <input
@@ -199,7 +174,6 @@ export const MCPIntegrationManager: React.FC = () => {
           />
         </svg>
       </div>
-
       {/* Integrations */}
       {loading ? (
         <div className="text-center py-12">
@@ -227,7 +201,6 @@ export const MCPIntegrationManager: React.FC = () => {
               <h2 className="text-xl font-semibold mb-4 capitalize">
                 {category.replace('_', ' ')}
               </h2>
-              
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {items.map((integration) => (
                   <Card
@@ -244,7 +217,6 @@ export const MCPIntegrationManager: React.FC = () => {
                           <p className="text-sm text-gray-500">v{integration.version}</p>
                         </div>
                       </div>
-                      
                       <button
                         onClick={() => handleDeleteIntegration(integration.id!)}
                         className="text-gray-400 hover:text-red-500"
@@ -254,18 +226,15 @@ export const MCPIntegrationManager: React.FC = () => {
                         </svg>
                       </button>
                     </div>
-                    
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                       {integration.description}
                     </p>
-                    
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <span>{integration.tools.length} tools</span>
                         <span>•</span>
                         <span>by {integration.author}</span>
                       </div>
-                      
                       <div className="flex items-center space-x-2">
                         <button
                           onClick={() => handleTestIntegration(integration)}
@@ -284,7 +253,6 @@ export const MCPIntegrationManager: React.FC = () => {
                         </button>
                       </div>
                     </div>
-                    
                     {/* Permissions */}
                     {integration.permissions.length > 0 && (
                       <div className="mt-3 pt-3 border-t">

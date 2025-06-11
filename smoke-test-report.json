@@ -1,0 +1,46 @@
+{
+  "timestamp": "2025-06-11T02:47:03.748Z",
+  "platform": "darwin",
+  "summary": {
+    "total": 6,
+    "passed": 2,
+    "failed": 4
+  },
+  "duration": 1295,
+  "results": [
+    {
+      "test": "Build Artifacts Exist",
+      "status": "fail",
+      "error": "No DMG files found in dist directory",
+      "duration": 0
+    },
+    {
+      "test": "Build Manifest Valid",
+      "status": "fail",
+      "error": "build-manifest.json not found",
+      "duration": 0
+    },
+    {
+      "test": "Electron App Structure",
+      "status": "fail",
+      "error": "Main process file not found",
+      "duration": 0
+    },
+    {
+      "test": "Auto-Updater Configuration",
+      "status": "fail",
+      "error": "Invalid auto-updater configuration",
+      "duration": 0
+    },
+    {
+      "test": "Code Signing (macOS)",
+      "status": "pass",
+      "duration": 0
+    },
+    {
+      "test": "Deployment Endpoints",
+      "status": "pass",
+      "duration": 1294
+    }
+  ]
+}

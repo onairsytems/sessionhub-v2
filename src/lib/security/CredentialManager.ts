@@ -33,6 +33,17 @@ export interface EncryptedCredential {
 }
 
 export class CredentialManager {
+  private static instance: CredentialManager;
+  
+  static getInstance(): CredentialManager {
+    if (!CredentialManager.instance) {
+      CredentialManager.instance = new CredentialManager(
+        new Logger('CredentialManager')
+      );
+    }
+    return CredentialManager.instance;
+  }
+
   private readonly logger: Logger;
   private readonly credentialsPath: string;
   private encryptionKey: Buffer;

@@ -3,15 +3,12 @@
  * 
  * Foundations for an MCP integration marketplace
  */
-
 import { EventEmitter } from 'events';
 import { 
   MCPIntegrationManifest
 } from '../server/types';
-
 export type { MCPIntegrationCategory } from '../server/types';
 import type { MCPIntegrationCategory } from '../server/types';
-
 export interface MarketplaceIntegration {
   id: string;
   manifest: MCPIntegrationManifest;
@@ -21,7 +18,6 @@ export interface MarketplaceIntegration {
   stats: IntegrationStats;
   verified: boolean;
 }
-
 export interface MarketplacePublisher {
   id: string;
   name: string;
@@ -29,7 +25,6 @@ export interface MarketplacePublisher {
   website?: string;
   verified: boolean;
 }
-
 export interface IntegrationStats {
   downloads: number;
   stars: number;
@@ -38,7 +33,6 @@ export interface IntegrationStats {
   weeklyDownloads: number;
   monthlyDownloads: number;
 }
-
 export interface MarketplaceSearchOptions {
   query?: string;
   category?: MCPIntegrationCategory;
@@ -50,7 +44,6 @@ export interface MarketplaceSearchOptions {
   limit?: number;
   offset?: number;
 }
-
 export interface MarketplaceReview {
   id: string;
   integrationId: string;
@@ -61,27 +54,22 @@ export interface MarketplaceReview {
   helpful: number;
   verified: boolean;
 }
-
 export class MCPMarketplace extends EventEmitter {
   private integrations: Map<string, MarketplaceIntegration>;
   private publishers: Map<string, MarketplacePublisher>;
   private reviews: Map<string, MarketplaceReview[]>;
   // private apiUrl: string; // Unused for now
-
   constructor(_apiUrl?: string) {
     super();
     this.integrations = new Map();
     this.publishers = new Map();
     this.reviews = new Map();
     // this.apiUrl = apiUrl || 'https://mcp.sessionhub.com/api/v1'; // Unused for now
-    
     this.loadFeaturedIntegrations();
   }
-
   private async loadFeaturedIntegrations(): Promise<void> {
     // In production, this would fetch from the API
     // For now, we'll create some mock featured integrations
-    
     const featured: MarketplaceIntegration[] = [
       {
         id: 'github-official',
@@ -177,18 +165,15 @@ export class MCPMarketplace extends EventEmitter {
         verified: true
       }
     ];
-
     featured.forEach(integration => {
       this.integrations.set(integration.id, integration);
       this.publishers.set(integration.publisher.id, integration.publisher);
     });
   }
-
   async searchIntegrations(
     options: MarketplaceSearchOptions = {}
   ): Promise<MarketplaceIntegration[]> {
     let results = Array.from(this.integrations.values());
-
     // Filter by query
     if (options.query) {
       const query = options.query.toLowerCase();
@@ -200,21 +185,18 @@ export class MCPMarketplace extends EventEmitter {
         )
       );
     }
-
     // Filter by category
     if (options.category) {
       results = results.filter(i => 
         i.manifest.integration.category === options.category
       );
     }
-
     // Filter by author
     if (options.author) {
       results = results.filter(i =>
         i.manifest.integration.author.toLowerCase().includes(options.author!.toLowerCase())
       );
     }
-
     // Filter by tags
     if (options.tags && options.tags.length > 0) {
       results = results.filter(i =>
@@ -223,17 +205,14 @@ export class MCPMarketplace extends EventEmitter {
         )
       );
     }
-
     // Filter by rating
     if (options.minRating) {
       results = results.filter(i => i.stats.rating >= options.minRating!);
     }
-
     // Filter by verified status
     if (options.verified !== undefined) {
       results = results.filter(i => i.verified === options.verified);
     }
-
     // Sort results
     results.sort((a, b) => {
       switch (options.sortBy) {
@@ -249,30 +228,23 @@ export class MCPMarketplace extends EventEmitter {
           return b.stats.downloads - a.stats.downloads;
       }
     });
-
     // Apply pagination
     const offset = options.offset || 0;
     const limit = options.limit || 20;
-    
     return results.slice(offset, offset + limit);
   }
-
   async getIntegration(id: string): Promise<MarketplaceIntegration | null> {
     return this.integrations.get(id) || null;
   }
-
   async getFeaturedIntegrations(): Promise<MarketplaceIntegration[]> {
     const featured = Array.from(this.integrations.values()).filter(
       i => i.manifest.marketplace?.featured
     );
-    
     return featured.sort((a, b) => b.stats.downloads - a.stats.downloads);
   }
-
   async getTrendingIntegrations(): Promise<MarketplaceIntegration[]> {
     // Calculate trending based on recent downloads growth
     const all = Array.from(this.integrations.values());
-    
     return all
       .sort((a, b) => {
         const aGrowth = a.stats.weeklyDownloads / (a.stats.monthlyDownloads / 4);
@@ -281,21 +253,17 @@ export class MCPMarketplace extends EventEmitter {
       })
       .slice(0, 10);
   }
-
   async getIntegrationsByCategory(
     category: MCPIntegrationCategory
   ): Promise<MarketplaceIntegration[]> {
     return this.searchIntegrations({ category });
   }
-
   async getPublisher(id: string): Promise<MarketplacePublisher | null> {
     return this.publishers.get(id) || null;
   }
-
   async getReviews(integrationId: string): Promise<MarketplaceReview[]> {
     return this.reviews.get(integrationId) || [];
   }
-
   async submitReview(
     integrationId: string,
     review: Omit<MarketplaceReview, 'id' | 'createdAt'>
@@ -305,11 +273,9 @@ export class MCPMarketplace extends EventEmitter {
       id: Date.now().toString(),
       createdAt: new Date()
     };
-
     const reviews = this.reviews.get(integrationId) || [];
     reviews.push(newReview);
     this.reviews.set(integrationId, reviews);
-
     // Update integration stats
     const integration = this.integrations.get(integrationId);
     if (integration) {
@@ -318,11 +284,9 @@ export class MCPMarketplace extends EventEmitter {
       integration.stats.rating = totalRating / allReviews.length;
       integration.stats.reviews = allReviews.length;
     }
-
     this.emit('review:submitted', newReview);
     return newReview;
   }
-
   async installIntegration(
     integrationId: string,
     _targetPath: string
@@ -331,18 +295,13 @@ export class MCPMarketplace extends EventEmitter {
     if (!integration) {
       throw new Error(`Integration not found: ${integrationId}`);
     }
-
     // Update download stats
     integration.stats.downloads++;
     integration.stats.weeklyDownloads++;
     integration.stats.monthlyDownloads++;
-
     this.emit('integration:installed', integration);
-    
     // In production, this would download and install files
-// REMOVED: console statement
   }
-
   async publishIntegration(
     manifest: MCPIntegrationManifest,
     publisher: MarketplacePublisher
@@ -351,10 +310,8 @@ export class MCPMarketplace extends EventEmitter {
     if (!manifest.integration.name || !manifest.integration.version) {
       throw new Error('Invalid integration manifest');
     }
-
     // Generate ID
     const id = `${publisher.id}-${manifest.integration.name.toLowerCase().replace(/\s+/g, '-')}`;
-
     // Create marketplace integration
     const marketplaceIntegration: MarketplaceIntegration = {
       id,
@@ -372,15 +329,11 @@ export class MCPMarketplace extends EventEmitter {
       },
       verified: false
     };
-
     this.integrations.set(id, marketplaceIntegration);
     this.publishers.set(publisher.id, publisher);
-
     this.emit('integration:published', marketplaceIntegration);
-    
     return id;
   }
-
   async updateIntegration(
     id: string,
     manifest: MCPIntegrationManifest
@@ -389,31 +342,24 @@ export class MCPMarketplace extends EventEmitter {
     if (!integration) {
       throw new Error(`Integration not found: ${id}`);
     }
-
     integration.manifest = manifest;
     integration.updatedAt = new Date();
-
     this.emit('integration:updated', integration);
   }
-
   async unpublishIntegration(id: string): Promise<void> {
     const integration = this.integrations.get(id);
     if (!integration) {
       throw new Error(`Integration not found: ${id}`);
     }
-
     this.integrations.delete(id);
     this.emit('integration:unpublished', integration);
   }
-
   getCategories(): Array<{ value: MCPIntegrationCategory; label: string; count: number }> {
     const categories = new Map<MCPIntegrationCategory, number>();
-    
     this.integrations.forEach(integration => {
       const category = integration.manifest.integration.category;
       categories.set(category, (categories.get(category) || 0) + 1);
     });
-
     return [
       { value: 'ai', label: 'AI & ML', count: categories.get('ai') || 0 },
       { value: 'analytics', label: 'Analytics', count: categories.get('analytics') || 0 },

@@ -17,7 +17,7 @@ interface PlanningChatProps {
   sessionName: string;
   onPlanComplete: (plan: string) => void;
   documentContext?: {
-    documents: any[];
+    documents: unknown[];
     analysisAvailable: boolean;
   };
 }

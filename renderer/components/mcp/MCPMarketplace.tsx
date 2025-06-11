@@ -3,12 +3,10 @@
  * 
  * Browse and install community MCP integrations
  */
-
 import React, { useState, useEffect } from 'react';
 import { MCPIntegration } from '../../../src/services/mcp/server/types';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-
 interface MCPMarketplaceIntegration extends MCPIntegration {
   stats: {
     downloads: number;
@@ -17,11 +15,9 @@ interface MCPMarketplaceIntegration extends MCPIntegration {
   };
   tags: string[];
 }
-
 interface MCPMarketplaceProps {
   onInstall?: (integration: MCPMarketplaceIntegration) => void;
 }
-
 export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => {
   const [integrations, setIntegrations] = useState<MCPMarketplaceIntegration[]>([]);
   const [featured, setFeatured] = useState<MCPMarketplaceIntegration[]>([]);
@@ -31,11 +27,9 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [installing, setInstalling] = useState<string | null>(null);
-
   useEffect(() => {
-    loadMarketplace();
+    void loadMarketplace();
   }, []);
-
   const loadMarketplace = async () => {
     try {
       setLoading(true);
@@ -45,18 +39,15 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
         window.electronAPI.mcp.marketplace.getTrending(),
         window.electronAPI.mcp.marketplace.getCategories()
       ]);
-
       setIntegrations(allIntegrations);
       setFeatured(featuredList);
       setTrending(trendingList);
       setCategories(categoryList);
     } catch (error) {
-// REMOVED: console statement
     } finally {
       setLoading(false);
     }
   };
-
   const handleSearch = async () => {
     try {
       setLoading(true);
@@ -66,18 +57,15 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
       });
       setIntegrations(results);
     } catch (error) {
-// REMOVED: console statement
     } finally {
       setLoading(false);
     }
   };
-
   const handleInstall = async (integration: MCPMarketplaceIntegration) => {
     if (!integration.id) {
       alert('Invalid integration: missing ID');
       return;
     }
-    
     try {
       setInstalling(integration.id);
       await window.electronAPI.mcp.marketplace.install(integration.id);
@@ -89,13 +77,11 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
       setInstalling(null);
     }
   };
-
   const formatNumber = (num: number): string => {
     if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
     if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
     return num.toString();
   };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -103,7 +89,6 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
       </div>
     );
   }
-
   return (
     <div className="space-y-6">
       {/* Search Bar */}
@@ -131,10 +116,9 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
               <option key={cat} value={cat}>{cat}</option>
             ))}
           </select>
-          <Button onClick={handleSearch}>Search</Button>
+          <Button onClick={() => void handleSearch()}>Search</Button>
         </div>
       </div>
-
       {/* Featured Section */}
       {featured.length > 0 && (
         <div>
@@ -161,11 +145,9 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
                       Featured
                     </span>
                   </div>
-
                   <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                     {integration.description}
                   </p>
-
                   <div className="flex flex-wrap gap-2">
                     {integration.tags.slice(0, 3).map(tag => (
                       <span
@@ -176,7 +158,6 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
                       </span>
                     ))}
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
@@ -196,7 +177,6 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
           </div>
         </div>
       )}
-
       {/* Trending Section */}
       {trending.length > 0 && (
         <div>
@@ -241,7 +221,6 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
           </div>
         </div>
       )}
-
       {/* All Integrations */}
       <div>
         <h3 className="text-lg font-semibold mb-4">
@@ -270,11 +249,9 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
                       by {integration.author}
                     </p>
                   </div>
-
                   <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                     {integration.description}
                   </p>
-
                   <div className="flex flex-wrap gap-2">
                     {integration.tags.slice(0, 3).map(tag => (
                       <span
@@ -290,7 +267,6 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
                       </span>
                     )}
                   </div>
-
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span>⭐ {integration.stats.rating.toFixed(1)}</span>
@@ -315,5 +291,4 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
     </div>
   );
 };
-
 export { MCPMarketplace as MCPMarketplaceUI };

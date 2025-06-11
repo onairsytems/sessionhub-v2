@@ -123,7 +123,7 @@ export class AppLifecycleService extends EventEmitter {
   /**
    * Set user preference
    */
-  public async setPreference(key: string, value: any): Promise<void> {
+  public async setPreference(key: string, value: unknown): Promise<void> {
     this.appState.preferences[key] = value;
     await this.saveState();
   }
@@ -131,7 +131,7 @@ export class AppLifecycleService extends EventEmitter {
   /**
    * Get user preference
    */
-  public getPreference(key: string): any {
+  public getPreference(key: string): unknown {
     return this.appState.preferences[key];
   }
 

@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -20,10 +19,8 @@ import {
   Play,
   RotateCcw
 } from 'lucide-react';
-
 type SessionPhase = 'planning' | 'execution' | 'review';
 type SessionStatus = 'idle' | 'active' | 'paused' | 'completed' | 'failed';
-
 interface SessionStep {
   id: string;
   phase: SessionPhase;
@@ -35,7 +32,6 @@ interface SessionStep {
   endTime?: string;
   error?: string;
 }
-
 interface Session {
   id: string;
   name: string;
@@ -43,17 +39,15 @@ interface Session {
   currentPhase: SessionPhase;
   steps: SessionStep[];
   plan?: string;
-  results?: Record<string, unknown>;
+  results?: unknown;
   startTime: string;
   endTime?: string;
   estimatedDuration?: number;
 }
-
 export default function SessionWorkflowPolished() {
   const [session, setSession] = useState<Session | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const toast = useToastActions();
-
   // Initialize session steps
   const createSessionSteps = (): SessionStep[] => [
     {
@@ -106,7 +100,6 @@ export default function SessionWorkflowPolished() {
       status: 'pending'
     }
   ];
-
   const startNewSession = () => {
     const newSession: Session = {
       id: Date.now().toString(),
@@ -117,38 +110,31 @@ export default function SessionWorkflowPolished() {
       startTime: new Date().toISOString(),
       estimatedDuration: 25 // minutes
     };
-    
     setSession(newSession);
     toast.success('New session started', 'Good luck with your development!');
-    
     // Start the first step
     setTimeout(() => {
       activateStep(newSession, 'analyze');
     }, 500);
   };
-
   const activateStep = (currentSession: Session, stepId: string) => {
     setIsTransitioning(true);
-    
     const updatedSteps = currentSession.steps.map(step => {
       if (step.id === stepId) {
         return { ...step, status: 'active' as const, startTime: new Date().toISOString() };
       }
       return step;
     });
-
     setSession({
       ...currentSession,
       steps: updatedSteps
     });
-
     // Simulate step execution
     setTimeout(() => {
       completeStep(currentSession, stepId);
       setIsTransitioning(false);
     }, 2000 + Math.random() * 3000); // 2-5 seconds per step
   };
-
   const completeStep = (currentSession: Session, stepId: string) => {
     const updatedSteps = currentSession.steps.map(step => {
       if (step.id === stepId) {
@@ -156,10 +142,8 @@ export default function SessionWorkflowPolished() {
       }
       return step;
     });
-
     const updatedSession = { ...currentSession, steps: updatedSteps };
     setSession(updatedSession);
-
     // Find next step
     const nextStep = updatedSteps.find(step => step.status === 'pending');
     if (nextStep) {
@@ -168,7 +152,6 @@ export default function SessionWorkflowPolished() {
       if (currentStep && nextStep.phase !== currentStep.phase) {
         setIsTransitioning(true);
         toast.info(`Moving to ${nextStep.phase} phase`, 'Transitioning to the next phase of your session');
-        
         setTimeout(() => {
           setSession({ ...updatedSession, currentPhase: nextStep.phase });
           activateStep(updatedSession, nextStep.id);
@@ -181,29 +164,24 @@ export default function SessionWorkflowPolished() {
       completeSession(updatedSession);
     }
   };
-
   const completeSession = (currentSession: Session) => {
     setSession({
       ...currentSession,
       status: 'completed',
       endTime: new Date().toISOString()
     });
-    
     toast.success('Session completed!', 'All tasks have been successfully completed');
   };
-
   const pauseSession = () => {
     if (session && session.status === 'active') {
       setSession({ ...session, status: 'paused' });
       toast.info('Session paused', 'You can resume anytime');
     }
   };
-
   const resumeSession = () => {
     if (session && session.status === 'paused') {
       setSession({ ...session, status: 'active' });
       toast.info('Session resumed', 'Continuing where you left off');
-      
       // Resume the active step
       const activeStep = session.steps.find(s => s.status === 'active');
       if (activeStep) {
@@ -211,34 +189,25 @@ export default function SessionWorkflowPolished() {
       }
     }
   };
-
   const resetSession = () => {
     setSession(null);
     toast.info('Session reset', 'Ready to start a new session');
   };
-
   const getPhaseProgress = (phase: SessionPhase): number => {
     if (!session) return 0;
-    
     const phaseSteps = session.steps.filter(s => s.phase === phase);
     const completedSteps = phaseSteps.filter(s => s.status === 'completed').length;
-    
     return (completedSteps / phaseSteps.length) * 100;
   };
-
   const getElapsedTime = (): string => {
     if (!session) return '00:00';
-    
     const start = new Date(session.startTime);
     const end = session.endTime ? new Date(session.endTime) : new Date();
     const elapsed = Math.floor((end.getTime() - start.getTime()) / 1000);
-    
     const minutes = Math.floor(elapsed / 60);
     const seconds = elapsed % 60;
-    
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
-
   if (!session) {
     return (
       <div className="container mx-auto p-6 max-w-4xl">
@@ -270,14 +239,12 @@ export default function SessionWorkflowPolished() {
       </div>
     );
   }
-
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       {/* Header with breadcrumb */}
       <div className="mb-6">
         <SessionBreadcrumb sessionId={session.id} sessionName={session.name} />
       </div>
-
       {/* Session Progress Overview */}
       <Card className="mb-6">
         <CardHeader>
@@ -326,7 +293,6 @@ export default function SessionWorkflowPolished() {
               const isActive = session.currentPhase === phase;
               const isPast = ['planning', 'execution', 'review'].indexOf(phase) < 
                             ['planning', 'execution', 'review'].indexOf(session.currentPhase);
-              
               return (
                 <div key={phase} className="relative">
                   <div className={`p-4 rounded-lg border-2 transition-all duration-300 ${
@@ -360,7 +326,6 @@ export default function SessionWorkflowPolished() {
               );
             })}
           </div>
-
           {/* Current Step Details */}
           <div className="mt-8 space-y-3">
             {session.steps.map((step) => (
@@ -406,7 +371,6 @@ export default function SessionWorkflowPolished() {
           </div>
         </CardContent>
       </Card>
-
       {/* Transition Overlay */}
       {isTransitioning && (
         <div className="fixed inset-0 bg-background/50 backdrop-blur-sm z-40 flex items-center justify-center">

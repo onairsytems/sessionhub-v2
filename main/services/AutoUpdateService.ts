@@ -154,7 +154,7 @@ export class AutoUpdateService extends EventEmitter {
       
       // Send to renderer
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-        this.mainWindow.webContents.send('update-available', info);
+        void this.mainWindow.webContents.send('update-available', info);
       }
     });
 
@@ -172,7 +172,7 @@ export class AutoUpdateService extends EventEmitter {
       
       // Send progress to renderer
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-        this.mainWindow.webContents.send('download-progress', progress);
+        void this.mainWindow.webContents.send('download-progress', progress);
       }
     });
 
@@ -188,7 +188,7 @@ export class AutoUpdateService extends EventEmitter {
       
       // Send to renderer
       if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-        this.mainWindow.webContents.send('update-downloaded', info);
+        void this.mainWindow.webContents.send('update-downloaded', info);
       }
     });
 
@@ -243,7 +243,7 @@ export class AutoUpdateService extends EventEmitter {
       if (result.response === 0) {
         this.quitAndInstall();
       }
-    });
+    }).catch(() => {});
   }
 
   private handleError(error: Error): void {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-
 interface Pattern {
   id: string;
   type: 'success' | 'error' | 'workflow' | 'optimization';
@@ -12,12 +11,10 @@ interface Pattern {
   projects: string[];
   confidence: number;
 }
-
 interface PatternExplorerProps {
   projectId?: string;
   onPatternSelect?: (pattern: Pattern) => void;
 }
-
 export const PatternExplorer: React.FC<PatternExplorerProps> = ({
   projectId,
   onPatternSelect
@@ -28,35 +25,28 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
   const [selectedType, setSelectedType] = useState<string>('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'frequency' | 'confidence' | 'name'>('frequency');
-
   useEffect(() => {
-    loadPatterns();
+    void loadPatterns();
   }, [projectId]);
-
   useEffect(() => {
-    filterAndSortPatterns();
+    void filterAndSortPatterns();
   }, [patterns, selectedType, searchTerm, sortBy]);
-
   const loadPatterns = async () => {
     setLoading(true);
     try {
       // Mock data for development
       setPatterns([]);
     } catch (err) {
-// REMOVED: console statement
     } finally {
       setLoading(false);
     }
   };
-
   const filterAndSortPatterns = () => {
     let filtered = [...patterns];
-
     // Filter by type
     if (selectedType !== 'all') {
       filtered = filtered.filter(p => p.type === selectedType);
     }
-
     // Filter by search term
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -66,7 +56,6 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
         p.examples.some(e => e.toLowerCase().includes(term))
       );
     }
-
     // Sort
     filtered.sort((a, b) => {
       switch (sortBy) {
@@ -80,10 +69,8 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
           return 0;
       }
     });
-
     setFilteredPatterns(filtered);
   };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -91,16 +78,14 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold">Pattern Explorer</h2>
-        <Button onClick={loadPatterns} size="sm" variant="secondary">
+        <Button onClick={() => void loadPatterns()} size="sm" variant="secondary">
           Refresh
         </Button>
       </div>
-
       {/* Filters and Search */}
       <Card className="p-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -117,7 +102,6 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-
           {/* Type Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -135,7 +119,6 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
               <option value="optimization">Optimization Patterns</option>
             </select>
           </div>
-
           {/* Sort By */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -143,7 +126,7 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
             </label>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'frequency' | 'confidence' | 'name')}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="frequency">Frequency</option>
@@ -153,7 +136,6 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
           </div>
         </div>
       </Card>
-
       {/* Pattern Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <PatternStat
@@ -179,7 +161,6 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
           color="purple"
         />
       </div>
-
       {/* Pattern List */}
       <div className="space-y-4">
         {filteredPatterns.length === 0 ? (
@@ -196,7 +177,6 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
           ))
         )}
       </div>
-
       {/* Pattern Insights */}
       {patterns.length > 0 && (
         <Card className="p-4">
@@ -207,15 +187,12 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
     </div>
   );
 };
-
 // Helper Components
-
 interface PatternStatProps {
   label: string;
   value: string | number;
   color: 'blue' | 'green' | 'red' | 'purple';
 }
-
 const PatternStat: React.FC<PatternStatProps> = ({ label, value, color }) => {
   const colorClasses = {
     blue: 'bg-blue-50 text-blue-700',
@@ -223,7 +200,6 @@ const PatternStat: React.FC<PatternStatProps> = ({ label, value, color }) => {
     red: 'bg-red-50 text-red-700',
     purple: 'bg-purple-50 text-purple-700'
   };
-
   return (
     <Card className={`p-4 ${colorClasses[color]}`}>
       <p className="text-sm opacity-75">{label}</p>
@@ -231,29 +207,24 @@ const PatternStat: React.FC<PatternStatProps> = ({ label, value, color }) => {
     </Card>
   );
 };
-
 interface PatternCardProps {
   pattern: Pattern;
   onSelect: () => void;
 }
-
 const PatternCard: React.FC<PatternCardProps> = ({ pattern, onSelect }) => {
   const [expanded, setExpanded] = useState(false);
-
   const typeColors = {
     success: 'border-green-500 bg-green-50',
     error: 'border-red-500 bg-red-50',
     workflow: 'border-blue-500 bg-blue-50',
     optimization: 'border-purple-500 bg-purple-50'
   };
-
   const typeIcons = {
     success: '✓',
     error: '✗',
     workflow: '↻',
     optimization: '⚡'
   };
-
   return (
     <Card className={`p-4 border-l-4 ${typeColors[pattern.type]} hover:shadow-md transition-shadow`}>
       <div className="flex justify-between items-start">
@@ -265,9 +236,7 @@ const PatternCard: React.FC<PatternCardProps> = ({ pattern, onSelect }) => {
               ({pattern.frequency} occurrences)
             </span>
           </div>
-          
           <p className="text-gray-700 mb-3">{pattern.description}</p>
-          
           <div className="flex items-center space-x-4 text-sm">
             <div className="flex items-center space-x-1">
               <span className="text-gray-500">Confidence:</span>
@@ -279,7 +248,6 @@ const PatternCard: React.FC<PatternCardProps> = ({ pattern, onSelect }) => {
             </div>
           </div>
         </div>
-        
         <div className="flex items-center space-x-2">
           <Button
             onClick={() => setExpanded(!expanded)}
@@ -289,14 +257,13 @@ const PatternCard: React.FC<PatternCardProps> = ({ pattern, onSelect }) => {
             {expanded ? 'Hide' : 'Show'} Examples
           </Button>
           <Button
-            onClick={onSelect}
+            onClick={() => void onSelect()}
             size="sm"
           >
             Use Pattern
           </Button>
         </div>
       </div>
-
       {expanded && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <h4 className="text-sm font-medium text-gray-700 mb-2">Examples:</h4>
@@ -307,7 +274,6 @@ const PatternCard: React.FC<PatternCardProps> = ({ pattern, onSelect }) => {
               </div>
             ))}
           </div>
-          
           {pattern.projects.length > 0 && (
             <div className="mt-3">
               <h4 className="text-sm font-medium text-gray-700 mb-1">Used in:</h4>
@@ -328,20 +294,16 @@ const PatternCard: React.FC<PatternCardProps> = ({ pattern, onSelect }) => {
     </Card>
   );
 };
-
 const PatternInsights: React.FC<{ patterns: Pattern[] }> = ({ patterns }) => {
   // Calculate insights
   // const totalOccurrences = patterns.reduce((sum, p) => sum + p.frequency, 0);
   const avgConfidence = patterns.reduce((sum, p) => sum + p.confidence, 0) / patterns.length;
-  
   const typeDistribution = patterns.reduce((acc, p) => {
     acc[p.type] = (acc[p.type] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-
   const mostFrequent = patterns.sort((a, b) => b.frequency - a.frequency)[0];
   const mostConfident = patterns.sort((a, b) => b.confidence - a.confidence)[0];
-
   return (
     <div className="space-y-4">
       {/* Distribution Chart */}
@@ -370,7 +332,6 @@ const PatternInsights: React.FC<{ patterns: Pattern[] }> = ({ patterns }) => {
           })}
         </div>
       </div>
-
       {/* Key Insights */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -380,7 +341,6 @@ const PatternInsights: React.FC<{ patterns: Pattern[] }> = ({ patterns }) => {
             <span className="text-gray-500 ml-2">({mostFrequent?.frequency || 0} times)</span>
           </p>
         </div>
-        
         <div>
           <h4 className="text-sm font-medium text-gray-700 mb-2">Highest Confidence Pattern</h4>
           <p className="text-sm">
@@ -389,7 +349,6 @@ const PatternInsights: React.FC<{ patterns: Pattern[] }> = ({ patterns }) => {
           </p>
         </div>
       </div>
-
       {/* Recommendations */}
       <div>
         <h4 className="text-sm font-medium text-gray-700 mb-2">Recommendations</h4>

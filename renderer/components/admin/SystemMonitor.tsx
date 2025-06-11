@@ -16,6 +16,18 @@ interface HealthCheck {
   services: boolean;
 }
 
+interface SystemStatsResponse {
+  success: boolean;
+  stats?: {
+    systemHealth?: SystemMetric;
+  };
+}
+
+interface HealthCheckResponse {
+  success: boolean;
+  healthChecks?: HealthCheck;
+}
+
 export const SystemMonitor: React.FC = () => {
   const [metrics, setMetrics] = useState<SystemMetric>({});
   const [healthChecks, setHealthChecks] = useState<HealthCheck | null>(null);
@@ -24,7 +36,7 @@ export const SystemMonitor: React.FC = () => {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    loadSystemData();
+    void loadSystemData();
 
     if (autoRefresh) {
       intervalRef.current = setInterval(loadSystemData, 5000); // Refresh every 5 seconds
@@ -40,14 +52,14 @@ export const SystemMonitor: React.FC = () => {
   const loadSystemData = async () => {
     try {
       // Get system stats
-      const statsResult = await window.electron.invoke('admin:get-system-stats');
+      const statsResult = await window.electron.invoke('admin:get-system-stats') as SystemStatsResponse;
       if (statsResult.success && statsResult.stats?.systemHealth) {
         setMetrics(statsResult.stats.systemHealth);
       }
 
       // Get health checks
-      const healthResult = await window.electron.invoke('admin:health-check');
-      if (healthResult.success) {
+      const healthResult = await window.electron.invoke('admin:health-check') as HealthCheckResponse;
+      if (healthResult.success && healthResult.healthChecks) {
         setHealthChecks(healthResult.healthChecks);
       }
 
@@ -126,7 +138,7 @@ export const SystemMonitor: React.FC = () => {
               />
               <span className="text-sm">Auto-refresh</span>
             </label>
-            <Button onClick={loadSystemData} variant="secondary">
+            <Button onClick={() => void loadSystemData()} variant="secondary">
               Refresh Now
             </Button>
           </div>

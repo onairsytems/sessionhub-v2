@@ -107,7 +107,8 @@ export function registerApiHandlers(): void {
       }
 
       // Parse the GitHub URL
-      const url = (result as any).inputValue || '';
+      const inputResult = result as { inputValue?: string };
+      const url = inputResult.inputValue || '';
       const githubRegex = /^https?:\/\/github\.com\/([^\/]+)\/([^\/\s]+)/;
       const match = url.match(githubRegex);
       
@@ -116,9 +117,11 @@ export function registerApiHandlers(): void {
       }
       
       const [, owner, repo] = match;
+      const cleanedUrl = url.replace(/\.git$/, ''); // Remove .git suffix if present
+      const cleanedRepo = repo?.replace(/\.git$/, '') || '';
       return {
-        url: url.replace(/\.git$/, ''), // Remove .git suffix if present
-        name: repo.replace(/\.git$/, ''),
+        url: cleanedUrl,
+        name: cleanedRepo,
         owner: owner,
         defaultBranch: "main", // Could fetch this via GitHub API
       };

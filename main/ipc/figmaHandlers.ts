@@ -3,6 +3,15 @@ import { SessionHubUIUpdater } from '../../src/services/figma/SessionHubUIUpdate
 import { ProjectUIEnhancer } from '../../src/services/figma/ProjectUIEnhancer';
 import { FigmaMCPService } from '../../src/services/figma/FigmaMCPService';
 
+interface Project {
+  id: string;
+  name: string;
+  path: string;
+  framework: 'react' | 'vue' | 'angular' | 'next' | 'nuxt';
+  gitRepo?: string;
+  figmaFileKey?: string;
+}
+
 let sessionHubUpdater: SessionHubUIUpdater | null = null;
 let projectEnhancer: ProjectUIEnhancer | null = null;
 let figmaService: FigmaMCPService | null = null;
@@ -67,11 +76,11 @@ export function registerFigmaHandlers(): void {
   });
 
   // Project UI Enhancement Handlers
-  ipcMain.handle('figma:register-project', async (_, project: any) => {
+  ipcMain.handle('figma:register-project', async (_, project: unknown) => {
     if (!projectEnhancer) {
       throw new Error('Figma not initialized');
     }
-    projectEnhancer.registerProject(project);
+    projectEnhancer.registerProject(project as Project);
     return true;
   });
 

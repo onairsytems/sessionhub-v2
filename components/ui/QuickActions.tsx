@@ -1,9 +1,8 @@
 'use client';
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './Button';
-import { useKeyboardShortcuts } from './KeyboardShortcuts';
+import { useKeyboardShortcut } from './KeyboardShortcuts';
 import { useToastActions } from './Toast';
 import {
   Command,
@@ -20,7 +19,6 @@ import {
   Package,
   BarChart
 } from 'lucide-react';
-
 interface QuickAction {
   id: string;
   label: string;
@@ -30,7 +28,6 @@ interface QuickAction {
   action: () => void;
   keywords: string[];
 }
-
 export function QuickActionsMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,8 +35,7 @@ export function QuickActionsMenu() {
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const toast = useToastActions();
-  const { registerShortcut } = useKeyboardShortcuts();
-
+  const { registerShortcut } = useKeyboardShortcut();
   const quickActions: QuickAction[] = [
     // Navigation
     {
@@ -74,7 +70,6 @@ export function QuickActionsMenu() {
       action: () => router.push('/docs'),
       keywords: ['docs', 'documentation', 'help', 'guide']
     },
-    
     // Session Actions
     {
       id: 'new-session',
@@ -99,7 +94,6 @@ export function QuickActionsMenu() {
       },
       keywords: ['import', 'project', 'codebase']
     },
-    
     // Settings
     {
       id: 'settings',
@@ -127,7 +121,6 @@ export function QuickActionsMenu() {
       action: () => router.push('/settings?section=data'),
       keywords: ['cloud', 'sync', 'backup', 'supabase']
     },
-    
     // Help
     {
       id: 'help',
@@ -151,7 +144,6 @@ export function QuickActionsMenu() {
       keywords: ['keyboard', 'shortcuts', 'hotkeys']
     }
   ];
-
   // Filter actions based on search
   const filteredActions = quickActions.filter(action => {
     const query = searchQuery.toLowerCase();
@@ -161,24 +153,18 @@ export function QuickActionsMenu() {
       action.keywords.some(keyword => keyword.includes(query))
     );
   });
-
   // Group actions by category
   const groupedActions = filteredActions.reduce((acc, action) => {
     if (!acc[action.category]) {
       acc[action.category] = [];
     }
-    const categoryActions = acc[action.category];
-    if (categoryActions) {
-      categoryActions.push(action);
-    }
+    (acc[action.category] as QuickAction[]).push(action);
     return acc;
   }, {} as Record<string, QuickAction[]>);
-
   // Handle keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!isOpen) return;
-
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
@@ -205,16 +191,13 @@ export function QuickActionsMenu() {
           break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, selectedIndex, filteredActions]);
-
   // Reset selection when search changes
   useEffect(() => {
     setSelectedIndex(0);
   }, [searchQuery]);
-
   // Focus input when menu opens
   useEffect(() => {
     if (isOpen) {
@@ -223,18 +206,17 @@ export function QuickActionsMenu() {
       setSelectedIndex(0);
     }
   }, [isOpen]);
-
   // Register global shortcut
   useEffect(() => {
     registerShortcut({
       keys: ['Meta', 'k'],
       label: 'Quick Actions',
+      description: 'Open quick command palette',
       action: () => setIsOpen(true),
       category: 'Navigation',
       global: true
     });
   }, [registerShortcut]);
-
   if (!isOpen) {
     return (
       <Button
@@ -249,14 +231,12 @@ export function QuickActionsMenu() {
       </Button>
     );
   }
-
   const categoryLabels = {
     navigation: 'Navigation',
     session: 'Sessions',
     settings: 'Settings',
     help: 'Help & Support'
   };
-
   return (
     <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-start justify-center pt-[20vh]">
       <div className="bg-background border rounded-lg shadow-lg w-full max-w-2xl mx-4">
@@ -279,7 +259,6 @@ export function QuickActionsMenu() {
             </button>
           </div>
         </div>
-
         <div className="max-h-[60vh] overflow-y-auto p-2">
           {filteredActions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
@@ -295,7 +274,6 @@ export function QuickActionsMenu() {
                   const Icon = action.icon;
                   const globalIndex = filteredActions.indexOf(action);
                   const isSelected = globalIndex === selectedIndex;
-
                   return (
                     <button
                       key={action.id}
@@ -331,7 +309,6 @@ export function QuickActionsMenu() {
             ))
           )}
         </div>
-
         <div className="p-3 border-t text-xs text-muted-foreground flex items-center justify-between">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">

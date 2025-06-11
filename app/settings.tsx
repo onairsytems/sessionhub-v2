@@ -1,5 +1,4 @@
 'use client';
-
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -18,14 +17,12 @@ import {
   Check,
   X
 } from 'lucide-react';
-
 interface SettingsSection {
   id: string;
   title: string;
   icon: React.ElementType;
   description: string;
 }
-
 export default function SettingsPage() {
   const [activeSection, setActiveSection] = useState('api-keys');
   const [showApiKey, setShowApiKey] = useState(false);
@@ -33,7 +30,6 @@ export default function SettingsPage() {
   const [supabaseUrl, setSupabaseUrl] = useState('');
   const [supabaseKey, setSupabaseKey] = useState('');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
   const settingsSections: SettingsSection[] = [
     {
       id: 'api-keys',
@@ -78,12 +74,11 @@ export default function SettingsPage() {
       description: 'Optimize for your system'
     }
   ];
-
   const handleSave = async () => {
     setSaveStatus('saving');
     try {
       // In a real app, this would save to electron store or Supabase
-      await new Promise<void>(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
@@ -91,9 +86,7 @@ export default function SettingsPage() {
       setTimeout(() => setSaveStatus('idle'), 3000);
     }
   };
-
   const currentSection = settingsSections.find(s => s.id === activeSection);
-
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-8">
@@ -102,7 +95,6 @@ export default function SettingsPage() {
           Configure SessionHub to work the way you want
         </p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="md:col-span-1">
@@ -128,7 +120,6 @@ export default function SettingsPage() {
             })}
           </nav>
         </div>
-
         {/* Content */}
         <div className="md:col-span-3">
           <Card>
@@ -166,7 +157,6 @@ export default function SettingsPage() {
                       Get your API key from the Anthropic Console
                     </p>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">Supabase URL</label>
                     <input
@@ -177,7 +167,6 @@ export default function SettingsPage() {
                       className="w-full px-3 py-2 rounded-lg border bg-background"
                     />
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">Supabase Anon Key</label>
                     <input
@@ -188,7 +177,6 @@ export default function SettingsPage() {
                       className="w-full px-3 py-2 rounded-lg border bg-background"
                     />
                   </div>
-
                   <Button onClick={() => void handleSave()} className="w-full">
                     {saveStatus === 'saving' && (
                       <>
@@ -217,7 +205,6 @@ export default function SettingsPage() {
                   </Button>
                 </div>
               )}
-
               {activeSection === 'appearance' && (
                 <div className="space-y-6">
                   <div>
@@ -227,7 +214,6 @@ export default function SettingsPage() {
                       <ThemeToggle />
                     </div>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">Editor Font Size</label>
                     <select className="w-full px-3 py-2 rounded-lg border bg-background">
@@ -237,7 +223,6 @@ export default function SettingsPage() {
                       <option value="18">18px</option>
                     </select>
                   </div>
-
                   <div>
                     <label className="block text-sm font-medium mb-2">UI Density</label>
                     <div className="grid grid-cols-3 gap-2">
@@ -248,7 +233,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
-
               {activeSection === 'notifications' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -260,7 +244,6 @@ export default function SettingsPage() {
                     </div>
                     <input type="checkbox" defaultChecked className="w-4 h-4" />
                   </div>
-
                   <div className="flex items-center justify-between p-3 rounded-lg border">
                     <div>
                       <div className="font-medium text-sm">Error Alerts</div>
@@ -270,7 +253,6 @@ export default function SettingsPage() {
                     </div>
                     <input type="checkbox" defaultChecked className="w-4 h-4" />
                   </div>
-
                   <div className="flex items-center justify-between p-3 rounded-lg border">
                     <div>
                       <div className="font-medium text-sm">Update Available</div>
@@ -280,7 +262,6 @@ export default function SettingsPage() {
                     </div>
                     <input type="checkbox" defaultChecked className="w-4 h-4" />
                   </div>
-
                   <div className="flex items-center justify-between p-3 rounded-lg border">
                     <div>
                       <div className="font-medium text-sm">Sound Effects</div>
@@ -292,13 +273,11 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
-
               {activeSection === 'keyboard' && (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground mb-4">
                     Customize keyboard shortcuts to match your workflow
                   </p>
-                  
                   <div className="space-y-2">
                     {[
                       { action: 'Quick Command', keys: '⌘K' },
@@ -314,13 +293,11 @@ export default function SettingsPage() {
                       </div>
                     ))}
                   </div>
-
                   <Button variant="ghost" size="sm" className="w-full">
                     Reset to Defaults
                   </Button>
                 </div>
               )}
-
               {activeSection === 'security' && (
                 <div className="space-y-6">
                   <Card>
@@ -333,7 +310,6 @@ export default function SettingsPage() {
                       </p>
                     </CardContent>
                   </Card>
-
                   <div className="space-y-4">
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
@@ -349,7 +325,6 @@ export default function SettingsPage() {
                         <option>30 minutes</option>
                       </select>
                     </div>
-
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
                         <div className="font-medium text-sm">Telemetry</div>
@@ -362,7 +337,6 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
-
               {activeSection === 'data' && (
                 <div className="space-y-6">
                   <Card>
@@ -387,7 +361,6 @@ export default function SettingsPage() {
                       </Button>
                     </CardContent>
                   </Card>
-
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-base">Cloud Sync</CardTitle>
@@ -404,7 +377,6 @@ export default function SettingsPage() {
                   </Card>
                 </div>
               )}
-
               {activeSection === 'performance' && (
                 <div className="space-y-6">
                   <Card>
@@ -421,7 +393,6 @@ export default function SettingsPage() {
                       </p>
                     </CardContent>
                   </Card>
-
                   <div className="space-y-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">Max Concurrent Sessions</label>
@@ -433,7 +404,6 @@ export default function SettingsPage() {
                         <option value="unlimited">Unlimited</option>
                       </select>
                     </div>
-
                     <div>
                       <label className="block text-sm font-medium mb-2">Memory Limit</label>
                       <select className="w-full px-3 py-2 rounded-lg border bg-background" defaultValue="4">
@@ -443,7 +413,6 @@ export default function SettingsPage() {
                         <option value="none">No limit</option>
                       </select>
                     </div>
-
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div>
                         <div className="font-medium text-sm">Hardware Acceleration</div>

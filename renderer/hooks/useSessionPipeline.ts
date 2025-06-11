@@ -1,10 +1,11 @@
+/// <reference path="../types/window.d.ts" />
 import { useState, useCallback, useEffect } from 'react';
 
 interface SessionDocument {
   source: { type: 'file' | 'url' | 'google-docs'; path: string };
-  metadata?: any;
-  analysis?: any;
-  importResult?: any;
+  metadata?: unknown;
+  analysis?: unknown;
+  importResult?: unknown;
 }
 
 interface SessionExecutionRequest {
@@ -29,8 +30,62 @@ interface Session {
   name: string;
   status: string;
   documents?: SessionDocument[];
-  documentAnalysis?: any;
+  documentAnalysis?: unknown;
   progress?: SessionProgress[];
+}
+
+// API Response types
+interface SessionExecutionResponse {
+  success: boolean;
+  session?: Session;
+  error?: string;
+}
+
+interface DocumentImportResponse {
+  success: boolean;
+  results?: unknown[];
+  error?: string;
+}
+
+interface GoogleDocsImportResponse {
+  success: boolean;
+  result?: unknown;
+  error?: string;
+}
+
+interface DocumentAnalysisResponse {
+  success: boolean;
+  analysis?: unknown;
+  error?: string;
+}
+
+interface GetSessionResponse {
+  success: boolean;
+  session?: Session;
+  error?: string;
+}
+
+interface GetUserSessionsResponse {
+  success: boolean;
+  sessions?: Session[];
+  error?: string;
+}
+
+interface GetMetricsResponse {
+  success: boolean;
+  metrics?: unknown;
+  error?: string;
+}
+
+interface SelectDocumentsResponse {
+  success: boolean;
+  filePaths: string[];
+}
+
+interface GetFileInfoResponse {
+  success: boolean;
+  fileInfo?: unknown;
+  error?: string;
 }
 
 export function useSessionPipeline() {
@@ -41,8 +96,9 @@ export function useSessionPipeline() {
 
   // Listen for progress updates
   useEffect(() => {
-    const handleProgress = (data: { sessionId: string; progress: SessionProgress }) => {
-      setProgress(prev => [...prev, data.progress]);
+    const handleProgress = (data: unknown) => {
+      const progressData = data as { sessionId: string; progress: SessionProgress };
+      setProgress(prev => [...prev, progressData.progress]);
     };
 
     window.electronAPI.onSessionProgress(handleProgress);
@@ -58,9 +114,9 @@ export function useSessionPipeline() {
     setProgress([]);
 
     try {
-      const result = await window.electronAPI.executeSession(request);
+      const result = await window.electronAPI.executeSession(request) as SessionExecutionResponse;
       
-      if (result.success) {
+      if (result.success && result.session) {
         setCurrentSession(result.session);
         return result.session;
       } else {
@@ -77,9 +133,9 @@ export function useSessionPipeline() {
 
   const importDocuments = useCallback(async (filePaths: string[]) => {
     try {
-      const result = await window.electronAPI.importDocuments(filePaths);
+      const result = await window.electronAPI.importDocuments(filePaths) as DocumentImportResponse;
       
-      if (result.success) {
+      if (result.success && result.results) {
         return result.results;
       } else {
         setError(result.error || 'Document import failed');
@@ -93,9 +149,9 @@ export function useSessionPipeline() {
 
   const importFromGoogleDocs = useCallback(async (docUrl: string) => {
     try {
-      const result = await window.electronAPI.importGoogleDocs(docUrl);
+      const result = await window.electronAPI.importGoogleDocs(docUrl) as GoogleDocsImportResponse;
       
-      if (result.success) {
+      if (result.success && result.result) {
         return result.result;
       } else {
         setError(result.error || 'Google Docs import failed');
@@ -107,11 +163,11 @@ export function useSessionPipeline() {
     }
   }, []);
 
-  const analyzeDocument = useCallback(async (documentMetadata: any) => {
+  const analyzeDocument = useCallback(async (documentMetadata: unknown) => {
     try {
-      const result = await window.electronAPI.analyzeDocument(documentMetadata);
+      const result = await window.electronAPI.analyzeDocument(documentMetadata) as DocumentAnalysisResponse;
       
-      if (result.success) {
+      if (result.success && result.analysis) {
         return result.analysis;
       } else {
         setError(result.error || 'Document analysis failed');
@@ -123,11 +179,11 @@ export function useSessionPipeline() {
     }
   }, []);
 
-  const analyzeDocumentSet = useCallback(async (documents: any[]) => {
+  const analyzeDocumentSet = useCallback(async (documents: unknown[]) => {
     try {
-      const result = await window.electronAPI.analyzeDocumentSet(documents);
+      const result = await window.electronAPI.analyzeDocumentSet(documents) as DocumentAnalysisResponse;
       
-      if (result.success) {
+      if (result.success && result.analysis) {
         return result.analysis;
       } else {
         setError(result.error || 'Document set analysis failed');
@@ -141,9 +197,9 @@ export function useSessionPipeline() {
 
   const getSession = useCallback(async (sessionId: string) => {
     try {
-      const result = await window.electronAPI.getSession(sessionId);
+      const result = await window.electronAPI.getSession(sessionId) as GetSessionResponse;
       
-      if (result.success) {
+      if (result.success && result.session) {
         return result.session;
       } else {
         setError(result.error || 'Failed to get session');
@@ -157,9 +213,9 @@ export function useSessionPipeline() {
 
   const getUserSessions = useCallback(async (userId: string) => {
     try {
-      const result = await window.electronAPI.getUserSessions(userId);
+      const result = await window.electronAPI.getUserSessions(userId) as GetUserSessionsResponse;
       
-      if (result.success) {
+      if (result.success && result.sessions) {
         return result.sessions;
       } else {
         setError(result.error || 'Failed to get user sessions');
@@ -173,9 +229,9 @@ export function useSessionPipeline() {
 
   const getMetrics = useCallback(async () => {
     try {
-      const result = await window.electronAPI.getSessionMetrics();
+      const result = await window.electronAPI.getSessionMetrics() as GetMetricsResponse;
       
-      if (result.success) {
+      if (result.success && result.metrics) {
         return result.metrics;
       } else {
         setError(result.error || 'Failed to get metrics');
@@ -189,7 +245,7 @@ export function useSessionPipeline() {
 
   const selectDocuments = useCallback(async () => {
     try {
-      const result = await window.electronAPI.selectDocuments();
+      const result = await window.electronAPI.selectDocuments() as SelectDocumentsResponse;
       
       if (result.success && result.filePaths.length > 0) {
         return result.filePaths;
@@ -204,9 +260,9 @@ export function useSessionPipeline() {
 
   const getFileInfo = useCallback(async (filePath: string) => {
     try {
-      const result = await window.electronAPI.getFileInfo(filePath);
+      const result = await window.electronAPI.getFileInfo(filePath) as GetFileInfoResponse;
       
-      if (result.success) {
+      if (result.success && result.fileInfo) {
         return result.fileInfo;
       } else {
         setError(result.error || 'Failed to get file info');

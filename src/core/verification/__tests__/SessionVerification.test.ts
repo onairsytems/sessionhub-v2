@@ -50,15 +50,48 @@ describe('Session Verification System', () => {
           },
           timestamp: new Date().toISOString()
         },
-        instructions: { 
-          id: "instr-1", 
-          content: "Test instruction", 
-          context: {}, 
-          sessionId: "session-1", 
-          timestamp: new Date().toISOString(),
-          protocol: { version: "1.0" },
-          metadata: {}
-        } as any,
+        instructions: {
+          metadata: {
+            id: "instr-1",
+            sessionId: "test-session-1",
+            sessionName: "Create user authentication",
+            timestamp: new Date().toISOString(),
+            version: "1.0" as const,
+            actor: "planning" as const
+          },
+          context: {
+            description: "User authentication implementation",
+            prerequisites: [],
+            userRequest: "Create user authentication system"
+          },
+          objectives: [{
+            id: "obj-1",
+            primary: "Create user authentication",
+            measurable: true
+          }],
+          requirements: [{
+            id: "req-1",
+            description: "Implement secure user authentication",
+            priority: "must" as const,
+            acceptanceCriteria: ["Users can register and login"]
+          }],
+          deliverables: [{
+            type: "file" as const,
+            description: "User authentication service",
+            validation: "Service handles registration and login"
+          }],
+          constraints: {
+            patterns: ["Follow existing project patterns"],
+            avoid: ["Breaking changes"],
+            timeLimit: 300000
+          },
+          successCriteria: [{
+            id: "sc-1",
+            criterion: "Authentication system is functional",
+            validationMethod: "Functional testing",
+            automated: true
+          }]
+        },
         metadata: {
           context: {
             description: 'User authentication implementation',

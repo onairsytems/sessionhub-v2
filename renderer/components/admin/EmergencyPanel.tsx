@@ -2,13 +2,23 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
+interface EmergencyLogResult {
+  success: boolean;
+  logs?: EmergencyLog[];
+}
+
+interface EmergencyActionResult {
+  success: boolean;
+  message?: string;
+}
+
 interface EmergencyLog {
   id: string;
   adminId: string;
   action: string;
   severity: 'low' | 'medium' | 'high' | 'critical';
   reason: string;
-  affectedResources?: any[];
+  affectedResources?: unknown[];
   createdAt: string;
   resolvedAt?: string;
   resolutionNotes?: string;
@@ -31,14 +41,14 @@ export const EmergencyPanel: React.FC = () => {
   });
 
   useEffect(() => {
-    loadEmergencyLogs();
+    void loadEmergencyLogs();
   }, []);
 
   const loadEmergencyLogs = async () => {
     try {
       setLoading(true);
-      const result = await window.electron.invoke('admin:get-emergency-logs');
-      if (result.success) {
+      const result = await window.electron.invoke('admin:get-emergency-logs') as EmergencyLogResult;
+      if (result.success && result.logs) {
         setEmergencyLogs(result.logs);
       }
     } catch (error) {
@@ -68,7 +78,7 @@ export const EmergencyPanel: React.FC = () => {
         newEmergency.severity,
         newEmergency.reason,
         resources
-      );
+      ) as EmergencyActionResult;
 
       if (result.success) {
         alert('Emergency access logged successfully');
@@ -90,7 +100,7 @@ export const EmergencyPanel: React.FC = () => {
     if (!notes) return;
 
     try {
-      const result = await window.electron.invoke('admin:resolve-emergency', logId, notes);
+      const result = await window.electron.invoke('admin:resolve-emergency', logId, notes) as EmergencyActionResult;
       if (result.success) {
         await loadEmergencyLogs();
       }
@@ -240,7 +250,7 @@ export const EmergencyPanel: React.FC = () => {
               <label className="block text-sm font-medium mb-1">Severity</label>
               <select
                 value={newEmergency.severity}
-                onChange={(e) => setNewEmergency({ ...newEmergency, severity: e.target.value as any })}
+                onChange={(e) => setNewEmergency({ ...newEmergency, severity: e.target.value as 'low' | 'medium' | 'high' | 'critical' })}
                 className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
               >
                 <option value="low">Low</option>
@@ -270,7 +280,7 @@ export const EmergencyPanel: React.FC = () => {
               />
             </div>
             <div className="flex space-x-4">
-              <Button onClick={logEmergencyAccess} variant="primary" className="bg-red-600 hover:bg-red-700">
+              <Button onClick={() => void logEmergencyAccess()} variant="primary" className="bg-red-600 hover:bg-red-700">
                 Log Emergency Access
               </Button>
               <Button onClick={() => setShowNewEmergencyForm(false)} variant="secondary">

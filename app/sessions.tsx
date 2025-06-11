@@ -1,5 +1,4 @@
 'use client';
-
 import React, { useState, useEffect } from 'react';
 import { SessionLibrary } from '@/renderer/components/sessions/SessionLibrary';
 import { SessionWorkflowVisualization } from '@/renderer/components/sessions/SessionWorkflowVisualization';
@@ -7,39 +6,31 @@ import { SessionAnalyticsDashboard } from '@/renderer/components/sessions/Sessio
 import { Session } from '@/src/models/Session';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-
 export default function SessionsPage() {
   const [view, setView] = useState<'library' | 'analytics' | 'templates'>('library');
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [userId] = useState<string>('default-user'); // TODO: Get from auth
   const [projectId] = useState<string | undefined>();
-
   useEffect(() => {
     // Load current project if available
     void loadCurrentProject();
   }, []);
-
   const loadCurrentProject = async () => {
     try {
       // TODO: Get current project from context
       // For now, we'll leave it undefined to show all sessions
     } catch (error) {
-      // Error loading current project - handle silently
     }
   };
-
   const handleSessionSelect = (session: Session) => {
     setSelectedSession(session);
   };
-
   const handleSessionCreate = async () => {
     // TODO: Open session creation dialog
   };
-
   const handleBackToList = () => {
     setSelectedSession(null);
   };
-
   if (selectedSession) {
     // Show session detail view
     return (
@@ -53,7 +44,6 @@ export default function SessionsPage() {
             ← Back to Sessions
           </Button>
         </div>
-
         <div className="space-y-6">
           <Card className="p-6">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
@@ -62,7 +52,6 @@ export default function SessionsPage() {
             <p className="text-gray-600 dark:text-gray-400">
               {selectedSession.description}
             </p>
-
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6 text-sm">
               <div>
                 <p className="text-gray-500 dark:text-gray-400">Status</p>
@@ -88,19 +77,16 @@ export default function SessionsPage() {
               </div>
             </div>
           </Card>
-
           <SessionWorkflowVisualization
             session={selectedSession}
             onPhaseClick={(_phase) => {
-              // TODO: Show phase details
+              // TODO: Show _phase details
             }}
           />
-
           {/* Session details tabs */}
           <Card className="p-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Session Details</h3>
-              
               {/* Request */}
               <div>
                 <h4 className="font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -112,7 +98,6 @@ export default function SessionsPage() {
                   </p>
                 </div>
               </div>
-
               {/* Instructions */}
               {selectedSession.instructions && (
                 <div>
@@ -126,7 +111,6 @@ export default function SessionsPage() {
                   </div>
                 </div>
               )}
-
               {/* Result */}
               {selectedSession.result && (
                 <div>
@@ -144,7 +128,6 @@ export default function SessionsPage() {
                   </div>
                 </div>
               )}
-
               {/* Error */}
               {selectedSession.error && (
                 <div>
@@ -164,7 +147,6 @@ export default function SessionsPage() {
       </div>
     );
   }
-
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-6">
@@ -175,7 +157,6 @@ export default function SessionsPage() {
           Manage your development sessions, view analytics, and create from templates
         </p>
       </div>
-
       {/* View tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700 mb-6">
         <nav className="-mb-px flex space-x-8">
@@ -211,7 +192,6 @@ export default function SessionsPage() {
           </button>
         </nav>
       </div>
-
       {/* Content */}
       {view === 'library' && (
         <SessionLibrary
@@ -221,14 +201,12 @@ export default function SessionsPage() {
           onSessionCreate={() => void handleSessionCreate()}
         />
       )}
-
       {view === 'analytics' && (
         <SessionAnalyticsDashboard
           userId={userId}
           projectId={projectId}
         />
       )}
-
       {view === 'templates' && (
         <Card className="p-6">
           <h2 className="text-xl font-semibold mb-4">Session Templates</h2>

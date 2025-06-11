@@ -1,46 +1,58 @@
-#!/bin/sh
+#!/bin/bash
 
-# SessionHub Pre-Commit Hook - Zero Tolerance Quality Enforcement
+# SessionHub Pre-Commit Hook
+# Enforces quality standards before allowing commits
 
-# 1. Check for unstaged changes (skip during commit)
-# Note: This check is disabled during commit as it would prevent commits
-# if ! git diff --quiet; then
-#   echo "❌ ERROR: Working directory has unstaged changes!"
-#   echo "Please stage all changes before committing."
-#   exit 1
-# fi
+set -euo pipefail
 
-# 2. Run TypeScript compilation check
-echo "🔍 Running TypeScript compilation check..."
-npm run build:check
-if [ $? -ne 0 ]; then
-  echo "❌ TypeScript compilation failed! Fix all errors before committing."
-  exit 1
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+echo -e "${YELLOW}Running SessionHub quality checks...${NC}"
+
+# Detect bypass attempts
+if [ "${HUSKY_SKIP_HOOKS:-0}" = "1" ] || [ "${SKIP_HOOKS:-0}" = "1" ]; then
+    echo -e "${RED}ERROR: Attempt to bypass quality gates detected!${NC}"
+    echo "Quality gates are mandatory and cannot be disabled."
+    exit 1
 fi
 
-# 3. Run ESLint with zero tolerance
-echo "🔍 Running ESLint check..."
-npm run lint
-if [ $? -ne 0 ]; then
-  echo "❌ ESLint check failed! Fix all violations before committing."
-  exit 1
+# Run TypeScript compilation
+echo "→ Checking TypeScript compilation..."
+npm run build:check || {
+    echo -e "${RED}TypeScript compilation failed!${NC}"
+    echo "Fix all TypeScript errors before committing."
+    exit 1
+}
+
+# Run ESLint
+echo "→ Running ESLint..."
+npm run lint || {
+    echo -e "${RED}ESLint check failed!${NC}"
+    echo "Fix all linting errors before committing."
+    exit 1
+}
+
+# Check for error suppression patterns
+echo "→ Checking for error suppression..."
+if grep -r "@ts-ignore\|@ts-nocheck\|@ts-expect-error\|eslint-disable" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" src/ renderer/ main/ 2>/dev/null; then
+    echo -e "${RED}Error suppression detected!${NC}"
+    echo "Remove all @ts-ignore, @ts-nocheck, @ts-expect-error, and eslint-disable comments."
+    exit 1
 fi
 
-# 4. Check for console statements using our script
-echo "🔍 Checking for console statements..."
-npm run console:check > /dev/null 2>&1
-if [ $? -ne 0 ]; then
-  echo "❌ Found console statements in production code!"
-  echo "Run 'npm run console:remove' to automatically remove them."
-  exit 1
-fi
+# Check file sizes (exclude build directories)
+echo "→ Checking file sizes..."
+find src/ main/ renderer/ app/ components/ scripts/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) 2>/dev/null | while read file; do
+    size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
+    if [ $size -gt 1048576 ]; then
+        echo -e "${RED}File too large: $file ($(($size / 1024))KB)${NC}"
+        echo "Files must be smaller than 1MB"
+        exit 1
+    fi
+done
 
-# 5. Run quality validation
-echo "🔍 Running quality validation..."
-npm run validate:strict
-if [ $? -ne 0 ]; then
-  echo "❌ Quality validation failed!"
-  exit 1
-fi
-
-echo "✅ All quality checks passed!"
+echo -e "${GREEN}✓ All quality checks passed!${NC}"

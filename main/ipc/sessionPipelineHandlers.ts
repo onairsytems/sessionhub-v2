@@ -4,7 +4,7 @@ import { AuditLogger } from '@/src/lib/logging/AuditLogger';
 import { ClaudeAPIClient } from '@/src/lib/api/ClaudeAPIClient';
 import { SessionExecutionPipeline, SessionExecutionRequest } from '@/src/services/session/SessionExecutionPipeline';
 import { DocumentImportService } from '@/src/services/document/DocumentImportService';
-import { DocumentAnalysisService } from '@/src/services/document/DocumentAnalysisService';
+import { DocumentAnalysisService, DocumentMetadata } from '@/src/services/document/DocumentAnalysisService';
 import * as path from 'path';
 
 let sessionPipeline: SessionExecutionPipeline | null = null;
@@ -22,17 +22,23 @@ function initializeServices() {
   }
 
   if (!documentImport) {
-    documentImport = new DocumentImportService(logger!, auditLogger!);
+    if (auditLogger) {
+      documentImport = new DocumentImportService(logger, auditLogger);
+    }
   }
 
   if (!documentAnalysis) {
     const claudeClient = new ClaudeAPIClient({ apiKey: process.env['ANTHROPIC_API_KEY'] || '' }, logger);
-    documentAnalysis = new DocumentAnalysisService(logger!, auditLogger!, claudeClient);
+    if (auditLogger) {
+      documentAnalysis = new DocumentAnalysisService(logger, auditLogger, claudeClient);
+    }
   }
 
   if (!sessionPipeline) {
     const claudeClient = new ClaudeAPIClient({ apiKey: process.env['ANTHROPIC_API_KEY'] || '' }, logger);
-    sessionPipeline = new SessionExecutionPipeline(logger!, auditLogger!, claudeClient);
+    if (auditLogger) {
+      sessionPipeline = new SessionExecutionPipeline(logger, auditLogger, claudeClient);
+    }
   }
 }
 
@@ -49,17 +55,21 @@ export function registerSessionPipelineHandlers() {
 
       // Subscribe to progress updates
       const sessionId = `session_${Date.now()}`;
-      sessionPipeline!.subscribeToProgress(sessionId, (progress) => {
-        event.sender.send('session:progress', { sessionId, progress });
-      });
+      if (sessionPipeline) {
+        sessionPipeline.subscribeToProgress(sessionId, (progress) => {
+          void event.sender.send('session:progress', { sessionId, progress });
+        });
 
-      // Execute session
-      const session = await sessionPipeline!.executeSession(request);
+        // Execute session
+        const result = await sessionPipeline.executeSession(request);
 
-      // Unsubscribe from progress
-      sessionPipeline!.unsubscribeFromProgress(sessionId);
-
-      return { success: true, session };
+        // Unsubscribe from progress
+        sessionPipeline.unsubscribeFromProgress(sessionId);
+        
+        return { success: true, session: result };
+      } else {
+        throw new Error('Session pipeline not initialized');
+      }
     } catch (error) {
       logger?.error('Session execution failed', error as Error);
       return { success: false, error: (error as Error).message };
@@ -75,7 +85,10 @@ export function registerSessionPipelineHandlers() {
       initializeServices();
 
       const results = await Promise.all(
-        filePaths.map(filePath => documentImport!.importFromFile(filePath))
+        filePaths.map(filePath => {
+          if (!documentImport) throw new Error('Document import service not initialized');
+          return documentImport.importFromFile(filePath);
+        })
       );
 
       return { success: true, results };
@@ -93,7 +106,8 @@ export function registerSessionPipelineHandlers() {
     try {
       initializeServices();
 
-      const result = await documentImport!.importFromGoogleDocs(docUrl);
+      if (!documentImport) throw new Error('Document import service not initialized');
+      const result = await documentImport.importFromGoogleDocs(docUrl);
       return { success: true, result };
     } catch (error) {
       logger?.error('Google Docs import failed', error as Error);
@@ -104,12 +118,13 @@ export function registerSessionPipelineHandlers() {
   // Analyze document
   ipcMain.handle('document:analyze', async (
     _event: IpcMainInvokeEvent,
-    documentMetadata: any
+    documentMetadata: unknown
   ) => {
     try {
       initializeServices();
 
-      const analysis = await documentAnalysis!.analyzeDocument(documentMetadata);
+      if (!documentAnalysis) throw new Error('Document analysis service not initialized');
+      const analysis = await documentAnalysis.analyzeDocument(documentMetadata as DocumentMetadata);
       return { success: true, analysis };
     } catch (error) {
       logger?.error('Document analysis failed', error as Error);
@@ -120,12 +135,13 @@ export function registerSessionPipelineHandlers() {
   // Analyze multiple documents
   ipcMain.handle('document:analyzeSet', async (
     _event: IpcMainInvokeEvent,
-    documents: any[]
+    documents: unknown[]
   ) => {
     try {
       initializeServices();
 
-      const analysis = await documentAnalysis!.analyzeDocumentSet(documents);
+      if (!documentAnalysis) throw new Error('Document analysis service not initialized');
+      const analysis = await documentAnalysis.analyzeDocumentSet(documents as DocumentMetadata[]);
       return { success: true, analysis };
     } catch (error) {
       logger?.error('Document set analysis failed', error as Error);
@@ -141,7 +157,8 @@ export function registerSessionPipelineHandlers() {
     try {
       initializeServices();
 
-      const session = sessionPipeline!.getSession(sessionId);
+      if (!sessionPipeline) throw new Error('Session pipeline not initialized');
+      const session = sessionPipeline.getSession(sessionId);
       return { success: true, session };
     } catch (error) {
       logger?.error('Failed to get session', error as Error);
@@ -157,7 +174,8 @@ export function registerSessionPipelineHandlers() {
     try {
       initializeServices();
 
-      const sessions = sessionPipeline!.getUserSessions(userId);
+      if (!sessionPipeline) throw new Error('Session pipeline not initialized');
+      const sessions = sessionPipeline.getUserSessions(userId);
       return { success: true, sessions };
     } catch (error) {
       logger?.error('Failed to get user sessions', error as Error);
@@ -170,8 +188,9 @@ export function registerSessionPipelineHandlers() {
     try {
       initializeServices();
 
-      const metrics = sessionPipeline!.getMetrics();
-      return { success: true, metrics };
+      const defaultMetrics = { totalSessions: 0, successRate: 0, averageDuration: 0 };
+      const metrics = sessionPipeline ? sessionPipeline.getMetrics() : defaultMetrics;
+      return { success: true, metrics: metrics as { totalSessions: number; successRate: number; averageDuration: number } };
     } catch (error) {
       logger?.error('Failed to get metrics', error as Error);
       return { success: false, error: (error as Error).message };

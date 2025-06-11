@@ -48,8 +48,8 @@ export const ZedConnectionWizard: React.FC<ZedConnectionWizardProps> = ({
       // Move to testing step
       setCurrentStep('testing');
       await runConnectionTest();
-    } catch (err: any) {
-      setError(err.message || 'Failed to store credentials');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to store credentials');
       setIsLoading(false);
     }
   };
@@ -63,8 +63,8 @@ export const ZedConnectionWizard: React.FC<ZedConnectionWizardProps> = ({
         // Auto-proceed to complete step after successful test
         setTimeout(() => setCurrentStep('complete'), 2000);
       }
-    } catch (err: any) {
-      setError(err.message || 'Connection test failed');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Connection test failed');
     } finally {
       setIsLoading(false);
     }
@@ -115,7 +115,7 @@ export const ZedConnectionWizard: React.FC<ZedConnectionWizardProps> = ({
       </div>
 
       <div className="flex justify-between">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="ghost" onClick={() => void onCancel()}>
           Cancel
         </Button>
         <Button onClick={() => setCurrentStep('credentials')}>
@@ -194,7 +194,7 @@ export const ZedConnectionWizard: React.FC<ZedConnectionWizardProps> = ({
         <Button variant="ghost" onClick={() => setCurrentStep('welcome')}>
           Back
         </Button>
-        <Button onClick={handleCredentialsSubmit} disabled={isLoading}>
+        <Button onClick={() => void handleCredentialsSubmit()} disabled={isLoading}>
           {isLoading ? 'Connecting...' : 'Connect to Zed'}
         </Button>
       </div>
@@ -248,7 +248,7 @@ export const ZedConnectionWizard: React.FC<ZedConnectionWizardProps> = ({
 
           {!testResult.success && (
             <div className="flex justify-center">
-              <Button onClick={handleRetry} disabled={isLoading}>
+              <Button onClick={() => void handleRetry()} disabled={isLoading}>
                 Retry Test
               </Button>
             </div>
@@ -297,7 +297,7 @@ export const ZedConnectionWizard: React.FC<ZedConnectionWizardProps> = ({
       </div>
 
       <div className="flex justify-center">
-        <Button onClick={onComplete}>
+        <Button onClick={() => void onComplete()}>
           Start Using SessionHub
         </Button>
       </div>

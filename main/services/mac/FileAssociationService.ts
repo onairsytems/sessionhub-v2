@@ -163,7 +163,7 @@ export class FileAssociationService extends EventEmitter {
   /**
    * Create a SessionHub project file
    */
-  public async saveProjectFile(projectData: any, savePath?: string): Promise<string> {
+  public async saveProjectFile(projectData: unknown, savePath?: string): Promise<string> {
     const defaultPath = path.join(app.getPath('documents'), 'SessionHub Projects');
     
     // Ensure directory exists
@@ -173,7 +173,7 @@ export class FileAssociationService extends EventEmitter {
     if (!savePath && this.mainWindow) {
       const result = await dialog.showSaveDialog(this.mainWindow, {
         title: 'Save SessionHub Project',
-        defaultPath: path.join(defaultPath, `${projectData.name || 'project'}.shub`),
+        defaultPath: path.join(defaultPath, `${(projectData as any)?.name || 'project'}.shub`),
         filters: [
           { name: 'SessionHub Project', extensions: ['shub'] },
           { name: 'All Files', extensions: ['*'] }
@@ -193,7 +193,7 @@ export class FileAssociationService extends EventEmitter {
 
     // Add metadata
     const fileData = {
-      ...projectData,
+      ...(projectData as Record<string, any>),
       _metadata: {
         version: '1.0',
         created: new Date().toISOString(),
@@ -277,7 +277,7 @@ export class FileAssociationService extends EventEmitter {
     return { protocol: this.PROTOCOL, action, params };
   }
 
-  private async openProject(data: any, filePath: string): Promise<void> {
+  private async openProject(data: unknown, filePath: string): Promise<void> {
     this.emit('open-project', {
       data,
       filePath,
@@ -286,11 +286,11 @@ export class FileAssociationService extends EventEmitter {
 
     // Navigate to project view
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('open-project', { data, filePath });
+      void this.mainWindow.webContents.send('open-project', { data, filePath });
     }
   }
 
-  private async openSession(data: any, filePath: string): Promise<void> {
+  private async openSession(data: unknown, filePath: string): Promise<void> {
     this.emit('open-session', {
       data,
       filePath,
@@ -299,11 +299,11 @@ export class FileAssociationService extends EventEmitter {
 
     // Navigate to session view
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('open-session', { data, filePath });
+      void this.mainWindow.webContents.send('open-session', { data, filePath });
     }
   }
 
-  private async openTemplate(data: any, filePath: string): Promise<void> {
+  private async openTemplate(data: unknown, filePath: string): Promise<void> {
     this.emit('open-template', {
       data,
       filePath,
@@ -312,7 +312,7 @@ export class FileAssociationService extends EventEmitter {
 
     // Navigate to template view
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('open-template', { data, filePath });
+      void this.mainWindow.webContents.send('open-template', { data, filePath });
     }
   }
 
@@ -340,7 +340,7 @@ export class FileAssociationService extends EventEmitter {
 
   private navigateTo(path: string): void {
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('navigate', path);
+      void this.mainWindow.webContents.send('navigate', path);
     }
   }
 

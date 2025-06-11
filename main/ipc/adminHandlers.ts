@@ -123,7 +123,7 @@ export function registerAdminHandlers(): void {
   });
 
   // Record system metric
-  ipcMain.handle('admin:record-metric', async (_event, metricType: string, value: number, unit?: string, metadata?: Record<string, any>) => {
+  ipcMain.handle('admin:record-metric', async (_event, metricType: string, value: number, unit?: string, metadata?: Record<string, unknown>) => {
     try {
       await adminService.recordSystemMetric(metricType, value, unit, metadata);
       return { success: true };
@@ -134,7 +134,7 @@ export function registerAdminHandlers(): void {
   });
 
   // Log emergency access
-  ipcMain.handle('admin:log-emergency-access', async (_event, action: string, severity: 'low' | 'medium' | 'high' | 'critical', reason: string, affectedResources?: any[]) => {
+  ipcMain.handle('admin:log-emergency-access', async (_event, action: string, severity: 'low' | 'medium' | 'high' | 'critical', reason: string, affectedResources?: unknown[]) => {
     try {
       const logId = await adminService.logEmergencyAccess(action, severity, reason, affectedResources);
       return { success: true, logId };

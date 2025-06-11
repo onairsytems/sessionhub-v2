@@ -3,13 +3,11 @@ import { SessionAnalytics } from '@/src/services/SessionService';
 import { SessionStatus } from '@/src/models/Session';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-
 interface SessionAnalyticsDashboardProps {
   userId?: string;
   projectId?: string;
   dateRange?: { from: Date; to: Date };
 }
-
 export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps> = ({
   userId,
   projectId,
@@ -18,11 +16,9 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
   const [analytics, setAnalytics] = useState<SessionAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d' | 'all'>('30d');
-
   useEffect(() => {
-    loadAnalytics();
+    void loadAnalytics();
   }, [userId, projectId, selectedPeriod, dateRange]);
-
   const loadAnalytics = async () => {
     setLoading(true);
     try {
@@ -32,18 +28,15 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
         projectId,
         dateRange: dateRange || period
       });
-      setAnalytics(result);
+      setAnalytics(result as SessionAnalytics);
     } catch (error) {
-// REMOVED: console statement
     } finally {
       setLoading(false);
     }
   };
-
   const getPeriodDateRange = (period: string) => {
     const to = new Date();
     const from = new Date();
-    
     switch (period) {
       case '7d':
         from.setDate(from.getDate() - 7);
@@ -58,10 +51,8 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
         from.setFullYear(from.getFullYear() - 10);
         break;
     }
-    
     return { from, to };
   };
-
   const getStatusColor = (status: SessionStatus) => {
     switch (status) {
       case 'completed': return '#10b981';
@@ -73,14 +64,12 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
       default: return '#6b7280';
     }
   };
-
   const formatDuration = (ms: number) => {
     const minutes = Math.floor(ms / 1000 / 60);
     if (minutes < 60) return `${minutes}m`;
     const hours = Math.floor(minutes / 60);
     return `${hours}h ${minutes % 60}m`;
   };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -88,7 +77,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
       </div>
     );
   }
-
   if (!analytics) {
     return (
       <Card className="p-6">
@@ -96,10 +84,8 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
       </Card>
     );
   }
-
   // Calculate max value for bar chart scaling
   const maxDailyCount = Math.max(...analytics.sessionsByDay.map(d => d.count), 1);
-
   return (
     <div className="space-y-6">
       {/* Period selector */}
@@ -120,7 +106,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
           ))}
         </div>
       </div>
-
       {/* Key metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
@@ -131,7 +116,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
             </p>
           </div>
         </Card>
-
         <Card className="p-4">
           <div className="space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">Success Rate</p>
@@ -140,7 +124,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
             </p>
           </div>
         </Card>
-
         <Card className="p-4">
           <div className="space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">Avg Duration</p>
@@ -149,7 +132,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
             </p>
           </div>
         </Card>
-
         <Card className="p-4">
           <div className="space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">Active Now</p>
@@ -159,7 +141,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
           </div>
         </Card>
       </div>
-
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sessions by status */}
@@ -199,7 +180,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
               ))}
           </div>
         </Card>
-
         {/* Performance metrics */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
@@ -224,7 +204,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
                 />
               </div>
             </div>
-
             <div>
               <div className="flex justify-between mb-1">
                 <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -243,7 +222,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
                 />
               </div>
             </div>
-
             <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
               <div className="flex justify-between">
                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
@@ -257,7 +235,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
           </div>
         </Card>
       </div>
-
       {/* Sessions over time */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4 text-gray-900 dark:text-gray-100">
@@ -290,7 +267,6 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
           ))}
         </div>
       </Card>
-
       {/* Common errors */}
       {analytics.commonErrors.length > 0 && (
         <Card className="p-6">

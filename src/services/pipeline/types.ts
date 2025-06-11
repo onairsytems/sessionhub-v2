@@ -1,7 +1,6 @@
 /**
  * Types for the Self-Development Pipeline
  */
-
 export interface GitHubWebhookPayload {
   action: string;
   issue?: {
@@ -30,13 +29,11 @@ export interface GitHubWebhookPayload {
     login: string;
   };
 }
-
 export interface SessionInstruction {
   id: string;
   sourceType: 'github-issue' | 'production-error' | 'manual';
   sourceId: string;
   title: string;
-  description?: string;
   objectives: string[];
   requirements: string[];
   priority: 'critical' | 'high' | 'medium' | 'low';
@@ -52,7 +49,6 @@ export interface SessionInstruction {
   createdAt: Date;
   status: 'pending' | 'in-progress' | 'completed' | 'failed';
 }
-
 export type SessionCategory = 
   | 'bug-fix'
   | 'feature'
@@ -62,7 +58,6 @@ export type SessionCategory =
   | 'documentation'
   | 'infrastructure'
   | 'ui-ux';
-
 export interface PipelineConfig {
   github: {
     webhookSecret: string;
@@ -85,7 +80,6 @@ export interface PipelineConfig {
     fallbackVersion: string;
   };
 }
-
 export interface DeploymentPackage {
   version: string;
   channel: 'stable' | 'beta' | 'alpha';
@@ -99,7 +93,6 @@ export interface DeploymentPackage {
   criticalUpdate: boolean;
   minSystemVersion?: string;
 }
-
 export interface AuditEntry {
   id: string;
   timestamp: Date;
@@ -111,7 +104,6 @@ export interface AuditEntry {
   result: 'success' | 'failure';
   errorMessage?: string;
 }
-
 export type AuditAction = 
   | 'session.created'
   | 'session.started'
@@ -124,7 +116,6 @@ export type AuditAction =
   | 'issue.processed'
   | 'error.detected'
   | 'recovery.initiated';
-
 export interface PipelineStatus {
   isRunning: boolean;
   currentSession?: SessionInstruction;

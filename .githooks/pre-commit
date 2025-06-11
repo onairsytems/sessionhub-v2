@@ -44,9 +44,9 @@ if grep -r "@ts-ignore\|@ts-nocheck\|@ts-expect-error\|eslint-disable" --include
     exit 1
 fi
 
-# Check file sizes
+# Check file sizes (exclude build directories)
 echo "→ Checking file sizes..."
-find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -not -path "*/node_modules/*" -not -path "*/.next/*" -not -path "*/dist/*" -not -path "*/dist-electron/*" | while read file; do
+find src/ main/ renderer/ app/ components/ scripts/ -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) 2>/dev/null | while read file; do
     size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
     if [ $size -gt 1048576 ]; then
         echo -e "${RED}File too large: $file ($(($size / 1024))KB)${NC}"

@@ -4,14 +4,12 @@ import { Session, SessionStatus } from '@/src/models/Session';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { formatDistanceToNow } from 'date-fns';
-
 interface SessionLibraryProps {
   userId: string;
   projectId?: string;
   onSessionSelect?: (session: Session) => void;
   onSessionCreate?: () => void;
 }
-
 export const SessionLibrary: React.FC<SessionLibraryProps> = ({
   userId,
   projectId,
@@ -25,12 +23,10 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
   const [dateRange] = useState<{ from?: Date; to?: Date }>({});
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [view, setView] = useState<'grid' | 'list'>('grid');
-
   // Load sessions on mount
   useEffect(() => {
-    loadSessions();
+    void loadSessions();
   }, [userId, projectId]);
-
   const loadSessions = async () => {
     setLoading(true);
     try {
@@ -43,16 +39,13 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
         dateFrom: dateRange.from,
         dateTo: dateRange.to
       };
-
       const result = await window.electron.invoke('session:search', filter);
-      setSessions(result);
+      setSessions(result as Session[]);
     } catch (error) {
-// REMOVED: console statement
     } finally {
       setLoading(false);
     }
   };
-
   // Filter sessions based on search criteria
   const filteredSessions = useMemo(() => {
     return sessions.filter(session => {
@@ -67,12 +60,10 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
           return false;
         }
       }
-
       // Status filter
       if (statusFilter.length > 0 && !statusFilter.includes(session.status)) {
         return false;
       }
-
       // Tag filter
       if (selectedTags.length > 0) {
         const sessionTags = session.metadata.tags || [];
@@ -80,11 +71,9 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
           return false;
         }
       }
-
       return true;
     });
   }, [sessions, searchTerm, statusFilter, selectedTags]);
-
   // Extract all unique tags from sessions
   const allTags = useMemo(() => {
     const tagSet = new Set<string>();
@@ -93,7 +82,6 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
     });
     return Array.from(tagSet).sort();
   }, [sessions]);
-
   const getStatusColor = (status: SessionStatus) => {
     switch (status) {
       case 'completed': return 'text-green-600 bg-green-50';
@@ -105,7 +93,6 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       default: return 'text-gray-600 bg-gray-50';
     }
   };
-
   const getStatusIcon = (status: SessionStatus) => {
     switch (status) {
       case 'completed': return '✓';
@@ -117,21 +104,17 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       default: return '•';
     }
   };
-
   const handleDeleteSession = async (sessionId: string) => {
     if (!confirm('Are you sure you want to delete this session?')) return;
-    
     try {
       await window.electron.invoke('session:delete', sessionId);
       await loadSessions();
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   const handleExportSession = async (sessionId: string) => {
     try {
-      const exportData = await window.electron.invoke('session:export', sessionId);
+      const exportData = await window.electron.invoke('session:export', sessionId) as string;
       const blob = new Blob([exportData], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -140,10 +123,8 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-// REMOVED: console statement
     }
   };
-
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -151,7 +132,6 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       </div>
     );
   }
-
   return (
     <div className="space-y-4">
       {/* Search and Filters */}
@@ -170,7 +150,6 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
                        bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
             />
           </div>
-
           {/* View toggle */}
           <div className="flex gap-2">
             <Button
@@ -190,14 +169,13 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
             <Button
               variant="primary"
               size="sm"
-              onClick={onSessionCreate}
+              onClick={() => onSessionCreate?.()}
               className="ml-auto"
             >
               New Session
             </Button>
           </div>
         </div>
-
         {/* Status filters */}
         <div className="mt-4">
           <div className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -226,7 +204,6 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
               ))}
           </div>
         </div>
-
         {/* Tag filters */}
         {allTags.length > 0 && (
           <div className="mt-4">
@@ -256,23 +233,20 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
             </div>
           </div>
         )}
-
         <div className="mt-4 flex justify-end">
           <Button
             variant="ghost"
             size="sm"
-            onClick={loadSessions}
+            onClick={() => void loadSessions()}
           >
             Search
           </Button>
         </div>
       </div>
-
       {/* Results count */}
       <div className="text-sm text-gray-600 dark:text-gray-400">
         Found {filteredSessions.length} session{filteredSessions.length !== 1 ? 's' : ''}
       </div>
-
       {/* Session list/grid */}
       {filteredSessions.length === 0 ? (
         <Card className="p-8 text-center">
@@ -297,18 +271,15 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
                     {getStatusIcon(session.status)} {session.status}
                   </span>
                 </div>
-
                 <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                   {session.description}
                 </p>
-
                 <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
                   <span>{formatDistanceToNow(new Date(session.createdAt))} ago</span>
                   {session.metadata.totalDuration && (
                     <span>{Math.round(session.metadata.totalDuration / 1000 / 60)}m</span>
                   )}
                 </div>
-
                 {session.metadata.tags && session.metadata.tags.length > 0 && (
                   <div className="flex flex-wrap gap-1">
                     {session.metadata.tags.slice(0, 3).map((tag: string) => (
@@ -326,7 +297,6 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
                     )}
                   </div>
                 )}
-
                 <div className="flex gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="ghost"

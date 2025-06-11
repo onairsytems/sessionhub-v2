@@ -10,6 +10,33 @@ interface AdminDashboardProps {
   onClose?: () => void;
 }
 
+interface AdminAccessResult {
+  success: boolean;
+  isAdmin?: boolean;
+  isSuperAdmin?: boolean;
+}
+
+interface SystemStatsResult {
+  success: boolean;
+  stats?: {
+    totalUsers?: number;
+    activeUsers?: number;
+    totalProjects?: number;
+    totalSessions?: number;
+    recentErrors?: number;
+  };
+}
+
+interface HealthCheckResult {
+  success: boolean;
+  overallHealth?: boolean;
+  healthChecks?: {
+    database?: boolean;
+    authentication?: boolean;
+    services?: boolean;
+  };
+}
+
 type TabType = 'overview' | 'users' | 'system' | 'audit' | 'emergency';
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
@@ -17,20 +44,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<TabType>('overview');
-  const [systemStats, setSystemStats] = useState<any>(null);
+  const [systemStats, setSystemStats] = useState<SystemStatsResult['stats']>(undefined);
 
   useEffect(() => {
-    checkAdminAccess();
+    void checkAdminAccess();
     loadSystemStats();
   }, []);
 
   const checkAdminAccess = async () => {
     try {
-      const adminResult = await window.electron.invoke('admin:check-access');
-      const superAdminResult = await window.electron.invoke('admin:check-super-access');
+      const adminResult = await window.electron.invoke('admin:check-access') as AdminAccessResult;
+      const superAdminResult = await window.electron.invoke('admin:check-super-access') as AdminAccessResult;
       
-      setIsAdmin(adminResult.success && adminResult.isAdmin);
-      setIsSuperAdmin(superAdminResult.success && superAdminResult.isSuperAdmin);
+      setIsAdmin(adminResult.success && (adminResult.isAdmin ?? false));
+      setIsSuperAdmin(superAdminResult.success && (superAdminResult.isSuperAdmin ?? false));
     } catch (error) {
     } finally {
       setLoading(false);
@@ -39,8 +66,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
 
   const loadSystemStats = async () => {
     try {
-      const result = await window.electron.invoke('admin:get-system-stats');
-      if (result.success) {
+      const result = await window.electron.invoke('admin:get-system-stats') as SystemStatsResult;
+      if (result.success && result.stats) {
         setSystemStats(result.stats);
       }
     } catch (error) {
@@ -49,8 +76,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
 
   const performHealthCheck = async () => {
     try {
-      const result = await window.electron.invoke('admin:health-check');
-      if (result.success) {
+      const result = await window.electron.invoke('admin:health-check') as HealthCheckResult;
+      if (result.success && result.healthChecks) {
         alert(`System Health: ${result.overallHealth ? 'Healthy' : 'Issues Detected'}\n\nDatabase: ${result.healthChecks.database ? '✓' : '✗'}\nAuthentication: ${result.healthChecks.authentication ? '✓' : '✗'}\nServices: ${result.healthChecks.services ? '✓' : '✗'}`);
       }
     } catch (error) {
@@ -74,7 +101,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         <Card className="p-8 max-w-md">
           <h2 className="text-2xl font-bold text-red-600 mb-4">Access Denied</h2>
           <p className="text-gray-600 mb-6">You do not have administrator privileges to access this area.</p>
-          <Button onClick={onClose} variant="primary">Close</Button>
+          <Button onClick={() => void onClose?.()} variant="primary">Close</Button>
         </Card>
       </div>
     );
@@ -102,13 +129,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
             </span>
           </div>
           <div className="flex items-center space-x-4">
-            <Button onClick={performHealthCheck} variant="secondary">
+            <Button onClick={() => void performHealthCheck()} variant="secondary">
               Health Check
             </Button>
-            <Button onClick={loadSystemStats} variant="secondary">
+            <Button onClick={() => void loadSystemStats()} variant="secondary">
               Refresh
             </Button>
-            <Button onClick={onClose} variant="ghost">
+            <Button onClick={() => void onClose?.()} variant="ghost">
               ✕
             </Button>
           </div>

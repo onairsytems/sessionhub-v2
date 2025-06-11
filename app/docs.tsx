@@ -1,20 +1,16 @@
 'use client';
-
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Code, Rocket, Search, Terminal, Zap, HelpCircle, ExternalLink } from 'lucide-react';
-
 interface DocSection {
   id: string;
   title: string;
   icon: React.ElementType;
   content: React.ReactNode;
 }
-
 export default function DocsPage() {
   const [selectedSection, setSelectedSection] = useState('getting-started');
   const [searchQuery, setSearchQuery] = useState('');
-
   const docSections: DocSection[] = [
     {
       id: 'getting-started',
@@ -52,7 +48,6 @@ export default function DocsPage() {
           <p className="text-muted-foreground">
             Sessions are the core of SessionHub. Each session represents a focused work period with clear objectives.
           </p>
-          
           <div className="space-y-4">
             <div>
               <h4 className="font-medium mb-2">Planning Phase</h4>
@@ -60,14 +55,12 @@ export default function DocsPage() {
                 Define your objectives and let Claude analyze your codebase to create an execution plan.
               </p>
             </div>
-            
             <div>
               <h4 className="font-medium mb-2">Execution Phase</h4>
               <p className="text-sm text-muted-foreground">
                 Claude implements the plan while you monitor progress and provide guidance.
               </p>
             </div>
-            
             <div>
               <h4 className="font-medium mb-2">Review Phase</h4>
               <p className="text-sm text-muted-foreground">
@@ -75,7 +68,6 @@ export default function DocsPage() {
               </p>
             </div>
           </div>
-
           <Card className="mt-4">
             <CardHeader>
               <CardTitle className="text-sm">Session Templates</CardTitle>
@@ -100,7 +92,6 @@ export default function DocsPage() {
           <p className="text-muted-foreground">
             Extend Claude's capabilities with MCP servers for specialized tools and integrations.
           </p>
-          
           <div className="grid gap-4 mt-4">
             <Card>
               <CardHeader>
@@ -116,7 +107,6 @@ export default function DocsPage() {
                 </ul>
               </CardContent>
             </Card>
-            
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Creating Custom MCP Servers</CardTitle>
@@ -152,7 +142,6 @@ export const server = {
           <p className="text-muted-foreground">
             Master these shortcuts to navigate SessionHub like a pro:
           </p>
-          
           <div className="grid gap-2 mt-4">
             <div className="flex justify-between p-2 rounded bg-secondary">
               <span className="text-sm">Quick command palette</span>
@@ -179,7 +168,6 @@ export const server = {
               <kbd className="text-xs px-2 py-1 rounded bg-background">⌘,</kbd>
             </div>
           </div>
-          
           <p className="text-sm text-muted-foreground mt-4">
             Customize shortcuts in Settings → Keyboard Shortcuts
           </p>
@@ -193,7 +181,6 @@ export const server = {
       content: (
         <div className="space-y-4">
           <h3 className="text-lg font-semibold">Common Issues</h3>
-          
           <div className="space-y-4">
             <Card>
               <CardHeader>
@@ -211,7 +198,6 @@ export const server = {
                 </ul>
               </CardContent>
             </Card>
-            
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Session Not Progressing</CardTitle>
@@ -228,7 +214,6 @@ export const server = {
                 </ul>
               </CardContent>
             </Card>
-            
             <Card>
               <CardHeader>
                 <CardTitle className="text-sm">Performance Issues</CardTitle>
@@ -250,14 +235,14 @@ export const server = {
       )
     }
   ];
-
-  const filteredSections = docSections.filter(section =>
-    section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    ((section.content as React.ReactElement).props.children?.toString() || '').toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
+  const filteredSections = docSections.filter(section => {
+    const contentString = section.content && typeof section.content === 'object' && 'props' in section.content
+      ? JSON.stringify(section.content.props).toLowerCase()
+      : '';
+    return section.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contentString.includes(searchQuery.toLowerCase());
+  });
   const currentSection = filteredSections.find(s => s.id === selectedSection) || filteredSections[0];
-
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="mb-8">
@@ -266,7 +251,6 @@ export const server = {
           Everything you need to know about using SessionHub effectively
         </p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Sidebar */}
         <div className="md:col-span-1">
@@ -281,7 +265,6 @@ export const server = {
                 className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background"
               />
             </div>
-            
             <nav className="space-y-1">
               {filteredSections.map((section) => {
                 const Icon = section.icon;
@@ -301,7 +284,6 @@ export const server = {
                 );
               })}
             </nav>
-
             <div className="pt-4 border-t">
               <a
                 href="https://github.com/sessionhub/docs"
@@ -315,7 +297,6 @@ export const server = {
             </div>
           </div>
         </div>
-
         {/* Content */}
         <div className="md:col-span-3">
           <Card>

@@ -4,18 +4,15 @@
  * Manages all registered MCP integrations, handles lifecycle,
  * and provides discovery mechanisms.
  */
-
 import { EventEmitter } from 'events';
 import { MCPIntegration, MCPIntegrationManifest } from './types';
 import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-
 export class MCPIntegrationRegistry extends EventEmitter {
   private integrations: Map<string, MCPIntegration>;
   private manifests: Map<string, MCPIntegrationManifest>;
   private storagePath: string;
-
   constructor(storagePath?: string) {
     super();
     this.integrations = new Map();
@@ -26,64 +23,49 @@ export class MCPIntegrationRegistry extends EventEmitter {
       'mcp',
       'integrations'
     );
-    
     this.initializeStorage();
   }
-
   private async initializeStorage(): Promise<void> {
     try {
       await fs.mkdir(this.storagePath, { recursive: true });
       await this.loadIntegrations();
     } catch (error) {
-// REMOVED: console statement
     }
   }
-
   private async loadIntegrations(): Promise<void> {
     try {
       const files = await fs.readdir(this.storagePath);
-      
       for (const file of files) {
         if (file.endsWith('.json')) {
           const content = await fs.readFile(
             path.join(this.storagePath, file),
             'utf-8'
           );
-          
           const manifest: MCPIntegrationManifest = JSON.parse(content);
           const integration = manifest.integration;
-          
           if (integration.id) {
             this.integrations.set(integration.id, integration);
             this.manifests.set(integration.id, manifest);
           }
         }
       }
-      
-// REMOVED: console statement
     } catch (error) {
-// REMOVED: console statement
     }
   }
-
   async registerIntegration(integration: MCPIntegration): Promise<string> {
     // Generate ID if not provided
     if (!integration.id) {
       integration.id = uuidv4();
     }
-
     // Check for duplicate names
     const existing = Array.from(this.integrations.values()).find(
       i => i.name === integration.name && i.id !== integration.id
     );
-    
     if (existing) {
       throw new Error(`Integration with name "${integration.name}" already exists`);
     }
-
     // Store integration
     this.integrations.set(integration.id, integration);
-    
     // Create manifest
     const manifest: MCPIntegrationManifest = {
       integration,
@@ -92,56 +74,38 @@ export class MCPIntegrationRegistry extends EventEmitter {
         dependencies: []
       }
     };
-    
     this.manifests.set(integration.id, manifest);
-    
     // Persist to disk
     await this.saveIntegration(integration.id, manifest);
-    
     // Emit event
     this.emit('integration:registered', integration);
-    
-// REMOVED: console statement
-    
     return integration.id;
   }
-
   async unregisterIntegration(id: string): Promise<void> {
     const integration = this.integrations.get(id);
-    
     if (!integration) {
       throw new Error(`Integration not found: ${id}`);
     }
-
     // Remove from memory
     this.integrations.delete(id);
     this.manifests.delete(id);
-    
     // Remove from disk
     try {
       await fs.unlink(path.join(this.storagePath, `${id}.json`));
     } catch (error) {
-// REMOVED: console statement
     }
-    
     // Emit event
     this.emit('integration:unregistered', integration);
-    
-// REMOVED: console statement
   }
-
   async getIntegration(id: string): Promise<MCPIntegration | undefined> {
     return this.integrations.get(id);
   }
-
   async getManifest(id: string): Promise<MCPIntegrationManifest | undefined> {
     return this.manifests.get(id);
   }
-
   async listIntegrations(): Promise<MCPIntegration[]> {
     return Array.from(this.integrations.values());
   }
-
   async searchIntegrations(query: {
     name?: string;
     category?: string;
@@ -149,7 +113,6 @@ export class MCPIntegrationRegistry extends EventEmitter {
     tags?: string[];
   }): Promise<MCPIntegration[]> {
     let results = Array.from(this.integrations.values());
-    
     if (query.name) {
       const searchTerm = query.name.toLowerCase();
       results = results.filter(i => 
@@ -157,46 +120,36 @@ export class MCPIntegrationRegistry extends EventEmitter {
         i.description.toLowerCase().includes(searchTerm)
       );
     }
-    
     if (query.category) {
       results = results.filter(i => i.category === query.category);
     }
-    
     if (query.author) {
       results = results.filter(i => 
         i.author.toLowerCase().includes(query.author!.toLowerCase())
       );
     }
-    
     if (query.tags && query.tags.length > 0) {
       results = results.filter(i => {
         const manifest = this.manifests.get(i.id!);
         if (!manifest?.marketplace?.tags) return false;
-        
         return query.tags!.some(tag => 
           manifest.marketplace!.tags!.includes(tag)
         );
       });
     }
-    
     return results;
   }
-
   getIntegrationCount(): number {
     return this.integrations.size;
   }
-
   async updateIntegration(id: string, updates: Partial<MCPIntegration>): Promise<void> {
     const integration = this.integrations.get(id);
-    
     if (!integration) {
       throw new Error(`Integration not found: ${id}`);
     }
-
     // Update integration
     const updated = { ...integration, ...updates, id };
     this.integrations.set(id, updated);
-    
     // Update manifest
     const manifest = this.manifests.get(id);
     if (manifest) {
@@ -204,38 +157,29 @@ export class MCPIntegrationRegistry extends EventEmitter {
       this.manifests.set(id, manifest);
       await this.saveIntegration(id, manifest);
     }
-    
     // Emit event
     this.emit('integration:updated', updated);
   }
-
   async enableIntegration(id: string): Promise<void> {
     const integration = this.integrations.get(id);
-    
     if (!integration) {
       throw new Error(`Integration not found: ${id}`);
     }
-
     // Emit event
     this.emit('integration:enabled', integration);
   }
-
   async disableIntegration(id: string): Promise<void> {
     const integration = this.integrations.get(id);
-    
     if (!integration) {
       throw new Error(`Integration not found: ${id}`);
     }
-
     // Emit event
     this.emit('integration:disabled', integration);
   }
-
   private async saveIntegration(id: string, manifest: MCPIntegrationManifest): Promise<void> {
     const filePath = path.join(this.storagePath, `${id}.json`);
     await fs.writeFile(filePath, JSON.stringify(manifest, null, 2));
   }
-
   // Core integrations that come pre-installed
   async registerCoreIntegrations(): Promise<void> {
     const coreIntegrations: MCPIntegration[] = [
@@ -344,12 +288,10 @@ export class MCPIntegrationRegistry extends EventEmitter {
         permissions: ['network']
       }
     ];
-
     for (const integration of coreIntegrations) {
       try {
         await this.registerIntegration(integration);
       } catch (error) {
-// REMOVED: console statement
       }
     }
   }

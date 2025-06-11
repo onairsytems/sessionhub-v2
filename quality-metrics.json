@@ -258,5 +258,31 @@
       "status": "pass",
       "compliance": 100
     }
+  },
+  {
+    "timestamp": "2025-06-11T02:12:02.710Z",
+    "typescript": {
+      "errors": 0,
+      "warnings": 0,
+      "status": "pass"
+    },
+    "eslint": {
+      "errors": 0,
+      "warnings": 0,
+      "status": "pass"
+    },
+    "console": {
+      "count": 0,
+      "status": "pass"
+    },
+    "git": {
+      "isClean": false,
+      "uncommittedFiles": 58,
+      "status": "fail"
+    },
+    "overall": {
+      "status": "fail",
+      "compliance": 75
+    }
   }
 ]

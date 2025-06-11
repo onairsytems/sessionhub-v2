@@ -263,14 +263,14 @@ export class MenuBarService extends EventEmitter {
   private createNewSession(): void {
     this.showMainWindow();
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('new-session');
+      void this.mainWindow.webContents.send('new-session');
     }
   }
 
   private openSection(section: string): void {
     this.showMainWindow();
     if (this.mainWindow && !this.mainWindow.isDestroyed()) {
-      this.mainWindow.webContents.send('navigate', `/${section}`);
+      void this.mainWindow.webContents.send('navigate', `/${section}`);
     }
   }
 

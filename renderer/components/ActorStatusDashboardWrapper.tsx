@@ -1,16 +1,13 @@
 /**
  * Wrapper for ActorStatusDashboard to handle API mismatches
  */
-
 import React, { useState, useEffect } from 'react';
 import { ActorStatusDashboard } from './ActorStatusDashboard';
-
 // interface APIStatusResponse {
 //   operational: boolean;
 //   message: string;
 //   lastCheck: string;
 // }
-
 interface ViolationResponse {
   id: string;
   type: string;
@@ -19,20 +16,17 @@ interface ViolationResponse {
   timestamp: string;
   actor: string;
 }
-
 interface ActivityResponse {
   id: string;
   actor: string;
   action: string;
   timestamp: string;
-  details?: any;
+  details?: unknown;
 }
-
 export const ActorStatusDashboardWrapper: React.FC = () => {
   const [apiStatus, setApiStatus] = useState({ planning: false, execution: false });
   const [violations, setViolations] = useState<any[]>([]);
   const [activities, setActivities] = useState<any[]>([]);
-
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -45,7 +39,6 @@ export const ActorStatusDashboardWrapper: React.FC = () => {
             execution: statusResponse.operational
           });
         }
-
         // Load violations
         const violationsResponse = await window.electronAPI?.getViolations?.();
         if (violationsResponse) {
@@ -53,7 +46,7 @@ export const ActorStatusDashboardWrapper: React.FC = () => {
           const convertedViolations = violationsResponse.map((v: ViolationResponse) => ({
             id: v.id,
             actorType: v.actor === 'planning' ? 'planning' : 'execution',
-            violationType: v.type as any,
+            violationType: v.type as unknown,
             description: v.message,
             severity: v.severity,
             timestamp: v.timestamp,
@@ -61,7 +54,6 @@ export const ActorStatusDashboardWrapper: React.FC = () => {
           }));
           setViolations(convertedViolations);
         }
-
         // Load activities
         const activitiesResponse = await window.electronAPI?.getActivities?.();
         if (activitiesResponse) {
@@ -76,24 +68,19 @@ export const ActorStatusDashboardWrapper: React.FC = () => {
           setActivities(convertedActivities);
         }
       } catch (error) {
-// REMOVED: console statement
       }
     };
-
     loadData();
     const interval = setInterval(loadData, 5000);
     return () => clearInterval(interval);
   }, []);
-
   const handleConfigureAPI = async () => {
     await window.electronAPI?.openAPIConfiguration?.();
   };
-
   const handleClearViolations = async () => {
     await window.electronAPI?.clearViolations?.();
     setViolations([]);
   };
-
   return (
     <ActorStatusDashboard
       apiStatus={apiStatus}

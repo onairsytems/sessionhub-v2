@@ -185,17 +185,20 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
       try {
         // Subscribe to session progress events
         window.sessionhub.onSessionProgress(
-          (event: any) => {
-            const typedData = event.data as {
-              position?: number;
-              status?: string;
-              metrics?: SessionMetrics;
-              error?: string;
-              retryCount?: number;
-              actor?: string;
-              stage?: string;
+          (event: unknown) => {
+            const typedEvent = event as {
+              type: string;
+              data: {
+                position?: number;
+                status?: string;
+                metrics?: SessionMetrics;
+                error?: string;
+                retryCount?: number;
+                actor?: string;
+                stage?: string;
+              };
             };
-            handleProgressEvent({ type: event.type, data: typedData });
+            handleProgressEvent(typedEvent);
           },
         );
 
@@ -210,8 +213,20 @@ export const SessionProgress: React.FC<SessionProgressProps> = ({
         }
 
         cleanup = () => {
-          window.sessionhub.removeSessionProgressListener((event: any) => {
-            handleProgressEvent({ type: event.type, data: event.data });
+          window.sessionhub.removeSessionProgressListener((event: unknown) => {
+            const typedEvent = event as {
+              type: string;
+              data: {
+                position?: number;
+                status?: string;
+                metrics?: SessionMetrics;
+                error?: string;
+                retryCount?: number;
+                actor?: string;
+                stage?: string;
+              };
+            };
+            handleProgressEvent(typedEvent);
           });
           setIsConnected(false);
         };

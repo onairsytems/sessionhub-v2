@@ -52,6 +52,7 @@
     "next-env.d.ts",
     "global.d.ts",
     "types/**/*.d.ts",
+    "renderer/types/**/*.d.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",

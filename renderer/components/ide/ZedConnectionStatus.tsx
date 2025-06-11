@@ -23,15 +23,15 @@ export const ZedConnectionStatus: React.FC = () => {
     const interval = setInterval(checkHealth, 5000);
 
     // Listen for health updates
-    const handleHealthUpdate = (_event: any, healthData: ConnectionHealth) => {
+    const handleHealthUpdate = (healthData: ConnectionHealth) => {
       setHealth(healthData);
     };
 
-    window.electronAPI.api.on('zed:health-update', handleHealthUpdate);
+    window.electronAPI.api.on('zed:health-update', handleHealthUpdate as any);
 
     return () => {
       clearInterval(interval);
-      window.electronAPI.api.off('zed:health-update', handleHealthUpdate);
+      window.electronAPI.api.off('zed:health-update', handleHealthUpdate as any);
     };
   }, []);
 
@@ -117,7 +117,7 @@ export const ZedConnectionStatus: React.FC = () => {
             <Button
               size="sm"
               variant="ghost"
-              onClick={handleReconnect}
+              onClick={() => void handleReconnect()}
               disabled={isReconnecting}
             >
               {isReconnecting ? 'Reconnecting...' : 'Reconnect'}

@@ -3,7 +3,8 @@
  * Shows auto-update status and download progress
  */
 
-import React, { useState, useEffect } from 'react';
+import * as React from 'react';
+const { useState, useEffect } = React;
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 
@@ -20,6 +21,7 @@ interface UpdateProgress {
   total: number;
 }
 
+
 export function UpdateNotification() {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
@@ -28,37 +30,12 @@ export function UpdateNotification() {
   const [updateReady, setUpdateReady] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
 
-  useEffect(() => {
-    // Check for updates on mount
-    checkForUpdates();
-
-    // Listen for update events
-    (window.sessionhub as any).onUpdateAvailable?.((info: any) => {
-      setUpdateInfo(info);
-      setUpdateAvailable(true);
-      setShowNotification(true);
-    });
-
-    (window.sessionhub as any).onDownloadProgress?.((progress: any) => {
-      setDownloadProgress(progress);
-    });
-
-    (window.sessionhub as any).onUpdateDownloaded?.(() => {
-      setDownloading(false);
-      setUpdateReady(true);
-      setShowNotification(true);
-    });
-
-    return () => {
-      window.sessionhub.removeAllListeners('update-available');
-      window.sessionhub.removeAllListeners('download-progress');
-      window.sessionhub.removeAllListeners('update-downloaded');
-    };
-  }, []);
+  // Type-safe access to sessionhub API
+  const sessionhub = (window as any).sessionhub;
 
   const checkForUpdates = async () => {
     try {
-      const status = await (window.sessionhub as any).checkForUpdates?.();
+      const status = await sessionhub.checkForUpdates();
       if (status.available && status.updateInfo) {
         setUpdateInfo(status.updateInfo);
         setUpdateAvailable(true);
@@ -73,11 +50,39 @@ export function UpdateNotification() {
     }
   };
 
+  useEffect(() => {
+    // Check for updates on mount
+    checkForUpdates();
+
+    // Listen for update events
+    sessionhub.onUpdateAvailable((info: UpdateInfo) => {
+      setUpdateInfo(info);
+      setUpdateAvailable(true);
+      setShowNotification(true);
+    });
+
+    sessionhub.onDownloadProgress((progress: UpdateProgress) => {
+      setDownloadProgress(progress);
+    });
+
+    sessionhub.onUpdateDownloaded(() => {
+      setDownloading(false);
+      setUpdateReady(true);
+      setShowNotification(true);
+    });
+
+    return () => {
+      sessionhub.removeAllListeners('update-available');
+      sessionhub.removeAllListeners('download-progress');
+      sessionhub.removeAllListeners('update-downloaded');
+    };
+  }, [checkForUpdates, sessionhub]);
+
   const handleDownload = async () => {
     setDownloading(true);
     setShowNotification(false);
     try {
-      await (window.sessionhub as any).downloadUpdate?.();
+      await sessionhub.downloadUpdate();
     } catch (error) {
       // console.error('Failed to download update:', error);
       setDownloading(false);
@@ -85,7 +90,7 @@ export function UpdateNotification() {
   };
 
   const handleInstall = () => {
-    (window.sessionhub as any).installUpdate?.();
+    sessionhub.installUpdate();
   };
 
   const formatBytes = (bytes: number) => {
@@ -113,7 +118,7 @@ export function UpdateNotification() {
               Version {updateInfo?.version} is now available
             </p>
             <div className="flex gap-2">
-              <Button onClick={handleDownload} variant="primary">
+              <Button onClick={() => void handleDownload()} variant="primary">
                 Download Update
               </Button>
               <Button onClick={() => setShowNotification(false)} variant="ghost">
@@ -156,7 +161,7 @@ export function UpdateNotification() {
               SessionHub will restart to apply the update.
             </p>
             <div className="flex gap-2">
-              <Button onClick={handleInstall} variant="primary">
+              <Button onClick={() => void handleInstall()} variant="primary">
                 Restart & Install
               </Button>
               <Button onClick={() => setShowNotification(false)} variant="ghost">

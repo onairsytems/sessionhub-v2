@@ -17,7 +17,7 @@ export const ProjectContextComparison: React.FC<ProjectContextComparisonProps> =
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadContexts();
+    void loadContexts();
   }, [projectIds]);
 
   const loadContexts = async () => {
@@ -67,7 +67,7 @@ export const ProjectContextComparison: React.FC<ProjectContextComparisonProps> =
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold">Project Context Comparison</h2>
         {onClose && (
-          <Button onClick={onClose} size="sm" variant="secondary">
+          <Button onClick={() => void onClose()} size="sm" variant="secondary">
             Close
           </Button>
         )}

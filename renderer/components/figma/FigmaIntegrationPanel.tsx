@@ -10,9 +10,31 @@ interface FigmaIntegrationPanelProps {
 interface UIUpdateStatus {
   sessionId?: string;
   status: string;
-  changes?: any;
+  changes?: unknown;
   previewUrl?: string;
   error?: string;
+}
+
+interface FigmaStatusResponse {
+  status: string;
+  changes?: unknown;
+  error?: string;
+}
+
+interface FigmaEnhancementStatusResponse {
+  status: string;
+  changes?: unknown;
+  deploymentUrl?: string;
+  error?: string;
+}
+
+interface FigmaPreviewData {
+  summary: string;
+  filesAffected: number;
+  components: Array<{
+    path: string;
+    action: string;
+  }>;
 }
 
 export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mode, projectId }) => {
@@ -21,10 +43,10 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
   const [updateStatus, setUpdateStatus] = useState<UIUpdateStatus>({
     status: 'idle'
   });
-  const [preview, setPreview] = useState<any>(null);
+  const [preview, setPreview] = useState<FigmaPreviewData | null>(null);
 
   useEffect(() => {
-    checkFigmaConnection();
+    void checkFigmaConnection();
   }, []);
 
   const checkFigmaConnection = async () => {
@@ -79,9 +101,9 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
   };
 
   const pollUpdateStatus = async (sessionId: string) => {
-    const interval = setInterval(async () => {
+    const interval = setInterval(() => void (async () => {
       try {
-        const status = await window.electron.figma.getUpdateStatus(sessionId);
+        const status = await window.electron.figma.getUpdateStatus(sessionId) as FigmaStatusResponse;
         
         setUpdateStatus({
           sessionId,
@@ -97,13 +119,13 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
         clearInterval(interval);
         // Failed to poll status
       }
-    }, 2000);
+    })(), 2000);
   };
 
   const pollEnhancementStatus = async (sessionId: string) => {
-    const interval = setInterval(async () => {
+    const interval = setInterval(() => void (async () => {
       try {
-        const status = await window.electron.figma.getEnhancementStatus(sessionId);
+        const status = await window.electron.figma.getEnhancementStatus(sessionId) as FigmaEnhancementStatusResponse;
         
         setUpdateStatus({
           sessionId,
@@ -120,14 +142,14 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
         clearInterval(interval);
         // Failed to poll status
       }
-    }, 2000);
+    })(), 2000);
   };
 
   const previewChanges = async () => {
     if (!figmaFileKey) return;
 
     try {
-      const previewData = await window.electron.figma.previewUIChanges(figmaFileKey);
+      const previewData = await window.electron.figma.previewUIChanges(figmaFileKey) as FigmaPreviewData;
       setPreview(previewData);
     } catch (error) {
       // Failed to preview changes
@@ -168,7 +190,7 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
       {!isConnected ? (
         <div className="mb-6">
           <p className="text-gray-600 mb-4">Connect to Figma to start syncing designs</p>
-          <Button onClick={connectFigma}>Connect Figma</Button>
+          <Button onClick={() => void connectFigma()}>Connect Figma</Button>
         </div>
       ) : (
         <>
@@ -190,14 +212,14 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
 
           <div className="flex gap-2 mb-6">
             <Button 
-              onClick={startUIUpdate}
+              onClick={() => void startUIUpdate()}
               disabled={!figmaFileKey || updateStatus.status === 'running'}
             >
               {updateStatus.status === 'running' ? 'Updating...' : 'Start UI Update'}
             </Button>
             
             <Button 
-              onClick={previewChanges}
+              onClick={() => void previewChanges()}
               variant="secondary"
               disabled={!figmaFileKey}
             >
@@ -206,7 +228,7 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
 
             {mode === 'self-improvement' && (
               <Button 
-                onClick={createPullRequest}
+                onClick={() => void createPullRequest()}
                 variant="secondary"
                 disabled={!figmaFileKey}
               >
@@ -251,7 +273,7 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
               <div className="mt-2">
                 <h4 className="text-sm font-medium">Components:</h4>
                 <ul className="text-sm list-disc list-inside">
-                  {preview.components.map((comp: any, idx: number) => (
+                  {preview.components.map((comp, idx: number) => (
                     <li key={idx}>
                       {comp.path} ({comp.action})
                     </li>
@@ -265,7 +287,7 @@ export const FigmaIntegrationPanel: React.FC<FigmaIntegrationPanelProps> = ({ mo
           {updateStatus.status === 'completed' && updateStatus.changes && (
             <div className="mt-4">
               <Button 
-                onClick={applyChanges}
+                onClick={() => void applyChanges()}
                 variant="primary"
               >
                 Apply Changes to {mode === 'self-improvement' ? 'SessionHub' : 'Project'}

@@ -467,14 +467,14 @@ echo "✅ Claude Ultimate Auto-Accept Environment Active"
   
   private startAutoAcceptMonitor(): void {
     // Monitor and re-enable auto-accept if it gets disabled
-    setInterval(async () => {
+    setInterval(() => void (async () => {
       // Check if key env vars are still set
       if (process.env['CLAUDE_AUTO_ACCEPT_ALL'] !== 'true' || 
           process.env['CLAUDE_BYPASS_ALL_PROMPTS'] !== 'true') {
         // Auto-accept was disabled, re-enabling...
         await this.applyUltimateAutoAccept();
       }
-    }, 5000); // Check every 5 seconds
+    })(), 5000); // Check every 5 seconds
   }
   
   public async enableUltimateMode(): Promise<void> {

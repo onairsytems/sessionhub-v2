@@ -191,21 +191,21 @@ export class ClaudeAutoAcceptService {
     const configDir = path.dirname(this.claudeConfigPath);
     await fs.mkdir(configDir, { recursive: true });
     
-    let config: any = {};
+    let config: Record<string, unknown> = {};
     
     // Load existing config if present
     try {
       const data = await fs.readFile(this.claudeConfigPath, 'utf-8');
-      config = JSON.parse(data);
+      config = JSON.parse(data) as Record<string, unknown>;
     } catch {
       // Start with empty config
     }
     
     // Update with our settings
-    config.autoAcceptEdits = this.settings.acceptFileEdits;
-    config.autoAcceptPrompts = this.settings.acceptAllPrompts;
-    config.suppressConfirmations = true;
-    config.sessionHub = {
+    config['autoAcceptEdits'] = this.settings.acceptFileEdits;
+    config['autoAcceptPrompts'] = this.settings.acceptAllPrompts;
+    config['suppressConfirmations'] = true;
+    config['sessionHub'] = {
       enabled: this.settings.enabled,
       sessionId: this.settings.sessionId,
       acceptPatterns: {

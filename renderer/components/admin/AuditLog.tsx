@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 
+interface AuditLogResult {
+  success: boolean;
+  logs?: any[];
+}
+
 interface AuditLogEntry {
   id: string;
   adminId: string;
@@ -27,14 +32,14 @@ export const AuditLog: React.FC = () => {
   const [expandedLogs, setExpandedLogs] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    loadAuditLogs();
+    void loadAuditLogs();
   }, []);
 
   const loadAuditLogs = async () => {
     try {
       setLoading(true);
-      const result = await window.electron.invoke('admin:get-audit-logs', filters);
-      if (result.success) {
+      const result = await window.electron.invoke('admin:get-audit-logs', filters) as AuditLogResult;
+      if (result.success && result.logs) {
         setLogs(result.logs);
       } else {
       }
@@ -178,10 +183,10 @@ export const AuditLog: React.FC = () => {
             />
           </div>
           <div className="flex items-end space-x-2">
-            <Button onClick={applyFilters} variant="primary" className="flex-1">
+            <Button onClick={() => void applyFilters()} variant="primary" className="flex-1">
               Apply Filters
             </Button>
-            <Button onClick={clearFilters} variant="secondary" className="flex-1">
+            <Button onClick={() => void clearFilters()} variant="secondary" className="flex-1">
               Clear
             </Button>
           </div>
@@ -190,7 +195,7 @@ export const AuditLog: React.FC = () => {
 
       {/* Export */}
       <div className="flex justify-end">
-        <Button onClick={exportLogs} variant="secondary">
+        <Button onClick={() => void exportLogs()} variant="secondary">
           Export to CSV
         </Button>
       </div>

@@ -24,7 +24,7 @@ export const ZedProjectSwitcher: React.FC<ZedProjectSwitcherProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    loadProjects();
+    void loadProjects();
   }, []);
 
   const loadProjects = async () => {

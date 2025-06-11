@@ -33,7 +33,7 @@ export function ClaudeAutoAcceptSettings() {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    loadSettings();
+    void loadSettings();
   }, []);
 
   const loadSettings = async () => {
@@ -81,7 +81,7 @@ export function ClaudeAutoAcceptSettings() {
               </span>
             )}
             <Button
-              onClick={saveSettings}
+              onClick={() => void saveSettings()}
               disabled={loading}
               size="sm"
             >

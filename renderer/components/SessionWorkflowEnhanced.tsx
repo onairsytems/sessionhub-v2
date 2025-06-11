@@ -122,7 +122,7 @@ export default function SessionWorkflowEnhanced() {
         newDocuments.push({
           id: `${Date.now()}_${Math.random()}`,
           name: file.name,
-          type: ext as any,
+          type: ext as 'pdf' | 'docx' | 'txt' | 'md' | 'png' | 'jpg',
           size: file.size,
           status: 'pending'
         });
@@ -299,7 +299,7 @@ export default function SessionWorkflowEnhanced() {
               </div>
             </div>
 
-            <Button onClick={createNewSession} size="lg" className="w-full">
+            <Button onClick={() => void createNewSession()} size="lg" className="w-full">
               <PlayCircle className="h-5 w-5 mr-2" />
               Start New Session
             </Button>
@@ -490,7 +490,7 @@ export default function SessionWorkflowEnhanced() {
                 {/* Actions */}
                 <div className="mt-8 flex gap-4">
                   <Button
-                    onClick={proceedToPlanningWithDocuments}
+                    onClick={() => void proceedToPlanningWithDocuments()}
                     variant="primary"
                     disabled={isProcessing}
                     className="flex-1"

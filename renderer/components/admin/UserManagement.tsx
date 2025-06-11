@@ -2,6 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { Button } from '../ui/Button';
 import { Card } from '../ui/Card';
 
+interface SuperAdminResult {
+  success: boolean;
+  isSuperAdmin?: boolean;
+}
+
+interface UsersResult {
+  success: boolean;
+  users?: User[];
+}
+
+interface UserActionResult {
+  success: boolean;
+  message?: string;
+}
+
 interface User {
   id: string;
   email: string;
@@ -21,20 +36,20 @@ export const UserManagement: React.FC = () => {
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
-    checkSuperAdminAccess();
+    void checkSuperAdminAccess();
     loadUsers();
   }, []);
 
   const checkSuperAdminAccess = async () => {
-    const result = await window.electron.invoke('admin:check-super-access');
-    setIsSuperAdmin(result.success && result.isSuperAdmin);
+    const result = await window.electron.invoke('admin:check-super-access') as SuperAdminResult;
+    setIsSuperAdmin(result.success && (result.isSuperAdmin ?? false));
   };
 
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const result = await window.electron.invoke('admin:get-all-users');
-      if (result.success) {
+      const result = await window.electron.invoke('admin:get-all-users') as UsersResult;
+      if (result.success && result.users) {
         setUsers(result.users);
       } else {
       }
@@ -58,11 +73,11 @@ export const UserManagement: React.FC = () => {
     }
 
     try {
-      const result = await window.electron.invoke('admin:update-user-role', userId, newRole);
+      const result = await window.electron.invoke('admin:update-user-role', userId, newRole) as UserActionResult;
       if (result.success) {
         await loadUsers();
       } else {
-        alert(`Failed to update role: ${result.error}`);
+        alert(`Failed to update role: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
     }
@@ -79,11 +94,11 @@ export const UserManagement: React.FC = () => {
 
     try {
       const endpoint = currentStatus ? 'admin:suspend-user' : 'admin:activate-user';
-      const result = await window.electron.invoke(endpoint, userId);
+      const result = await window.electron.invoke(endpoint, userId) as UserActionResult;
       if (result.success) {
         await loadUsers();
       } else {
-        alert(`Failed to ${action} user: ${result.error}`);
+        alert(`Failed to ${action} user: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
     }
@@ -100,12 +115,12 @@ export const UserManagement: React.FC = () => {
     }
 
     try {
-      const result = await window.electron.invoke('admin:batch-user-operation', operation, Array.from(selectedUsers));
+      const result = await window.electron.invoke('admin:batch-user-operation', operation, Array.from(selectedUsers)) as UserActionResult;
       if (result.success) {
         setSelectedUsers(new Set());
         await loadUsers();
       } else {
-        alert(`Batch operation failed: ${result.error}`);
+        alert(`Batch operation failed: ${result.message || 'Unknown error'}`);
       }
     } catch (error) {
     }
@@ -272,7 +287,7 @@ export const UserManagement: React.FC = () => {
                       {isSuperAdmin && (
                         <select
                           value={user.role}
-                          onChange={(e) => updateUserRole(user.id, e.target.value as any)}
+                          onChange={(e) => updateUserRole(user.id, e.target.value as 'user' | 'admin' | 'super_admin')}
                           className="text-xs px-2 py-1 border rounded dark:bg-gray-800 dark:border-gray-700"
                         >
                           <option value="user">User</option>

@@ -1,10 +1,10 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import { Navigation } from '@/components/Navigation';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ToastProvider } from '@/components/ui/Toast';
-import { KeyboardShortcutsProvider } from '@/components/ui/KeyboardShortcuts';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -45,7 +45,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-background text-foreground`}>
         <ErrorBoundary>
           <ToastProvider>
-            <KeyboardShortcutsProvider>
+            <React.Fragment>
               <div className="min-h-screen flex flex-col">
                 <Navigation />
                 <main className="flex-1">
@@ -61,7 +61,7 @@ export default function RootLayout({
                   </div>
                 </footer>
               </div>
-            </KeyboardShortcutsProvider>
+            </React.Fragment>
           </ToastProvider>
         </ErrorBoundary>
       </body>

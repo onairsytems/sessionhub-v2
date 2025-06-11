@@ -4,10 +4,8 @@
  * This example demonstrates how to create a custom MCP integration
  * using the SessionHub MCP SDK.
  */
-
 import { MCPIntegrationSDK } from '../MCPIntegrationSDK';
 import { MCPExecutionContext, MCPExecutionResult } from '../../server/types';
-
 // Create the Weather Service integration
 export const WeatherIntegration = MCPIntegrationSDK.createIntegration()
   .setName('Weather Service')
@@ -17,7 +15,6 @@ export const WeatherIntegration = MCPIntegrationSDK.createIntegration()
   .setCategory('other')
   .setIcon('🌤️')
   .addPermission('network') // Need network access for API calls
-  
   // Add the getCurrentWeather tool
   .addTool(
     MCPIntegrationSDK.createTool()
@@ -57,7 +54,6 @@ export const WeatherIntegration = MCPIntegrationSDK.createIntegration()
       .setRateLimit(60, 60) // 60 requests per minute
       .build()
   )
-  
   // Add the getForecast tool
   .addTool(
     MCPIntegrationSDK.createTool()
@@ -90,44 +86,36 @@ export const WeatherIntegration = MCPIntegrationSDK.createIntegration()
       .setRateLimit(30, 60) // 30 requests per minute
       .build()
   )
-  
   // Add configuration for API key
   .setConfig({
     apiKey: process.env['WEATHER_API_KEY'] || '',
-    baseUrl: 'https://api.openweathermap.org/data/2.5'
+    __baseUrl: 'https://api.openweathermap.org/data/2.5'
   })
-  
   .build();
-
 // Implementation of the weather service
 export class WeatherServiceImplementation {
-  constructor(config: any) {
-    // TODO: Use config.apiKey and config.baseUrl in actual implementation
-    // API key will be used for authentication in the actual implementation
-    void config; // Suppress unused parameter warning
+  // private __baseUrl: string; // Removed unused
+  constructor(_config: any) {
+    // API key would be used in real implementation
+    // this.apiKey = config.apiKey;
+    // this.__baseUrl = config.__baseUrl; // Removed unused
   }
-
   async executeToolCall(
     context: MCPExecutionContext
   ): Promise<MCPExecutionResult> {
     const startTime = Date.now();
-
     try {
       let result: any;
-
       switch (context.tool) {
         case 'getCurrentWeather':
           result = await this.getCurrentWeather(context.params);
           break;
-        
         case 'getForecast':
           result = await this.getForecast(context.params);
           break;
-        
         default:
           throw new Error(`Unknown tool: ${context.tool}`);
       }
-
       return {
         success: true,
         data: result,
@@ -153,14 +141,11 @@ export class WeatherServiceImplementation {
       };
     }
   }
-
   private async getCurrentWeather(params: any): Promise<any> {
     // In a real implementation, this would call the OpenWeatherMap API
     // For this example, we'll return mock data
-    
     const units = params.units || 'celsius';
     const temp = units === 'fahrenheit' ? 72 : units === 'kelvin' ? 295 : 22;
-    
     return {
       temperature: temp,
       description: 'Partly cloudy',
@@ -169,16 +154,13 @@ export class WeatherServiceImplementation {
       location: params.location
     };
   }
-
   private async getForecast(params: any): Promise<any> {
     // Mock forecast data
     const days = params.days || 3;
     const forecast = [];
-    
     for (let i = 0; i < days; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
-      
       forecast.push({
         date: date.toISOString().split('T')[0],
         high: 75 + Math.random() * 10,
@@ -187,14 +169,12 @@ export class WeatherServiceImplementation {
         precipitation: Math.floor(Math.random() * 100)
       });
     }
-    
     return {
       location: params.location,
       forecast
     };
   }
 }
-
 // Example of how to register this integration with the MCP server
 export async function registerWeatherIntegration(mcpServer: any): Promise<void> {
   // Validate the integration
@@ -202,36 +182,29 @@ export async function registerWeatherIntegration(mcpServer: any): Promise<void> 
   if (errors.length > 0) {
     throw new Error(`Integration validation failed: ${errors.join(', ')}`);
   }
-
   // Register the integration
-  await mcpServer.registerIntegration(WeatherIntegration);
-  
+  // const ___integrationId = await mcpServer.registerIntegration(WeatherIntegration);
   // Register the implementation handler
   const implementation = new WeatherServiceImplementation(WeatherIntegration.config);
   mcpServer.registerHandler('Weather Service', (tool: string, params: any, context: MCPExecutionContext) => {
     return implementation.executeToolCall({ ...context, tool, params });
   });
-  
-// REMOVED: console statement
 }
-
 // Test the integration
 if (require.main === module) {
   (async () => {
     // Create test harness
-    const harness = MCPIntegrationSDK.createTestHarness(WeatherIntegration);
-    
+    MCPIntegrationSDK.createTestHarness(WeatherIntegration);
     // Test getCurrentWeather
-    await harness.testTool('getCurrentWeather', {
-      location: 'San Francisco',
-      units: 'celsius'
-    });
-    
+    // const ___weatherResult = await harness.testTool('getCurrentWeather', {
+    //   location: 'San Francisco',
+    //   units: 'celsius'
+    // });
     // Test getForecast
-    await harness.testTool('getForecast', {
-      location: 'San Francisco',
-      days: 3,
-      units: 'celsius'
-    });
+    // const ___forecastResult = await harness.testTool('getForecast', {
+    //   location: 'San Francisco',
+    //   days: 3,
+    //   units: 'celsius'
+    // });
   })();
 }

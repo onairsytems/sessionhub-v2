@@ -4,29 +4,25 @@
  * Main service that manages the MCP server lifecycle and integrates
  * with the SessionHub application.
  */
-
 import { MCPServer } from './MCPServer';
 import { MCPServerConfig, MCPIntegration } from './types';
 import { EventEmitter } from 'events';
 import * as path from 'path';
 // import * as fs from 'fs/promises'; // Unused for now
-
 export class MCPServerService extends EventEmitter {
   private server: MCPServer | null = null;
   private config: MCPServerConfig;
   private isRunning: boolean = false;
-
   constructor() {
     super();
     this.config = this.loadConfig();
   }
-
   private loadConfig(): MCPServerConfig {
     return {
       port: process.env['MCP_SERVER_PORT'] ? parseInt(process.env['MCP_SERVER_PORT']) : 7345,
       version: '1.0.0',
       security: {
-        enableSandbox: process.env['NODE_ENV'] === 'production',
+        enableSandbox: process.env.NODE_ENV === 'production',
         maxExecutionTime: 30000,
         allowedDomains: [
           'api.github.com',
@@ -59,25 +55,19 @@ export class MCPServerService extends EventEmitter {
       }
     };
   }
-
   async start(): Promise<void> {
     if (this.isRunning) {
       throw new Error('MCP Server is already running');
     }
-
     try {
       // Create server instance
       this.server = new MCPServer(this.config);
-      
       // Set up event listeners
       this.setupEventListeners();
-      
       // Start the server
       await this.server.start();
-      
       // Register core integrations
       await this.registerCoreIntegrations();
-      
       this.isRunning = true;
       this.emit('started');
     } catch (error) {
@@ -85,12 +75,10 @@ export class MCPServerService extends EventEmitter {
       throw error;
     }
   }
-
   async stop(): Promise<void> {
     if (!this.isRunning || !this.server) {
       return;
     }
-
     try {
       await this.server.stop();
       this.server = null;
@@ -101,26 +89,20 @@ export class MCPServerService extends EventEmitter {
       throw error;
     }
   }
-
   private setupEventListeners(): void {
     if (!this.server) return;
-
     this.server.on('integration:registered', (integration) => {
       this.emit('integration:registered', integration);
     });
-
     this.server.on('integration:unregistered', (integration) => {
       this.emit('integration:unregistered', integration);
     });
-
     this.server.on('error', (error) => {
       this.emit('error', error);
     });
   }
-
   private async registerCoreIntegrations(): Promise<void> {
     if (!this.server) return;
-
     const coreIntegrations: MCPIntegration[] = [
       {
         name: 'GitHub',
@@ -321,17 +303,13 @@ export class MCPServerService extends EventEmitter {
         permissions: ['network']
       }
     ];
-
     for (const integration of coreIntegrations) {
       try {
         await this.server.registerIntegration(integration);
-// REMOVED: console statement
       } catch (error) {
-// REMOVED: console statement
       }
     }
   }
-
   async getStatus(): Promise<{
     running: boolean;
     port?: number;
@@ -341,9 +319,7 @@ export class MCPServerService extends EventEmitter {
     if (!this.server || !this.isRunning) {
       return { running: false };
     }
-
     const integrations = await this.server.listIntegrations();
-    
     return {
       running: true,
       port: this.config.port,
@@ -351,31 +327,24 @@ export class MCPServerService extends EventEmitter {
       uptime: process.uptime()
     };
   }
-
   async registerIntegration(integration: MCPIntegration): Promise<string> {
     if (!this.server) {
       throw new Error('MCP Server is not running');
     }
-
     return this.server.registerIntegration(integration);
   }
-
   async unregisterIntegration(id: string): Promise<void> {
     if (!this.server) {
       throw new Error('MCP Server is not running');
     }
-
     return this.server.unregisterIntegration(id);
   }
-
   async listIntegrations(): Promise<MCPIntegration[]> {
     if (!this.server) {
       return [];
     }
-
     return this.server.listIntegrations();
   }
-
   async executeToolCall(
     integrationId: string,
     tool: string,
@@ -384,7 +353,6 @@ export class MCPServerService extends EventEmitter {
     if (!this.server) {
       throw new Error('MCP Server is not running');
     }
-
     const response = await fetch(`http://localhost:${this.config.port}/execute`, {
       method: 'POST',
       headers: {
@@ -396,20 +364,15 @@ export class MCPServerService extends EventEmitter {
         params
       })
     });
-
     const result = await response.json();
-    
     if (!response.ok) {
       throw new Error(result.error || 'Execution failed');
     }
-
     return result.result;
   }
-
   getServerUrl(): string {
     return `http://localhost:${this.config.port}`;
   }
-
   getWebSocketUrl(): string {
     return `ws://localhost:${this.config.port}`;
   }

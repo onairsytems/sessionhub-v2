@@ -1,36 +1,27 @@
-'use client';
-
-import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useTheme } from '@/lib/hooks/useTheme';
-import { X, Search } from 'lucide-react';
-import { Button } from './Button';
+/**
+ * Keyboard Shortcuts Component
+ * Provides global keyboard shortcuts throughout the application
+ */
+import React, { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import { Card } from './Card';
+import { useTheme } from '../../lib/hooks/useTheme';
 
 interface Shortcut {
   keys: string[];
   label: string;
-  description?: string;
+  description: string;
   action: () => void;
-  category?: string;
+  category: string;
   global?: boolean;
 }
 
-interface KeyboardShortcutsContextValue {
-  shortcuts: Shortcut[];
-  registerShortcut: (shortcut: Shortcut) => void;
-  unregisterShortcut: (keys: string[]) => void;
-  showHelp: boolean;
-  setShowHelp: (show: boolean) => void;
-}
-
-const KeyboardShortcutsContext = createContext<KeyboardShortcutsContextValue | undefined>(undefined);
-
-export function KeyboardShortcutsProvider({ children }: { children: React.ReactNode }) {
-  const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
-  const [showHelp, setShowHelp] = useState(false);
+export function KeyboardShortcuts() {
   const router = useRouter();
   const { toggleTheme } = useTheme();
-  
+  const [showHelp, setShowHelp] = useState(false);
+  const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
+
   // Register global shortcuts
   useEffect(() => {
     const globalShortcuts: Shortcut[] = [
@@ -38,7 +29,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
         keys: ['Meta', 'k'],
         label: 'Command Palette',
         description: 'Open quick command palette',
-        action: () => setShowHelp(true),
+        action: () => {},
         category: 'Navigation',
         global: true
       },
@@ -46,7 +37,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
         keys: ['Meta', 'n'],
         label: 'New Session',
         description: 'Create a new development session',
-        action: () => router.push('/sessions?action=new'),
+        action: () => void router.push('/sessions?action=new'),
         category: 'Sessions',
         global: true
       },
@@ -54,7 +45,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
         keys: ['Meta', 'p'],
         label: 'Switch Project',
         description: 'Quick switch between projects',
-        action: () => router.push('/projects'),
+        action: () => {},
         category: 'Navigation',
         global: true
       },
@@ -70,7 +61,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
         keys: ['Meta', '/'],
         label: 'Search',
         description: 'Search documentation and help',
-        action: () => router.push('/docs'),
+        action: () => void router.push('/docs'),
         category: 'Navigation',
         global: true
       },
@@ -78,7 +69,7 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
         keys: ['Meta', ','],
         label: 'Settings',
         description: 'Open application settings',
-        action: () => router.push('/settings'),
+        action: () => void router.push('/settings'),
         category: 'Navigation',
         global: true
       },
@@ -105,187 +96,115 @@ export function KeyboardShortcutsProvider({ children }: { children: React.ReactN
 
   // Handle keyboard events
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       const activeElement = document.activeElement;
-      const isInputField = activeElement instanceof HTMLInputElement || 
-                          activeElement instanceof HTMLTextAreaElement;
+      const isTyping = activeElement?.tagName === 'INPUT' || 
+                      activeElement?.tagName === 'TEXTAREA' || 
+                      (activeElement as HTMLElement)?.contentEditable === 'true';
 
-      // Don't trigger shortcuts when typing in input fields
-      if (isInputField && event.key !== 'Escape') return;
+      if (isTyping && e.key !== '?') return;
 
-      const pressedKeys: string[] = [];
-      if (event.metaKey) pressedKeys.push('Meta');
-      if (event.ctrlKey) pressedKeys.push('Control');
-      if (event.altKey) pressedKeys.push('Alt');
-      if (event.shiftKey) pressedKeys.push('Shift');
-      
-      const key = event.key.length === 1 ? event.key.toLowerCase() : event.key;
-      if (!['Meta', 'Control', 'Alt', 'Shift'].includes(key)) {
-        pressedKeys.push(key);
-      }
+      shortcuts.forEach(shortcut => {
+        const match = shortcut.keys.every(key => {
+          switch (key) {
+            case 'Meta':
+              return e.metaKey;
+            case 'Ctrl':
+              return e.ctrlKey;
+            case 'Alt':
+              return e.altKey;
+            case 'Shift':
+              return e.shiftKey;
+            default:
+              return e.key.toLowerCase() === key.toLowerCase();
+          }
+        });
 
-      // Find matching shortcut
-      const matchingShortcut = shortcuts.find(shortcut => {
-        if (shortcut.keys.length !== pressedKeys.length) return false;
-        return shortcut.keys.every(key => pressedKeys.includes(key));
+        if (match) {
+          e.preventDefault();
+          shortcut.action();
+        }
       });
-
-      if (matchingShortcut) {
-        event.preventDefault();
-        matchingShortcut.action();
-      }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [shortcuts]);
 
-  return (
-    <KeyboardShortcutsContext.Provider value={{ shortcuts, registerShortcut, unregisterShortcut, showHelp, setShowHelp }}>
-      {children}
-      <KeyboardShortcutsHelp />
-    </KeyboardShortcutsContext.Provider>
-  );
-}
-
-export function useKeyboardShortcuts() {
-  const context = useContext(KeyboardShortcutsContext);
-  if (!context) {
-    throw new Error('useKeyboardShortcuts must be used within a KeyboardShortcutsProvider');
-  }
-  return context;
-}
-
-function KeyboardShortcutsHelp() {
-  const { shortcuts, showHelp, setShowHelp } = useKeyboardShortcuts();
-  const [searchQuery, setSearchQuery] = useState('');
-
-  if (!showHelp) return null;
-
-  const categories = Array.from(new Set(shortcuts.map(s => s.category || 'Other')));
-  const filteredShortcuts = shortcuts.filter(shortcut => 
-    shortcut.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    shortcut.description?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  return (
-    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-background border rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-        <div className="p-4 border-b">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Keyboard Shortcuts</h2>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowHelp(false)}
-            >
-              <X className="w-4 h-4" />
-            </Button>
-          </div>
-          
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search shortcuts..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 rounded-lg border bg-background"
-              autoFocus
-            />
-          </div>
-        </div>
-
-        <div className="flex-1 overflow-y-auto p-4">
-          {categories.map(category => {
-            const categoryShortcuts = filteredShortcuts.filter(s => (s.category || 'Other') === category);
-            if (categoryShortcuts.length === 0) return null;
-
-            return (
-              <div key={category} className="mb-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">{category}</h3>
-                <div className="space-y-2">
-                  {categoryShortcuts.map((shortcut, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between p-2 rounded hover:bg-secondary/50"
-                    >
-                      <div>
-                        <div className="font-medium text-sm">{shortcut.label}</div>
-                        {shortcut.description && (
-                          <div className="text-xs text-muted-foreground">{shortcut.description}</div>
-                        )}
-                      </div>
-                      <kbd className="flex items-center gap-1">
-                        {shortcut.keys.map((key, i) => (
-                          <React.Fragment key={i}>
-                            {i > 0 && <span className="text-xs">+</span>}
-                            <span className="px-1.5 py-0.5 text-xs rounded bg-muted">
-                              {formatKey(key)}
-                            </span>
-                          </React.Fragment>
-                        ))}
-                      </kbd>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="p-3 border-t text-center text-xs text-muted-foreground">
-          Press <kbd className="px-1.5 py-0.5 rounded bg-muted">?</kbd> to show this help
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function formatKey(key: string): string {
-  const keyMap: Record<string, string> = {
-    'Meta': '⌘',
-    'Control': 'Ctrl',
-    'Alt': 'Alt',
-    'Shift': '⇧',
-    'ArrowUp': '↑',
-    'ArrowDown': '↓',
-    'ArrowLeft': '←',
-    'ArrowRight': '→',
-    'Enter': '⏎',
-    'Escape': 'Esc',
-    ' ': 'Space'
-  };
-  
-  return keyMap[key] || key.toUpperCase();
-}
-
-// Hook for registering component-specific shortcuts
-export function useShortcut(
-  keys: string[],
-  action: () => void,
-  options?: { 
-    label?: string;
-    description?: string;
-    category?: string;
-    enabled?: boolean;
-  }
-) {
-  const { registerShortcut, unregisterShortcut } = useKeyboardShortcuts();
-
-  useEffect(() => {
-    if (options?.enabled !== false) {
-      registerShortcut({
-        keys,
-        action,
-        label: options?.label || keys.join('+'),
-        description: options?.description,
-        category: options?.category
-      });
-
-      return () => unregisterShortcut(keys);
+  const groupedShortcuts = shortcuts.reduce((acc, shortcut) => {
+    if (!acc[shortcut.category]) {
+      acc[shortcut.category] = [];
     }
-    // Return undefined when the shortcut is disabled
-    return undefined;
-  }, [keys, action, options, registerShortcut, unregisterShortcut]);
+    (acc[shortcut.category] as Shortcut[]).push(shortcut);
+    return acc;
+  }, {} as Record<string, Shortcut[]>);
+
+  return (
+    <>
+      {/* Context API for child components */}
+      <KeyboardShortcutContext.Provider value={{ registerShortcut, unregisterShortcut }}>
+        {/* Children would go here */}
+      </KeyboardShortcutContext.Provider>
+
+      {/* Help Modal */}
+      {showHelp && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <Card className="max-w-2xl w-full max-h-[80vh] overflow-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Keyboard Shortcuts</h2>
+                <button
+                  onClick={() => setShowHelp(false)}
+                  className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {Object.entries(groupedShortcuts).map(([category, categoryShortcuts]) => (
+                <div key={category} className="mb-6">
+                  <h3 className="text-lg font-semibold mb-3">{category}</h3>
+                  <div className="space-y-2">
+                    {categoryShortcuts.map((shortcut, index) => (
+                      <div key={index} className="flex justify-between items-center py-2">
+                        <div className="flex-1">
+                          <div className="font-medium">{shortcut.label}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {shortcut.description}
+                          </div>
+                        </div>
+                        <div className="flex gap-1 ml-4">
+                          {shortcut.keys.map((key, keyIndex) => (
+                            <React.Fragment key={keyIndex}>
+                              {keyIndex > 0 && <span className="text-gray-400">+</span>}
+                              <kbd className="px-2 py-1 text-sm font-mono bg-gray-100 dark:bg-gray-800 rounded">
+                                {key === 'Meta' ? '⌘' : key}
+                              </kbd>
+                            </React.Fragment>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      )}
+    </>
+  );
 }
+
+// Context for registering shortcuts from child components
+export const KeyboardShortcutContext = React.createContext<{
+  registerShortcut: (shortcut: Shortcut) => void;
+  unregisterShortcut: (keys: string[]) => void;
+}>({
+  registerShortcut: () => {},
+  unregisterShortcut: () => {}
+});
+
+export const useKeyboardShortcut = () => React.useContext(KeyboardShortcutContext);

@@ -1,7 +1,7 @@
-import { ipcMain, shell } from 'electron';
+import { ipcMain, shell, BrowserWindow } from 'electron';
 import { ZedAdapter } from '../../src/services/ide/ZedAdapter';
 import { ZedConnectionManager } from '../../src/services/ide/ZedConnectionManager';
-// import { BaseProjectContext } from '../../src/models/ProjectContext';
+import { BaseProjectContext } from '../../src/models/ProjectContext';
 
 let zedAdapter: ZedAdapter | null = null;
 let connectionManager: ZedConnectionManager | null = null;
@@ -98,12 +98,12 @@ export function registerZedHandlers() {
   });
 
   // Two-Actor Integration
-  ipcMain.handle('zed:send-to-execution', async (_event, instruction: string, context: any) => {
+  ipcMain.handle('zed:send-to-execution', async (_event, instruction: string, context: unknown) => {
     if (!zedAdapter) {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.sendToExecutionActor(instruction, context);
+    await zedAdapter.sendToExecutionActor(instruction, context as BaseProjectContext);
     return { success: true };
   });
 
@@ -203,25 +203,25 @@ export function registerZedHandlers() {
   // Forward events from adapters to renderer
   if (connectionManager) {
     connectionManager.on('health-check', (health) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window: any) => {
-        window.webContents.send('zed:health-update', health);
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        void window.webContents.send('zed:health-update', health);
       });
     });
   }
 
   if (zedAdapter) {
     zedAdapter.on('workspace-opened', (workspace) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window: any) => {
-        window.webContents.send('zed:workspace-opened', workspace);
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        void window.webContents.send('zed:workspace-opened', workspace);
       });
     });
 
     zedAdapter.on('execution-sent', (message) => {
-      const windows = require('electron').BrowserWindow.getAllWindows();
-      windows.forEach((window: any) => {
-        window.webContents.send('actor:instruction-sent', {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        void window.webContents.send('actor:instruction-sent', {
           id: Date.now().toString(),
           type: 'execution',
           content: message.instruction,
