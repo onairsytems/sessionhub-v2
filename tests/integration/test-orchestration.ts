@@ -181,7 +181,7 @@ async function testAPIIntegration() {
   console.log('\n🧪 Testing Claude API Integration\n');
   
   // This test requires a real API key
-  const apiKey = process.env['ANTHROPIC_API_KEY'];
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   
   if (!apiKey) {
     console.log('⚠️ Skipping API integration test (no API key set)');

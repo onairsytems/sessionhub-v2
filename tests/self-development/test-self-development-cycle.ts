@@ -493,8 +493,8 @@ export class SelfDevelopmentCycleTest {
     await fs.mkdir(this.testWorkspace, { recursive: true });
     
     // Set environment variables for testing
-    (process.env as any)['NODE_ENV'] = 'test';
-    process.env['SESSIONHUB_INSTANCE'] = 'test';
+    process.env.NODE_ENV = 'test';
+    process.env.SESSIONHUB_INSTANCE = 'test';
   }
 
   private async cleanupTestEnvironment(): Promise<void> {

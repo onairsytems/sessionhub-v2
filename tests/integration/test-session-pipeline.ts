@@ -284,7 +284,7 @@ async function testEndToEndScenarios(): Promise<boolean> {
   
   const logger = new Logger('SessionPipelineTest');
   const auditLogger = new AuditLogger();
-  const claudeClient = new ClaudeAPIClient({ apiKey: process.env['ANTHROPIC_API_KEY'] || 'mock_key' });
+  const claudeClient = new ClaudeAPIClient({ apiKey: process.env.ANTHROPIC_API_KEY || 'mock_key' });
   
   // Initialize services
   const pipeline = new SessionExecutionPipeline(logger, auditLogger, claudeClient);
@@ -348,7 +348,7 @@ async function main() {
     // Initialize services
     const logger = new Logger('SessionPipelineTest');
     const auditLogger = new AuditLogger();
-    const claudeClient = new ClaudeAPIClient({ apiKey: process.env['ANTHROPIC_API_KEY'] || 'mock_key' });
+    const claudeClient = new ClaudeAPIClient({ apiKey: process.env.ANTHROPIC_API_KEY || 'mock_key' });
     
     const importService = new DocumentImportService(logger, auditLogger);
     const analysisService = new DocumentAnalysisService(logger, auditLogger, claudeClient);

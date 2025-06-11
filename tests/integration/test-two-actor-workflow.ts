@@ -9,8 +9,8 @@ import * as fs from 'fs/promises';
 
 // Test configuration
 const TEST_CONFIG = {
-  apiKey: process.env['ANTHROPIC_API_KEY'],
-  useRealApi: !!process.env['ANTHROPIC_API_KEY'],
+  apiKey: process.env.ANTHROPIC_API_KEY,
+  useRealApi: !!process.env.ANTHROPIC_API_KEY,
   maxConcurrentSessions: 1,
   dataDir: '/tmp/sessionhub-test',
   masterKey: 'test-master-key'

@@ -7,7 +7,8 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noImplicitAny": false,
-    "strictNullChecks": false
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false
   },
   "include": [
     "**/__tests__/**/*",
