@@ -1,7 +1,6 @@
 import { execSync } from 'child_process';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
-import * as crypto from 'crypto';
 
 export interface SecurityVulnerability {
   severity: 'critical' | 'high' | 'medium' | 'low';

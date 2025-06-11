@@ -720,7 +720,6 @@ export class PerformanceValidationSystem {
     // Monitor resource usage during typical operations
     const monitoringDuration = 10000; // 10 seconds
     const samples: { cpu: number; memory: number; }[] = [];
-    const startTime = Date.now();
 
     const samplingInterval = setInterval(() => {
       const cpuUsage = process.cpuUsage();
@@ -790,17 +789,17 @@ export class PerformanceValidationSystem {
   }
 
   // Helper methods for simulations
-  private async simulateAPICall(endpoint: string): Promise<void> {
+  private async simulateAPICall(_endpoint: string): Promise<void> {
     // Simulate network latency
     await new Promise(resolve => setTimeout(resolve, Math.random() * 50 + 10));
   }
 
-  private async simulateDatabaseOperation(operation: string): Promise<void> {
+  private async simulateDatabaseOperation(_operation: string): Promise<void> {
     // Simulate database query
     await new Promise(resolve => setTimeout(resolve, Math.random() * 20 + 5));
   }
 
-  private async simulateUserSession(userId: string): Promise<void> {
+  private async simulateUserSession(_userId: string): Promise<void> {
     // Simulate user activity
     await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
   }
@@ -829,13 +828,13 @@ export class PerformanceValidationSystem {
 
   private async simulateFileRead(size: number): Promise<void> {
     // Simulate file read with buffer
-    const buffer = Buffer.alloc(size);
+    Buffer.alloc(size);
     await new Promise(resolve => setTimeout(resolve, size / 1024 / 1024 * 10));
   }
 
   private async simulateFileWrite(size: number): Promise<void> {
     // Simulate file write
-    const buffer = Buffer.alloc(size);
+    Buffer.alloc(size);
     await new Promise(resolve => setTimeout(resolve, size / 1024 / 1024 * 20));
   }
 

@@ -22,7 +22,7 @@ export class MCPServerService extends EventEmitter {
       port: process.env['MCP_SERVER_PORT'] ? parseInt(process.env['MCP_SERVER_PORT']) : 7345,
       version: '1.0.0',
       security: {
-        enableSandbox: process.env.NODE_ENV === 'production',
+        enableSandbox: process.env['NODE_ENV'] === 'production',
         maxExecutionTime: 30000,
         allowedDomains: [
           'api.github.com',

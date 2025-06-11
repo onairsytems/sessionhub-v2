@@ -131,7 +131,7 @@ export function registerMCPServerHandlers(): void {
     });
   }
   // Auto-start server in development
-  if (process.env.NODE_ENV === 'development') {
+  if (process.env['NODE_ENV'] === 'development') {
     setTimeout(() => void (async () => {
       try {
         await mcpServer?.start();

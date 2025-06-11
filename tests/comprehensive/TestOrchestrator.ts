@@ -55,13 +55,11 @@ export interface ComprehensiveTestResult {
 }
 
 export class TestOrchestrator {
-  private results: TestSuiteResult[] = [];
   private startTime: number = 0;
 
   async runComprehensiveTests(): Promise<ComprehensiveTestResult> {
     console.log('🚀 Starting Comprehensive Testing & Security Audit...\n');
     this.startTime = Date.now();
-    this.results = [];
 
     // Create test results directory
     const resultsDir = join(__dirname, '../../test-results');
@@ -122,8 +120,8 @@ export class TestOrchestrator {
       security: {
         passed: securityResults.passed,
         score: securityResults.score,
-        criticalVulnerabilities: securityResults.vulnerabilities.filter(v => v.severity === 'critical').length,
-        highVulnerabilities: securityResults.vulnerabilities.filter(v => v.severity === 'high').length
+        criticalVulnerabilities: securityResults.vulnerabilities.filter((v: any) => v.severity === 'critical').length,
+        highVulnerabilities: securityResults.vulnerabilities.filter((v: any) => v.severity === 'high').length
       },
       performance: {
         passed: performanceResults.passed,
@@ -146,7 +144,7 @@ export class TestOrchestrator {
     const startTime = Date.now();
 
     try {
-      const output = execSync('npm run test:unit -- --json --outputFile=test-results/unit-results.json', {
+      execSync('npm run test:unit -- --json --outputFile=test-results/unit-results.json', {
         encoding: 'utf-8',
         stdio: 'pipe'
       });
@@ -183,7 +181,7 @@ export class TestOrchestrator {
     const startTime = Date.now();
 
     try {
-      const output = execSync('npm run test:integration -- --json --outputFile=test-results/integration-results.json', {
+      execSync('npm run test:integration -- --json --outputFile=test-results/integration-results.json', {
         encoding: 'utf-8',
         stdio: 'pipe'
       });
@@ -219,14 +217,13 @@ export class TestOrchestrator {
 
     try {
       // Start the application server for E2E tests
-      const appProcess = execSync('npm run dev &', { 
+      execSync('npm run dev &', { 
         encoding: 'utf-8',
-        stdio: 'pipe',
-        shell: true
+        stdio: 'pipe'
       });
 
       // Wait for app to be ready
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise<void>(resolve => setTimeout(resolve, 5000));
 
       // Run E2E tests
       const output = execSync('npm run test:e2e', {
@@ -432,8 +429,8 @@ export class TestOrchestrator {
     const totalMatch = output.match(/(\d+) passed/);
     const failedMatch = output.match(/(\d+) failed/);
     
-    const total = totalMatch ? parseInt(totalMatch[1]) : 0;
-    const failed = failedMatch ? parseInt(failedMatch[1]) : 0;
+    const total = totalMatch?.[1] ? parseInt(totalMatch[1], 10) : 0;
+    const failed = failedMatch?.[1] ? parseInt(failedMatch[1], 10) : 0;
     
     return {
       total: total + failed,
