@@ -61,6 +61,8 @@
     "renderer/**/*.tsx",
     "app/**/*.ts",
     "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
     "scripts/**/*.ts",
     ".next/types/**/*.ts",
     "out/types/**/*.ts"
