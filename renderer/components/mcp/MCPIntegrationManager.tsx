@@ -23,7 +23,7 @@ export const MCPIntegrationManager: React.FC = () => {
   const loadIntegrations = async () => {
     try {
       const result = await window.electronAPI.mcp.listIntegrations();
-      setIntegrations(result);
+      setIntegrations(result as MCPIntegration[]);
     } catch (error) {
     } finally {
       setLoading(false);

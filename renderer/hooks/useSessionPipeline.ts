@@ -1,4 +1,3 @@
-/// <reference path="../types/window.d.ts" />
 import { useState, useCallback, useEffect } from 'react';
 
 interface SessionDocument {
@@ -13,7 +12,7 @@ interface SessionExecutionRequest {
   projectId: string;
   description: string;
   documents?: SessionDocument[];
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 interface SessionProgress {
@@ -22,7 +21,7 @@ interface SessionProgress {
   progress: number;
   message: string;
   timestamp: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
 }
 
 interface Session {

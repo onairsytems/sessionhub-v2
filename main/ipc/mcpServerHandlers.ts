@@ -64,7 +64,7 @@ export function registerMCPServerHandlers(): void {
     }
     // Execute with test flag
     return mcpServer.executeToolCall(integrationId, tool, {
-      ...(params as Record<string, any>),
+      ...(params as Record<string, unknown>),
       _test: true
     });
   });

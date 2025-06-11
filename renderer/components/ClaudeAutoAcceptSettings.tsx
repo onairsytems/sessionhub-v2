@@ -41,7 +41,7 @@ export function ClaudeAutoAcceptSettings() {
       const savedSettings = await window.electronAPI.claude.getAutoAcceptSettings();
       setSettings(savedSettings);
     } catch (error) {
-      // console.error('Failed to load Claude auto-accept settings:', error);
+      // Failed to load settings, use defaults
     }
   };
 
@@ -52,7 +52,7 @@ export function ClaudeAutoAcceptSettings() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch (error) {
-      // console.error('Failed to save Claude auto-accept settings:', error);
+      // Failed to save settings
     } finally {
       setLoading(false);
     }

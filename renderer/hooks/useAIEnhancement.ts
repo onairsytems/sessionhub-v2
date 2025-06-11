@@ -63,12 +63,7 @@ export function useAIEnhancement() {
     return null;
   };
   
-  // Initialize AI on mount
-  useEffect(() => {
-    void initializeAI();
-  }, []);
-  
-  const initializeAI = async () => {
+  const initializeAI = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -84,7 +79,12 @@ export function useAIEnhancement() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+  
+  // Initialize AI on mount
+  useEffect(() => {
+    void initializeAI();
+  }, [initializeAI]);
   // Learn from code
   const learnFromCode = useCallback(async (filePath: string, content: string) => {
     if (!isInitialized) {

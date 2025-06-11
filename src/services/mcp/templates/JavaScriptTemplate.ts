@@ -74,10 +74,12 @@ server.setRequestHandler('tools/call', async (request) => {
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
-// REMOVED: console statement
 }
 
-main().catch(console.error);
+main().catch((error) => {
+  process.stderr.write('Failed to start server: ' + error.message + '\n');
+  process.exit(1);
+});
 `;
 
   toolTemplate = `/**

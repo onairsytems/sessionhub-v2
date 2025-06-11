@@ -73,7 +73,6 @@ class SessionHubApp {
     // Auto-updater will be initialized after window creation
   }
   private async onReady(): Promise<void> {
-// REMOVED: console statement
     // Check for recovery needs before anything else
     const recovery = EmergencyRecoverySystem.getInstance();
     const recoverySuccess = await recovery.checkAndRecover();
@@ -97,7 +96,6 @@ class SessionHubApp {
     this.setupAutoUpdater();
     // Show startup notification
     this.showStartupNotification();
-// REMOVED: console statement
   }
   private onWindowAllClosed(): void {
     // On macOS, keep app running even when all windows are closed
@@ -274,7 +272,6 @@ class SessionHubApp {
     Menu.setApplicationMenu(menu);
   }
   private async initializeServices(): Promise<void> {
-// REMOVED: console statement
     // Initialize production optimizations
     if (!isDev) {
       await productionOptimizations.initialize();
@@ -283,7 +280,6 @@ class SessionHubApp {
     void productionMonitor.performHealthChecks();
     // Initialize self-development system
     selfDevelopmentProduction.getSelfDevelopmentStatus();
-// REMOVED: console statement
     // Initialize self-development pipeline
     const pipelineConfig = {
       github: {
@@ -315,7 +311,6 @@ class SessionHubApp {
     void claudeAutoAcceptService.initialize();
     // Set up IPC handlers
     this.setupIpcHandlers();
-// REMOVED: console statement
   }
   private initializeMacFeatures(): void {
     if (process.platform !== 'darwin') return;

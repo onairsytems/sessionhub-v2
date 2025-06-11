@@ -55,7 +55,7 @@ export function registerContextHandlers() {
         type: string;
         name: string;
         description: string;
-        examples: any[];
+        examples: unknown[];
         frequency: number;
         projects: string[];
         confidence: number;

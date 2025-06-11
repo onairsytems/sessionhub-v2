@@ -40,7 +40,7 @@ export function setupOnboardingHandlers() {
     }
   });
 
-  ipcMain.handle('store:set', async (_event, key: string, value: any) => {
+  ipcMain.handle('store:set', async (_event, key: string, value: unknown) => {
     try {
       store.set(key, value);
       return true;
@@ -79,7 +79,7 @@ export function setupOnboardingHandlers() {
           }
         };
       } else {
-        const error = await response.json();
+        const error = await response.json() as { error?: { message?: string } };
         return {
           valid: false,
           error: error.error?.message || 'API validation failed'
@@ -222,7 +222,7 @@ export function setupOnboardingHandlers() {
     body: string;
     icon?: string;
   }) => {
-    const { Notification } = require('electron');
+    const { Notification } = require('electron') as { Notification: typeof import('electron').Notification };
     
     if (Notification.isSupported()) {
       const notification = new Notification({
@@ -248,12 +248,12 @@ export function setupOnboardingHandlers() {
   });
 
   ipcMain.handle('get-app-version', async () => {
-    const { app } = require('electron');
+    const { app } = require('electron') as { app: typeof import('electron').app };
     return app.getVersion();
   });
 
   ipcMain.handle('restart-app', async () => {
-    const { app } = require('electron');
+    const { app } = require('electron') as { app: typeof import('electron').app };
     app.relaunch();
     app.exit();
   });

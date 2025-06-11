@@ -30,7 +30,7 @@ export const ZedProjectSwitcher: React.FC<ZedProjectSwitcherProps> = ({
   const loadProjects = async () => {
     try {
       const projectList = await window.electronAPI.projects.list();
-      setProjects(projectList);
+      setProjects(projectList as Project[]);
     } catch (error) {
       // Handle error silently - empty project list will be shown
       setProjects([]);

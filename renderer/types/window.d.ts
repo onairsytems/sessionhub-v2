@@ -3,10 +3,10 @@ declare global {
     api: {
       context: {
         getProjectContext: () => Promise<unknown>;
-        getAvailablePatterns: () => Promise<any[]>;
+        getAvailablePatterns: () => Promise<unknown[]>;
         analyzeProjectContext: () => Promise<unknown>;
       };
-      getPatterns: () => Promise<any[]>;
+      getPatterns: () => Promise<unknown[]>;
       getProjectContext: () => Promise<unknown>;
       analyzeProjectContext: () => Promise<unknown>;
     };
@@ -207,7 +207,7 @@ declare global {
         startProjectUIUpdate: (projectId: string, figmaFileKey: string) => Promise<string>;
         getEnhancementStatus: (sessionId: string) => Promise<unknown>;
         mergeUIChanges: (sessionId: string) => Promise<void>;
-        getFigmaEnabledProjects: () => Promise<any[]>;
+        getFigmaEnabledProjects: () => Promise<unknown[]>;
         watchFile: (figmaFileKey: string) => Promise<boolean>;
         getComponentsNeedingUpdate: () => Promise<string[]>;
       };
@@ -346,18 +346,18 @@ declare global {
           integrations?: number;
           uptime?: number;
         }>;
-        listIntegrations: () => Promise<any[]>;
+        listIntegrations: () => Promise<unknown[]>;
         registerIntegration: (integration: unknown) => Promise<string>;
         unregisterIntegration: (id: string) => Promise<void>;
         executeTool: (integrationId: string, tool: string, params: unknown) => Promise<unknown>;
         testTool: (integrationId: string, tool: string, params: unknown) => Promise<unknown>;
         marketplace: {
-          search: (options: unknown) => Promise<any[]>;
-          getFeatured: () => Promise<any[]>;
-          getTrending: () => Promise<any[]>;
+          search: (options: unknown) => Promise<unknown[]>;
+          getFeatured: () => Promise<unknown[]>;
+          getTrending: () => Promise<unknown[]>;
           getIntegration: (id: string) => Promise<unknown>;
           install: (integrationId: string) => Promise<string>;
-          getCategories: () => Promise<any[]>;
+          getCategories: () => Promise<unknown[]>;
         };
         onIntegrationRegistered: (callback: (integration: unknown) => void) => void;
         onIntegrationUnregistered: (callback: (integration: unknown) => void) => void;
@@ -439,7 +439,7 @@ declare global {
         showNotification: (options: { title: string; body: string; type?: string }) => void;
       };
       projects: {
-        list: () => Promise<any[]>;
+        list: () => Promise<unknown[]>;
       };
     };
     // Add the api property for Zed components
@@ -469,12 +469,12 @@ declare global {
         openExternal: (url: string) => Promise<{ success: boolean }>;
       };
       projects: {
-        list: () => Promise<any[]>;
+        list: () => Promise<unknown[]>;
       };
       ai: {
         initialize: () => Promise<unknown>;
         learnFromCode: (filePath: string, content: string) => Promise<{ success: boolean }>;
-        getAutocomplete: (context: unknown) => Promise<any[]>;
+        getAutocomplete: (context: unknown) => Promise<unknown[]>;
         recordAutocomplete: (suggestion: unknown, accepted: boolean) => Promise<{ success: boolean }>;
         analyzeProject: (projectPath: string) => Promise<{
           template: unknown;
@@ -484,9 +484,9 @@ declare global {
         startSession: (sessionId: string, objectives: string[]) => Promise<{ success: boolean }>;
         updateSession: (sessionId: string, updates: unknown) => Promise<{ success: boolean }>;
         completeSession: (sessionId: string, success: boolean) => Promise<{ success: boolean }>;
-        searchPatterns: (criteria: unknown) => Promise<any[]>;
+        searchPatterns: (criteria: unknown) => Promise<unknown[]>;
         addPattern: (pattern: unknown) => Promise<unknown>;
-        getInsights: (projectPath?: string) => Promise<any[]>;
+        getInsights: (projectPath?: string) => Promise<unknown[]>;
         transferLearning: (fromProject: string, toProject: string) => Promise<unknown>;
         getStatus: () => Promise<unknown>;
         getMetricsSummary: (days: number) => Promise<unknown>;

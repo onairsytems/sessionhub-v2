@@ -46,7 +46,7 @@ export function UpdateNotification() {
         setShowNotification(true);
       }
     } catch (error) {
-      // console.error('Failed to check for updates:', error);
+      // Failed to check for updates
     }
   };
 
@@ -84,7 +84,7 @@ export function UpdateNotification() {
     try {
       await sessionhub.downloadUpdate();
     } catch (error) {
-      // console.error('Failed to download update:', error);
+      // Failed to download update
       setDownloading(false);
     }
   };

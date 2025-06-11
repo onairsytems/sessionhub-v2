@@ -74,7 +74,7 @@ export function registerSessionOrchestrationHandlers(): void {
   ipcMain.handle('session:createSplitWorkflow', async (
     _event: IpcMainInvokeEvent,
     { complexityScore, name, description }: {
-      complexityScore: any;
+      complexityScore: unknown;
       name: string;
       description: string;
     }
@@ -90,7 +90,7 @@ export function registerSessionOrchestrationHandlers(): void {
       // Generate split plan
       const splitPlan = await splittingEngine.splitSession(
         session,
-        complexityScore,
+        complexityScore as ComplexityScore,
         {
           maxComplexityPerSplit: 40,
           preserveLogicalGrouping: true,
@@ -226,8 +226,8 @@ export function registerSessionOrchestrationHandlers(): void {
    */
   ipcMain.handle('session:getLearningInsights', async (_event: IpcMainInvokeEvent) => {
     try {
-      const insights = learningSystem.getInsights();
-      const statistics = learningSystem.getPatternStatistics();
+      const insights = learningSystem.getInsights() as unknown;
+      const statistics = learningSystem.getPatternStatistics() as unknown;
 
       return {
         success: true,
@@ -331,7 +331,7 @@ export function registerSessionOrchestrationHandlers(): void {
     if (session && session.result) {
       const complexityScore = session.metadata['complexityScore'] as ComplexityScore;
       if (complexityScore) {
-        learningSystem.learnFromSession(session, complexityScore, session.result!);
+        void learningSystem.learnFromSession(session, complexityScore, session.result);
       }
     }
   });

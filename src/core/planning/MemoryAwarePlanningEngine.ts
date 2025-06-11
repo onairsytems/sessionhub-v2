@@ -79,11 +79,7 @@ export class MemoryAwarePlanningEngine extends PlanningEngine {
   ): Promise<OptimizedInstruction> {
     const memoryConstraints = { ...this.DEFAULT_CONSTRAINTS, ...constraints };
     
-    // Use console for logging since logger is private in parent
-    console.debug('Generating memory-aware instructions', {
-      requestId: request.id,
-      memoryLimit: memoryConstraints.estimatedExecutionMemory
-    });
+    // Generating memory-aware instructions
 
     // Analyze complexity first - adapt request type
     const complexityAnalyzer = this.complexityAnalyzer;
@@ -228,11 +224,7 @@ export class MemoryAwarePlanningEngine extends PlanningEngine {
     optimized = this.removeVerboseDescriptions(optimized);
     optimizations.push('Removed verbose descriptions');
     
-    // Log optimizations - logger is private in parent class
-    console.debug('Applied memory optimizations', {
-      instructionId: optimized.metadata.id,
-      optimizations
-    });
+    // Applied memory optimizations
     
     return optimized;
   }

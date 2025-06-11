@@ -39,10 +39,10 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
         window.electronAPI.mcp.marketplace.getTrending(),
         window.electronAPI.mcp.marketplace.getCategories()
       ]);
-      setIntegrations(allIntegrations);
-      setFeatured(featuredList);
-      setTrending(trendingList);
-      setCategories(categoryList);
+      setIntegrations(allIntegrations as MCPMarketplaceIntegration[]);
+      setFeatured(featuredList as MCPMarketplaceIntegration[]);
+      setTrending(trendingList as MCPMarketplaceIntegration[]);
+      setCategories(categoryList as string[]);
     } catch (error) {
     } finally {
       setLoading(false);
@@ -55,7 +55,7 @@ export const MCPMarketplace: React.FC<MCPMarketplaceProps> = ({ onInstall }) => 
         term: searchTerm,
         category: selectedCategory === 'all' ? undefined : selectedCategory
       });
-      setIntegrations(results);
+      setIntegrations(results as MCPMarketplaceIntegration[]);
     } catch (error) {
     } finally {
       setLoading(false);
