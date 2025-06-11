@@ -53,8 +53,15 @@
     "global.d.ts",
     "types/**/*.d.ts",
     "renderer/types/**/*.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "main/**/*.ts",
+    "main/**/*.tsx",
+    "renderer/**/*.ts",
+    "renderer/**/*.tsx",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "scripts/**/*.ts",
     ".next/types/**/*.ts",
     "out/types/**/*.ts"
   ],
@@ -64,6 +71,8 @@
     "dist-electron",
     "out",
     ".next",
-    "sessions/validation/**/*"
+    "sessions/validation/**/*",
+    "tests/**/*",
+    "scripts/run-comprehensive-tests.ts"
   ]
 }

@@ -201,7 +201,17 @@ export class GitHubWebhookReceiver extends EventEmitter {
       }
     }, 5 * 60 * 1000);
     // Initial poll
-    this.pollIssues().catch(console.error);
+    this.pollIssues().catch((error) => {
+      this.auditor.logEvent({
+        type: 'self_development' as any,
+        actor: 'system',
+        action: 'error',
+        target: 'github_polling',
+        details: { error: error.message },
+        risk: 'medium',
+        context: {}
+      });
+    });
   }
   private async pollIssues(): Promise<void> {
     if (!this.octokit) return;

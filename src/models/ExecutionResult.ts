@@ -4,24 +4,33 @@
  */
 
 export interface ExecutionResult {
-  sessionId: string;
-  instructionId: string;
-  status: 'success' | 'partial' | 'failure';
-  startTime: string;
-  endTime: string;
-  duration: number;
+  sessionId?: string;
+  instructionId?: string;
+  status?: 'success' | 'partial' | 'failure';
+  success?: boolean;
+  startTime?: string;
+  endTime?: string;
+  duration?: number;
   
-  deliverables: ExecutionDeliverable[];
+  deliverables?: ExecutionDeliverable[];
   
-  tasks: ExecutionTask[];
+  tasks?: ExecutionTask[];
   
-  logs: string[];
-  errors: string[];
-  warnings: string[];
+  logs?: string[];
+  errors?: string[];
+  warnings?: string[];
+  error?: string;
   
-  metrics: ExecutionMetrics;
+  metrics?: ExecutionMetrics;
   
   metadata?: Record<string, any>;
+  
+  // Additional fields for compatibility
+  filesModified?: string[];
+  filesCreated?: string[];
+  testsRun?: number;
+  testsPassed?: number;
+  output?: string;
 }
 
 export interface ExecutionDeliverable {

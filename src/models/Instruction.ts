@@ -98,3 +98,12 @@ export interface ValidationResult {
   message: string;
   details?: unknown;
 }
+
+// Legacy interface for backward compatibility
+export interface Instruction {
+  id: string;
+  type: 'code' | 'test' | 'documentation' | 'config';
+  content: string;
+  description?: string;
+  project?: string;
+}

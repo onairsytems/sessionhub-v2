@@ -103,6 +103,9 @@ async function testMCPServer() {
 }
 // Run the test
 if (require.main === module) {
-  testMCPServer().catch(console.error);
+  testMCPServer().catch((error) => {
+    process.stderr.write(`Test failed: ${error.message}\n`);
+    process.exit(1);
+  });
 }
 export { testMCPServer };
