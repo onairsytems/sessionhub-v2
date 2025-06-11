@@ -28,6 +28,7 @@ import { registerPipelineHandlers } from "./ipc/pipelineHandlers";
 import { registerMCPServerHandlers } from "./ipc/mcpServerHandlers";
 import { registerZedHandlers } from "./ipc/zedHandlers";
 import { registerAIHandlers } from "./ipc/aiHandlers";
+import { setupOnboardingHandlers } from "./ipc/onboardingHandlers";
 // Configure auto-updater for production
 if (!isDev) {
   serve({ directory: "app" });
@@ -400,6 +401,8 @@ class SessionHubApp {
     registerZedHandlers();
     // Register AI Enhancement handlers
     registerAIHandlers();
+    // Register Onboarding handlers
+    setupOnboardingHandlers();
     // System health check
     ipcMain.handle("get-system-health", async () => {
       return await productionMonitor.performHealthChecks();

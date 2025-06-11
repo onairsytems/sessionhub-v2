@@ -5,6 +5,7 @@ import './globals.css';
 import { Navigation } from '@/components/Navigation';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ToastProvider } from '@/components/ui/Toast';
+import { OnboardingWizard } from '@/renderer/components/OnboardingWizard';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -53,6 +54,7 @@ export default function RootLayout({
                     {children}
                   </ErrorBoundary>
                 </main>
+                <OnboardingWizard />
                 <footer className="bg-card border-t py-8 mt-auto">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center text-sm text-muted-foreground">
