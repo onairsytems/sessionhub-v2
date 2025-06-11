@@ -143,6 +143,51 @@ declare global {
       getFileInfo: (filePath: string) => Promise<unknown>;
       onSessionProgress: (callback: (data: unknown) => void) => void;
       removeSessionProgressListener: (callback: (data: unknown) => void) => void;
+      // Tutorial and Help API
+      tutorials: {
+        getTutorials: () => Promise<Array<{
+          id: string;
+          title: string;
+          description: string;
+          difficulty: 'beginner' | 'intermediate' | 'advanced';
+          duration: string;
+          category: string;
+        }>>;
+        getTutorial: (tutorialId: string) => Promise<{
+          id: string;
+          title: string;
+          description: string;
+          difficulty: 'beginner' | 'intermediate' | 'advanced';
+          duration: string;
+          steps: Array<{
+            id: string;
+            title: string;
+            content: string;
+            action?: {
+              type: 'click' | 'type' | 'navigate' | 'highlight';
+              target: string;
+              value?: string;
+            };
+            validation?: {
+              type: 'element-exists' | 'value-equals' | 'session-created';
+              target: string;
+              value?: string;
+            };
+            tips?: string[];
+          }>;
+          category: string;
+        }>;
+        getTutorialCategories: () => Promise<string[]>;
+        completeTutorial: (tutorialId: string) => Promise<boolean>;
+        getCompletedTutorials: () => Promise<string[]>;
+        getHelpContent: (topic: string) => Promise<string>;
+        searchHelp: (query: string) => Promise<Array<{
+          file: string;
+          title: string;
+          snippet: string;
+          line: number;
+        }>>;
+      };
     };
     electron: {
       onSessionProgress: (callback: (event: { type: string; data: unknown }) => void,
@@ -247,6 +292,50 @@ declare global {
       getFileInfo: (filePath: string) => Promise<unknown>;
       onSessionProgress: (callback: (data: unknown) => void) => void;
       removeSessionProgressListener: (callback: (data: unknown) => void) => void;
+      // Tutorial and Help API
+      getTutorials: () => Promise<Array<{
+        id: string;
+        title: string;
+        description: string;
+        difficulty: 'beginner' | 'intermediate' | 'advanced';
+        duration: string;
+        category: string;
+      }>>;
+      getTutorial: (tutorialId: string) => Promise<{
+        id: string;
+        title: string;
+        description: string;
+        difficulty: 'beginner' | 'intermediate' | 'advanced';
+        duration: string;
+        steps: Array<{
+          id: string;
+          title: string;
+          content: string;
+          action?: {
+            type: 'click' | 'type' | 'navigate' | 'highlight';
+            target: string;
+            value?: string;
+          };
+          validation?: {
+            type: 'element-exists' | 'value-equals' | 'session-created';
+            target: string;
+            value?: string;
+          };
+          tips?: string[];
+        }>;
+        category: string;
+      }>;
+      getTutorialCategories: () => Promise<string[]>;
+      completeTutorial: (tutorialId: string) => Promise<boolean>;
+      getCompletedTutorials: () => Promise<string[]>;
+      getHelpContent: (topic: string) => Promise<string>;
+      searchHelp: (query: string) => Promise<Array<{
+        file: string;
+        title: string;
+        snippet: string;
+        line: number;
+      }>>;
+      openExternal: (url: string) => Promise<void>;
       // MCP Server API
       mcp: {
         startServer: () => Promise<void>;

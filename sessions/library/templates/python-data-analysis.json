@@ -1,0 +1,82 @@
+{
+  "id": "python-data-analysis",
+  "name": "Python Data Analysis Script",
+  "description": "Create a Python script for data analysis with pandas, visualization, and reporting",
+  "category": "Data Science",
+  "difficulty": "intermediate",
+  "framework": "Python",
+  "estimatedTime": "25 minutes",
+  "tags": ["python", "pandas", "data-analysis", "visualization"],
+  "template": {
+    "request": "Create a Python data analysis script with the following requirements:\n\n1. **Data Source**: ${dataSource}\n2. **Analysis Goals**:\n   ${analysisGoals}\n3. **Visualizations Required**:\n   ${visualizations}\n4. **Output Format**: ${outputFormat}\n5. **Technical Requirements**:\n   - Use pandas for data manipulation\n   - Use matplotlib/seaborn for visualizations\n   - Include data validation and error handling\n   - Add comprehensive comments\n   - Generate summary statistics\n   ${additionalRequirements}",
+    "variables": {
+      "dataSource": {
+        "type": "text",
+        "label": "Data Source",
+        "placeholder": "CSV file path, API endpoint, or database connection",
+        "required": true
+      },
+      "analysisGoals": {
+        "type": "textarea",
+        "label": "Analysis Goals",
+        "placeholder": "- Calculate monthly trends\n- Identify outliers\n- Correlation analysis\n- Group comparisons",
+        "required": true
+      },
+      "visualizations": {
+        "type": "textarea",
+        "label": "Visualizations",
+        "placeholder": "- Time series plot\n- Distribution histograms\n- Correlation heatmap\n- Box plots",
+        "required": true
+      },
+      "outputFormat": {
+        "type": "select",
+        "label": "Output Format",
+        "options": ["HTML Report", "PDF Report", "Jupyter Notebook", "Dashboard"],
+        "required": true
+      },
+      "additionalRequirements": {
+        "type": "textarea",
+        "label": "Additional Requirements",
+        "placeholder": "- Statistical tests needed\n- Data cleaning steps\n- Performance requirements",
+        "required": false
+      }
+    },
+    "planningHints": [
+      "Set up proper data loading with error handling",
+      "Implement data validation before analysis",
+      "Create reusable analysis functions",
+      "Use proper visualization best practices",
+      "Include interpretation of results"
+    ]
+  },
+  "expectedOutcome": {
+    "files": [
+      "analysis.py - Main analysis script",
+      "utils/data_loader.py - Data loading utilities",
+      "utils/visualizations.py - Plotting functions",
+      "requirements.txt - Dependencies",
+      "README.md - Usage documentation"
+    ],
+    "features": [
+      "Robust data loading",
+      "Comprehensive analysis",
+      "Professional visualizations",
+      "Error handling",
+      "Reproducible results"
+    ]
+  },
+  "followUpSessions": [
+    {
+      "name": "Add Machine Learning",
+      "description": "Extend with predictive models"
+    },
+    {
+      "name": "Create Interactive Dashboard",
+      "description": "Build Streamlit or Dash dashboard"
+    },
+    {
+      "name": "Automate Reports",
+      "description": "Schedule automated analysis runs"
+    }
+  ]
+}

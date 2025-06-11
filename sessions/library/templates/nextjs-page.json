@@ -1,0 +1,100 @@
+{
+  "id": "nextjs-page",
+  "name": "Next.js Page with App Router",
+  "description": "Create a Next.js page using App Router with server/client components, metadata, and styling",
+  "category": "Web Development",
+  "difficulty": "beginner",
+  "framework": "Next.js",
+  "estimatedTime": "15 minutes",
+  "tags": ["nextjs", "react", "app-router", "typescript"],
+  "template": {
+    "request": "Create a Next.js page using App Router with:\n\n1. **Route**: ${routePath}\n2. **Page Type**: ${pageType}\n3. **Components**:\n   ${components}\n4. **Data Requirements**: ${dataRequirements}\n5. **SEO Metadata**:\n   - Title: ${pageTitle}\n   - Description: ${pageDescription}\n6. **Styling**: ${stylingApproach}\n7. **Additional Features**:\n   ${additionalFeatures}",
+    "variables": {
+      "routePath": {
+        "type": "text",
+        "label": "Route Path",
+        "placeholder": "/products/[id] or /about",
+        "required": true
+      },
+      "pageType": {
+        "type": "select",
+        "label": "Page Type",
+        "options": ["Static", "Dynamic", "Server Component", "Client Component", "Hybrid"],
+        "required": true
+      },
+      "components": {
+        "type": "textarea",
+        "label": "Components Needed",
+        "placeholder": "- Hero section\n- Feature grid\n- Contact form\n- Newsletter signup",
+        "required": true
+      },
+      "dataRequirements": {
+        "type": "textarea",
+        "label": "Data Requirements",
+        "placeholder": "Fetch product data from API, Load user preferences, Static content",
+        "required": false
+      },
+      "pageTitle": {
+        "type": "text",
+        "label": "Page Title",
+        "placeholder": "Products - Your Company",
+        "required": true
+      },
+      "pageDescription": {
+        "type": "text",
+        "label": "Meta Description",
+        "placeholder": "Browse our collection of premium products",
+        "required": true
+      },
+      "stylingApproach": {
+        "type": "select",
+        "label": "Styling Approach",
+        "options": ["Tailwind CSS", "CSS Modules", "Styled Components", "Emotion"],
+        "required": true
+      },
+      "additionalFeatures": {
+        "type": "textarea",
+        "label": "Additional Features",
+        "placeholder": "- Loading states\n- Error boundaries\n- Suspense\n- Parallel routes",
+        "required": false
+      }
+    },
+    "planningHints": [
+      "Use server components by default",
+      "Add 'use client' only when needed",
+      "Implement proper loading.tsx and error.tsx",
+      "Use Next.js Image for optimization",
+      "Follow Next.js 14 best practices"
+    ]
+  },
+  "expectedOutcome": {
+    "files": [
+      "app${routePath}/page.tsx",
+      "app${routePath}/layout.tsx (if needed)",
+      "app${routePath}/loading.tsx",
+      "app${routePath}/error.tsx",
+      "components/ (shared components)"
+    ],
+    "features": [
+      "SEO optimized metadata",
+      "Proper component architecture",
+      "Type-safe implementation",
+      "Responsive design",
+      "Performance optimized"
+    ]
+  },
+  "followUpSessions": [
+    {
+      "name": "Add API Routes",
+      "description": "Create API endpoints for the page"
+    },
+    {
+      "name": "Implement Authentication",
+      "description": "Add protected routes with NextAuth"
+    },
+    {
+      "name": "Add Internationalization",
+      "description": "Support multiple languages"
+    }
+  ]
+}

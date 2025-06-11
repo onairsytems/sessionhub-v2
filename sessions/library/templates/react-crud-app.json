@@ -1,0 +1,67 @@
+{
+  "id": "react-crud-app",
+  "name": "React CRUD Application",
+  "description": "Create a full-featured React application with Create, Read, Update, and Delete operations",
+  "category": "Web Development",
+  "difficulty": "intermediate",
+  "framework": "React",
+  "estimatedTime": "30 minutes",
+  "tags": ["react", "crud", "typescript", "tailwind"],
+  "template": {
+    "request": "Create a React CRUD application with the following features:\n\n1. **Data Model**: ${dataModel}\n2. **Features**:\n   - List view with pagination\n   - Create new ${entityName}\n   - Edit existing ${entityName}\n   - Delete with confirmation\n   - Search and filter functionality\n3. **UI Requirements**:\n   - Responsive design using Tailwind CSS\n   - Loading states and error handling\n   - Form validation\n   - Success/error notifications\n4. **State Management**: Use React Context API\n5. **Data Persistence**: Local storage for now\n6. **TypeScript**: Fully typed components and functions",
+    "variables": {
+      "dataModel": {
+        "type": "text",
+        "label": "Data Model (e.g., User with name, email, role)",
+        "placeholder": "Define your entity fields",
+        "required": true
+      },
+      "entityName": {
+        "type": "text",
+        "label": "Entity Name (singular)",
+        "placeholder": "e.g., User, Product, Task",
+        "required": true
+      }
+    },
+    "planningHints": [
+      "Set up TypeScript interfaces for the data model",
+      "Create reusable form components",
+      "Implement proper error boundaries",
+      "Add accessibility features (ARIA labels, keyboard navigation)",
+      "Use React.memo for performance optimization"
+    ]
+  },
+  "expectedOutcome": {
+    "files": [
+      "src/types/${entityName}.ts",
+      "src/context/${entityName}Context.tsx",
+      "src/components/${entityName}List.tsx",
+      "src/components/${entityName}Form.tsx",
+      "src/components/${entityName}Item.tsx",
+      "src/hooks/use${entityName}.ts",
+      "src/utils/localStorage.ts"
+    ],
+    "features": [
+      "Full CRUD operations",
+      "Type-safe implementation",
+      "Responsive UI",
+      "Error handling",
+      "Loading states",
+      "Search/filter functionality"
+    ]
+  },
+  "followUpSessions": [
+    {
+      "name": "Add API Integration",
+      "description": "Replace local storage with REST API calls"
+    },
+    {
+      "name": "Add Authentication",
+      "description": "Implement user authentication and authorization"
+    },
+    {
+      "name": "Add Testing",
+      "description": "Create unit and integration tests"
+    }
+  ]
+}

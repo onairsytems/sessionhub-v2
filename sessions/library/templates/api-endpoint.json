@@ -1,0 +1,93 @@
+{
+  "id": "api-endpoint",
+  "name": "REST API Endpoint",
+  "description": "Create a RESTful API endpoint with proper validation, error handling, and documentation",
+  "category": "Backend Development",
+  "difficulty": "beginner",
+  "framework": "Node.js",
+  "estimatedTime": "15 minutes",
+  "tags": ["api", "rest", "nodejs", "express"],
+  "template": {
+    "request": "Create a REST API endpoint with the following specifications:\n\n1. **Endpoint**: ${method} ${path}\n2. **Purpose**: ${purpose}\n3. **Request Body** (if applicable):\n   ${requestBody}\n4. **Validation Rules**:\n   ${validationRules}\n5. **Response Format**:\n   ${responseFormat}\n6. **Error Handling**:\n   - 400 for validation errors\n   - 404 for not found\n   - 500 for server errors\n7. **Additional Requirements**:\n   ${additionalRequirements}",
+    "variables": {
+      "method": {
+        "type": "select",
+        "label": "HTTP Method",
+        "options": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        "required": true
+      },
+      "path": {
+        "type": "text",
+        "label": "Endpoint Path",
+        "placeholder": "/api/users/:id",
+        "required": true
+      },
+      "purpose": {
+        "type": "text",
+        "label": "Endpoint Purpose",
+        "placeholder": "Retrieve user profile by ID",
+        "required": true
+      },
+      "requestBody": {
+        "type": "textarea",
+        "label": "Request Body Schema",
+        "placeholder": "{ name: string, email: string, age?: number }",
+        "required": false
+      },
+      "validationRules": {
+        "type": "textarea",
+        "label": "Validation Rules",
+        "placeholder": "- Email must be valid\n- Age must be 18+\n- Name is required",
+        "required": false
+      },
+      "responseFormat": {
+        "type": "textarea",
+        "label": "Response Format",
+        "placeholder": "{ success: boolean, data: User, message?: string }",
+        "required": true
+      },
+      "additionalRequirements": {
+        "type": "textarea",
+        "label": "Additional Requirements",
+        "placeholder": "- Add rate limiting\n- Log requests\n- Cache responses",
+        "required": false
+      }
+    },
+    "planningHints": [
+      "Use middleware for validation",
+      "Implement proper async error handling",
+      "Add JSDoc comments for API documentation",
+      "Consider using a validation library like Joi or Yup",
+      "Include example requests/responses in comments"
+    ]
+  },
+  "expectedOutcome": {
+    "files": [
+      "src/routes/${resourceName}.ts",
+      "src/validators/${resourceName}.validator.ts",
+      "src/types/${resourceName}.types.ts",
+      "src/middleware/errorHandler.ts"
+    ],
+    "features": [
+      "Input validation",
+      "Error handling",
+      "Type safety",
+      "API documentation",
+      "Consistent response format"
+    ]
+  },
+  "followUpSessions": [
+    {
+      "name": "Add Authentication",
+      "description": "Protect the endpoint with JWT authentication"
+    },
+    {
+      "name": "Add Database Integration",
+      "description": "Connect to database for data persistence"
+    },
+    {
+      "name": "Add API Tests",
+      "description": "Create integration tests for the endpoint"
+    }
+  ]
+}

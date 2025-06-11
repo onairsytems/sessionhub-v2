@@ -1,0 +1,75 @@
+{
+  "id": "bug-fix",
+  "name": "Bug Fix Session",
+  "description": "Systematic approach to finding and fixing bugs with proper testing",
+  "category": "Maintenance",
+  "difficulty": "beginner",
+  "framework": "Any",
+  "estimatedTime": "20 minutes",
+  "tags": ["debug", "fix", "testing", "maintenance"],
+  "template": {
+    "request": "Fix the following bug:\n\n**Issue Description**: ${bugDescription}\n\n**Steps to Reproduce**:\n${stepsToReproduce}\n\n**Expected Behavior**: ${expectedBehavior}\n\n**Actual Behavior**: ${actualBehavior}\n\n**Additional Context**: ${additionalContext}\n\n**Requirements**:\n1. Identify and fix the root cause\n2. Add tests to prevent regression\n3. Verify the fix doesn't break existing functionality\n4. Update any affected documentation",
+    "variables": {
+      "bugDescription": {
+        "type": "textarea",
+        "label": "Bug Description",
+        "placeholder": "Describe the bug clearly and concisely",
+        "required": true
+      },
+      "stepsToReproduce": {
+        "type": "textarea",
+        "label": "Steps to Reproduce",
+        "placeholder": "1. Go to...\n2. Click on...\n3. See error",
+        "required": true
+      },
+      "expectedBehavior": {
+        "type": "text",
+        "label": "Expected Behavior",
+        "placeholder": "What should happen",
+        "required": true
+      },
+      "actualBehavior": {
+        "type": "text",
+        "label": "Actual Behavior",
+        "placeholder": "What actually happens",
+        "required": true
+      },
+      "additionalContext": {
+        "type": "textarea",
+        "label": "Additional Context",
+        "placeholder": "Error messages, logs, environment details",
+        "required": false
+      }
+    },
+    "planningHints": [
+      "First reproduce the bug to confirm",
+      "Use debugging tools to find root cause",
+      "Consider edge cases and related code",
+      "Write tests before fixing",
+      "Verify fix across different scenarios"
+    ]
+  },
+  "expectedOutcome": {
+    "files": [
+      "Modified source files with fix",
+      "New or updated test files",
+      "Updated documentation if needed"
+    ],
+    "features": [
+      "Bug resolved",
+      "Regression tests added",
+      "No new issues introduced",
+      "Documentation updated"
+    ]
+  },
+  "followUpSessions": [
+    {
+      "name": "Add More Tests",
+      "description": "Increase test coverage around the fixed area"
+    },
+    {
+      "name": "Performance Check",
+      "description": "Ensure the fix doesn't impact performance"
+    }
+  ]
+}

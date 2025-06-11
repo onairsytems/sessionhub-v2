@@ -1,0 +1,71 @@
+{
+  "id": "refactor-code",
+  "name": "Code Refactoring",
+  "description": "Improve code quality, readability, and maintainability without changing functionality",
+  "category": "Code Quality",
+  "difficulty": "intermediate",
+  "framework": "Any",
+  "estimatedTime": "25 minutes",
+  "tags": ["refactor", "clean-code", "maintenance", "quality"],
+  "template": {
+    "request": "Refactor the following code:\n\n**Target**: ${targetFiles}\n\n**Refactoring Goals**:\n${refactoringGoals}\n\n**Current Issues**: ${currentIssues}\n\n**Constraints**:\n${constraints}\n\n**Requirements**:\n1. Maintain all existing functionality\n2. Improve code readability and maintainability\n3. Follow project coding standards\n4. Add/update tests as needed\n5. Document significant changes",
+    "variables": {
+      "targetFiles": {
+        "type": "text",
+        "label": "Target Files/Components",
+        "placeholder": "e.g., src/components/UserList.tsx",
+        "required": true
+      },
+      "refactoringGoals": {
+        "type": "textarea",
+        "label": "Refactoring Goals",
+        "placeholder": "- Extract reusable components\n- Simplify complex logic\n- Improve type safety",
+        "required": true
+      },
+      "currentIssues": {
+        "type": "textarea",
+        "label": "Current Issues",
+        "placeholder": "- Code duplication\n- Long functions\n- Poor naming",
+        "required": true
+      },
+      "constraints": {
+        "type": "textarea",
+        "label": "Constraints",
+        "placeholder": "- Must maintain API compatibility\n- Cannot change database schema",
+        "required": false
+      }
+    },
+    "planningHints": [
+      "Analyze code structure and dependencies first",
+      "Identify patterns and abstractions",
+      "Plan incremental refactoring steps",
+      "Ensure tests pass at each step",
+      "Consider performance implications"
+    ]
+  },
+  "expectedOutcome": {
+    "files": [
+      "Refactored source files",
+      "New abstracted components/utilities",
+      "Updated tests",
+      "Documentation updates"
+    ],
+    "features": [
+      "Cleaner code structure",
+      "Better separation of concerns",
+      "Improved readability",
+      "Maintained functionality",
+      "Better test coverage"
+    ]
+  },
+  "followUpSessions": [
+    {
+      "name": "Performance Optimization",
+      "description": "Optimize the refactored code for better performance"
+    },
+    {
+      "name": "Add Documentation",
+      "description": "Create comprehensive documentation for the refactored code"
+    }
+  ]
+}

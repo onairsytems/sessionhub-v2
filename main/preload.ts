@@ -664,6 +664,24 @@ contextBridge.exposeInMainWorld("sessionhub", {
     importModel: (modelData: unknown) => 
       ipcRenderer.invoke("ai:import-model", modelData),
   },
+
+  // Tutorial and Help Handlers
+  tutorials: {
+    getTutorials: () => 
+      ipcRenderer.invoke("get-tutorials"),
+    getTutorial: (tutorialId: string) => 
+      ipcRenderer.invoke("get-tutorial", tutorialId),
+    getTutorialCategories: () => 
+      ipcRenderer.invoke("get-tutorial-categories"),
+    completeTutorial: (tutorialId: string) => 
+      ipcRenderer.invoke("complete-tutorial", tutorialId),
+    getCompletedTutorials: () => 
+      ipcRenderer.invoke("get-completed-tutorials"),
+    getHelpContent: (topic: string) => 
+      ipcRenderer.invoke("get-help-content", topic),
+    searchHelp: (query: string) => 
+      ipcRenderer.invoke("search-help", query),
+  },
 } as SessionHubAPI);
 
 // Note: Window interface declaration moved to renderer/types/window.d.ts
