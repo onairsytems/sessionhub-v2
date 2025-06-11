@@ -39,7 +39,7 @@ export interface SystemConfig {
 
 export interface RequestQueueItem {
   id: string;
-  request: UserRequest;
+  request: UserRequest & { content?: string };
   priority: number;
   createdAt: string;
   status: 'queued' | 'processing' | 'completed' | 'failed';
@@ -58,7 +58,7 @@ export class SystemOrchestrator {
   private readonly protocolValidator: ProtocolValidator;
   private readonly boundaryEnforcer: ActorBoundaryEnforcer;
   private readonly errorHandler: ErrorHandler;
-  // private readonly apiErrorHandler: APIErrorHandler;
+  // // private readonly apiErrorHandler: APIErrorHandler; // Unused
   
   private planningEngine?: PlanningEngine;
   private executionEngine?: ExecutionEngine;
@@ -187,7 +187,7 @@ export class SystemOrchestrator {
     context?: Record<string, any>
   ): Promise<string> {
     const requestId = this.generateRequestId();
-    const request: UserRequest = {
+    const request: UserRequest & { content?: string } = {
       id: requestId,
       sessionId: '', // Will be set by SessionManager
       userId,
@@ -631,7 +631,7 @@ export class SystemOrchestrator {
     }
   }
 
-  private calculatePriority(request: UserRequest): number {
+  private calculatePriority(request: UserRequest & { content?: string }): number {
     // Basic priority calculation
     let priority = 50; // Base priority
     

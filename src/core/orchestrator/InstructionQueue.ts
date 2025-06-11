@@ -170,7 +170,7 @@ export class InstructionQueue extends EventEmitter {
       this.emitEvent({
         type: status === 'completed' ? 'completed' : 'failed',
         instructionId: instruction.id,
-        sessionId: instruction.sessionId,
+        sessionId: instruction.sessionId || 'unknown',
         timestamp: instruction.completedAt,
         data: status === 'completed' ? result : { error: error?.message }
       });
@@ -179,7 +179,7 @@ export class InstructionQueue extends EventEmitter {
       this.emitEvent({
         type: 'progress',
         instructionId: instruction.id,
-        sessionId: instruction.sessionId,
+        sessionId: instruction.sessionId || 'unknown',
         timestamp: new Date().toISOString(),
         data: { status }
       });

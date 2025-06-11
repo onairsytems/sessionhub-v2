@@ -6,6 +6,17 @@ import { MCPGeneratorEngine } from './MCPGeneratorEngine';
 // import { ExecutionEngine } from '../../core/execution/ExecutionEngine';
 import { MCPGenerationOptions, MCPServerConfig } from './types';
 
+export interface MCPIntegration {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  category: string;
+  enabled: boolean;
+  config?: any;
+  tools?: any[];
+}
+
 interface MCPSession {
   id: string;
   projectPath: string;
@@ -239,5 +250,70 @@ export class MCPIntegrationService {
    */
   getAvailableIntegrations() {
     return this.mcpGenerator.getAvailableIntegrations();
+  }
+
+  /**
+   * Get a specific integration by ID
+   */
+  async getIntegration(id: string): Promise<MCPIntegration | null> {
+    // Mock implementation - replace with actual logic
+    const mockIntegrations: MCPIntegration[] = [
+      {
+        id: 'github',
+        name: 'GitHub',
+        description: 'GitHub integration for MCP',
+        version: '1.0.0',
+        category: 'development',
+        enabled: true,
+        tools: ['list_repositories', 'create_issue', 'create_pull_request']
+      },
+      {
+        id: 'linear',
+        name: 'Linear',
+        description: 'Linear issue tracking integration',
+        version: '1.0.0',
+        category: 'productivity',
+        enabled: true,
+        tools: ['list_issues', 'create_issue', 'update_issue']
+      },
+      {
+        id: 'figma',
+        name: 'Figma',
+        description: 'Figma design integration',
+        version: '1.0.0',
+        category: 'design',
+        enabled: true,
+        tools: ['get_file', 'list_components', 'export_assets']
+      }
+    ];
+    
+    return mockIntegrations.find(i => i.id === id) || null;
+  }
+
+  /**
+   * Execute a tool for a specific integration
+   */
+  async executeTool(integrationId: string, tool: string, input: any): Promise<any> {
+    // Mock implementation - replace with actual logic
+    this.logger.info(`Executing tool ${tool} for integration ${integrationId}`, input);
+    
+    return {
+      success: true,
+      result: {
+        data: {},
+        timestamp: new Date()
+      }
+    };
+  }
+
+  /**
+   * Update an integration's configuration
+   */
+  async updateIntegration(id: string, updates: Partial<MCPIntegration>): Promise<void> {
+    // Mock implementation - replace with actual logic
+    this.logger.info(`Updating integration ${id}`, updates);
+    
+    // In a real implementation, this would update the integration in a database
+    // or configuration store
   }
 }

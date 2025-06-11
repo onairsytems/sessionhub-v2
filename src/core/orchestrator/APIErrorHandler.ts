@@ -127,7 +127,7 @@ export class APIErrorHandler {
         
         this.logger.warn('Retrying operation after error', {
           ...context,
-          attemptNumber: attempt,
+          // attemptNumber: attempt, // Removed - not in metadata type
           nextAttemptIn: delay,
           error: (error as Error).message
         });
