@@ -63,6 +63,7 @@
     "dist",
     "dist-electron",
     "out",
-    ".next"
+    ".next",
+    "sessions/validation/**/*"
   ]
 }
