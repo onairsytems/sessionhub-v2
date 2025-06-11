@@ -119,6 +119,14 @@ export class DatabaseService extends EventEmitter {
   }
 
   /**
+   * Execute a run query (INSERT, UPDATE, DELETE)
+   * Alias for query method for compatibility
+   */
+  async run(sql: string, params: any[] = []): Promise<QueryResult> {
+    return this.query(sql, params);
+  }
+
+  /**
    * Execute a transaction
    */
   async transaction(callback: (db: Database.Database) => void): Promise<void> {

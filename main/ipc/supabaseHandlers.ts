@@ -82,12 +82,15 @@ export function registerSupabaseHandlers(): void {
       project: {
         name: string;
         path: string;
-        type: "nextjs" | "react" | "node" | "python" | "java" | "other";
+        type: string;
         metadata?: Record<string, unknown>;
       },
     ) => {
       try {
-        const result = await supabaseService.createProject(project);
+        const result = await supabaseService.createProject({
+          ...project,
+          type: project.type as "nextjs" | "react" | "node" | "python" | "java" | "other"
+        });
         return { success: true, project: result };
       } catch (error: unknown) {
         logger.error("Failed to create project", error as Error);

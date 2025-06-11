@@ -30,6 +30,7 @@ import { registerZedHandlers } from "./ipc/zedHandlers";
 import { registerAIHandlers } from "./ipc/aiHandlers";
 import { setupOnboardingHandlers } from "./ipc/onboardingHandlers";
 import { registerTutorialHandlers } from "./ipc/tutorialHandlers";
+import { registerSessionOrchestrationHandlers } from "./ipc/sessionOrchestrationHandlers";
 // Configure auto-updater for production
 if (!isDev) {
   serve({ directory: "app" });
@@ -406,6 +407,8 @@ class SessionHubApp {
     setupOnboardingHandlers();
     // Register Tutorial and Help handlers
     registerTutorialHandlers();
+    // Register Session Orchestration handlers
+    registerSessionOrchestrationHandlers();
     // System health check
     ipcMain.handle("get-system-health", async () => {
       return await productionMonitor.performHealthChecks();

@@ -3,7 +3,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Card } from "./ui/Card";
+import { Card } from "../components/ui/Card";
 
 export interface SessionProgressProps {
   sessionId: string;
