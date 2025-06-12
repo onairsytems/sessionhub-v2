@@ -24,7 +24,7 @@ export interface ConnectionHealth {
 
 export class ConnectionMonitor extends EventEmitter {
   private readonly logger: Logger;
-  private services: Map<string, ServiceStatus> = new Map();
+  protected services: Map<string, ServiceStatus> = new Map();
   private checkInterval: NodeJS.Timeout | null = null;
   private readonly checkIntervalMs = 30000; // 30 seconds
   private serviceCheckers: Map<string, () => Promise<boolean>> = new Map();
