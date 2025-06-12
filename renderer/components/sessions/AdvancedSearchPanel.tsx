@@ -51,7 +51,7 @@ export const AdvancedSearchPanel: React.FC<AdvancedSearchPanelProps> = ({
   const [tags, setTags] = useState<SessionTag[]>([]);
   const [folders, setFolders] = useState<SessionFolder[]>([]);
   const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
-  const [projects, setProjects] = useState<string[]>([]);
+  const [, setProjects] = useState<string[]>([]);
 
   useEffect(() => {
     if (isOpen) {

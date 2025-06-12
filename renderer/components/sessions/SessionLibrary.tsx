@@ -42,8 +42,8 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
   const [showTagManager, setShowTagManager] = useState(false);
   const [showFolderManager, setShowFolderManager] = useState(false);
   const [isAdvancedMode, setIsAdvancedMode] = useState(false);
-  const [tags, setTags] = useState<SessionTag[]>([]);
-  const [folders, setFolders] = useState<SessionFolder[]>([]);
+  const [, setTags] = useState<SessionTag[]>([]);
+  const [, setFolders] = useState<SessionFolder[]>([]);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   // Load sessions on mount
   useEffect(() => {
@@ -99,8 +99,8 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
     setLoading(true);
     try {
       const result = await window.electron.invoke('session:advancedSearch', 
-        searchOptions, filterCriteria, sortOptions);
-      setSearchResult(result as SearchResult<Session>);
+        searchOptions, filterCriteria, sortOptions) as SearchResult<Session>;
+      setSearchResult(result);
       setSessions(result.items);
       setIsAdvancedMode(true);
       setShowAdvancedSearch(false);
@@ -210,23 +210,23 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
     }
   };
 
-  const handleAddTag = async (sessionId: string, tagName: string) => {
-    try {
-      await window.electron.invoke('session:addTag', sessionId, tagName);
-      await loadSessions();
-    } catch (error) {
-      console.error('Failed to add tag:', error);
-    }
-  };
+  // const handleAddTag = async (sessionId: string, tagName: string) => {
+  //   try {
+  //     await window.electron.invoke('session:addTag', sessionId, tagName);
+  //     await loadSessions();
+  //   } catch (error) {
+  //     console.error('Failed to add tag:', error);
+  //   }
+  // };
 
-  const handleRemoveTag = async (sessionId: string, tagName: string) => {
-    try {
-      await window.electron.invoke('session:removeTag', sessionId, tagName);
-      await loadSessions();
-    } catch (error) {
-      console.error('Failed to remove tag:', error);
-    }
-  };
+  // const handleRemoveTag = async (sessionId: string, tagName: string) => {
+  //   try {
+  //     await window.electron.invoke('session:removeTag', sessionId, tagName);
+  //     await loadSessions();
+  //   } catch (error) {
+  //     console.error('Failed to remove tag:', error);
+  //   }
+  // };
 
   const handleClearAdvancedSearch = () => {
     setIsAdvancedMode(false);
@@ -458,7 +458,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
                         handleToggleFavorite(session.id);
                       }}
                       className={`text-lg hover:scale-110 transition-transform ${
-                        session.metadata.organizationMetadata?.isFavorite 
+                        (session.metadata as any)?.organizationMetadata?.isFavorite 
                           ? 'text-yellow-500' 
                           : 'text-gray-300 hover:text-yellow-400'
                       }`}

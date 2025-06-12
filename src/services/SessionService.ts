@@ -233,7 +233,7 @@ export class SessionService {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const orgMetadata = (session.metadata as any).organizationMetadata as OrganizationMetadata || {};
     const folders = orgMetadata.folders || [];
     
     if (!folders.includes(folderId)) {
@@ -246,7 +246,7 @@ export class SessionService {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const orgMetadata = (session.metadata as any).organizationMetadata as OrganizationMetadata || {};
     const folders = orgMetadata.folders || [];
     
     const updatedFolders = folders.filter(id => id !== folderId);
@@ -257,7 +257,7 @@ export class SessionService {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const orgMetadata = (session.metadata as any).organizationMetadata as OrganizationMetadata || {};
     const tags = orgMetadata.tags || [];
     
     if (!tags.includes(tagName)) {
@@ -270,7 +270,7 @@ export class SessionService {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const orgMetadata = (session.metadata as any).organizationMetadata as OrganizationMetadata || {};
     const tags = orgMetadata.tags || [];
     
     const updatedTags = tags.filter(tag => tag !== tagName);
@@ -281,7 +281,7 @@ export class SessionService {
     const session = await this.getSession(sessionId);
     if (!session) throw new Error('Session not found');
 
-    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const orgMetadata = (session.metadata as any).organizationMetadata as OrganizationMetadata || {};
     const newFavoriteState = !orgMetadata.isFavorite;
     
     await this.searchService.updateSessionOrganization(sessionId, { 

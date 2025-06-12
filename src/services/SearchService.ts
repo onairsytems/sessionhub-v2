@@ -16,19 +16,19 @@ import {
   SessionFolder,
   OrganizationMetadata
 } from '../models/SearchFilter';
-import { LocalCacheService } from './cache/LocalCacheService';
-import { Logger } from '../lib/logging/Logger';
+// import { LocalCacheService } from './cache/LocalCacheService';
+// import { Logger } from '../lib/logging/Logger';
 import Database from 'better-sqlite3';
 
 export class SearchService {
   private static instance: SearchService;
-  private cache: LocalCacheService;
-  private logger: Logger;
+  // private cache: LocalCacheService;
+  // private logger: Logger;
   private db: Database.Database | null = null;
 
   private constructor() {
-    this.logger = new Logger('SearchService');
-    this.cache = new LocalCacheService(this.logger);
+    // this.logger = new Logger('SearchService');
+    // this.cache = new LocalCacheService(this.logger);
   }
 
   static getInstance(): SearchService {
@@ -499,7 +499,7 @@ export class SearchService {
     };
   }
 
-  private async generateStatusFacets(filter?: FilterCriteria): Promise<FacetBucket<any>[]> {
+  private async generateStatusFacets(_filter?: FilterCriteria): Promise<FacetBucket<any>[]> {
     if (!this.db) return [];
 
     const sql = `
@@ -517,7 +517,7 @@ export class SearchService {
     }));
   }
 
-  private async generateProjectFacets(filter?: FilterCriteria): Promise<FacetBucket<string>[]> {
+  private async generateProjectFacets(_filter?: FilterCriteria): Promise<FacetBucket<string>[]> {
     if (!this.db) return [];
 
     const sql = `
@@ -535,7 +535,7 @@ export class SearchService {
     }));
   }
 
-  private async generateTagFacets(filter?: FilterCriteria): Promise<FacetBucket<string>[]> {
+  private async generateTagFacets(_filter?: FilterCriteria): Promise<FacetBucket<string>[]> {
     if (!this.db) return [];
 
     const sql = `
@@ -552,7 +552,7 @@ export class SearchService {
     }));
   }
 
-  private async generateDateRangeFacets(filter?: FilterCriteria): Promise<FacetBucket<string>[]> {
+  private async generateDateRangeFacets(_filter?: FilterCriteria): Promise<FacetBucket<string>[]> {
     return [
       { value: 'today', count: 0, label: 'Today' },
       { value: 'yesterday', count: 0, label: 'Yesterday' },
