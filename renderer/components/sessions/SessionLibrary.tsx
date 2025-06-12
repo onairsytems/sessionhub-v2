@@ -1,8 +1,20 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { SessionFilter } from '@/src/services/SessionService';
 import { Session, SessionStatus } from '@/src/models/Session';
+import { 
+  SearchOptions, 
+  FilterCriteria, 
+  SortOptions, 
+  SearchResult,
+  SavedFilter,
+  SessionTag,
+  SessionFolder
+} from '@/src/models/SearchFilter';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { AdvancedSearchPanel } from './AdvancedSearchPanel';
+import { TagManager } from './TagManager';
+import { FolderManager } from './FolderManager';
 import { formatDistanceToNow } from 'date-fns';
 interface SessionLibraryProps {
   userId: string;
@@ -17,33 +29,95 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
   onSessionCreate
 }) => {
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [searchResult, setSearchResult] = useState<SearchResult<Session> | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<SessionStatus[]>([]);
   const [dateRange] = useState<{ from?: Date; to?: Date }>({});
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  
+  // Enhanced search states
+  const [showAdvancedSearch, setShowAdvancedSearch] = useState(false);
+  const [showTagManager, setShowTagManager] = useState(false);
+  const [showFolderManager, setShowFolderManager] = useState(false);
+  const [isAdvancedMode, setIsAdvancedMode] = useState(false);
+  const [tags, setTags] = useState<SessionTag[]>([]);
+  const [folders, setFolders] = useState<SessionFolder[]>([]);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   // Load sessions on mount
   useEffect(() => {
     void loadSessions();
+    void loadOrganizationData();
   }, [userId, projectId]);
+
   const loadSessions = async () => {
     setLoading(true);
     try {
-      const filter: SessionFilter = {
-        userId,
-        projectId,
-        status: statusFilter.length > 0 ? statusFilter : undefined,
-        searchTerm: searchTerm || undefined,
-        tags: selectedTags.length > 0 ? selectedTags : undefined,
-        dateFrom: dateRange.from,
-        dateTo: dateRange.to
-      };
-      const result = await window.electron.invoke('session:search', filter);
-      setSessions(result as Session[]);
+      if (isAdvancedMode && searchResult) {
+        // Use advanced search results
+        setSessions(searchResult.items);
+      } else {
+        // Use basic search
+        const filter: SessionFilter = {
+          userId,
+          projectId,
+          status: statusFilter.length > 0 ? statusFilter : undefined,
+          searchTerm: searchTerm || undefined,
+          tags: selectedTags.length > 0 ? selectedTags : undefined,
+          dateFrom: dateRange.from,
+          dateTo: dateRange.to
+        };
+        const result = await window.electron.invoke('session:search', filter);
+        setSessions(result as Session[]);
+      }
     } catch (error) {
+      console.error('Failed to load sessions:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadOrganizationData = async () => {
+    try {
+      const [tagsResult, foldersResult] = await Promise.all([
+        window.electron.invoke('session:getTags'),
+        window.electron.invoke('session:getFolders')
+      ]);
+      setTags(tagsResult as SessionTag[]);
+      setFolders(foldersResult as SessionFolder[]);
+    } catch (error) {
+      console.error('Failed to load organization data:', error);
+    }
+  };
+
+  const handleAdvancedSearch = async (
+    searchOptions: SearchOptions, 
+    filterCriteria: FilterCriteria, 
+    sortOptions: SortOptions
+  ) => {
+    setLoading(true);
+    try {
+      const result = await window.electron.invoke('session:advancedSearch', 
+        searchOptions, filterCriteria, sortOptions);
+      setSearchResult(result as SearchResult<Session>);
+      setSessions(result.items);
+      setIsAdvancedMode(true);
+      setShowAdvancedSearch(false);
+    } catch (error) {
+      console.error('Advanced search failed:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSaveFilter = async (filter: Omit<SavedFilter, 'id' | 'createdAt' | 'updatedAt' | 'usageCount'>) => {
+    try {
+      await window.electron.invoke('session:createSavedFilter', filter);
+      alert('Filter saved successfully!');
+    } catch (error) {
+      console.error('Failed to save filter:', error);
+      alert('Failed to save filter. Please try again.');
     }
   };
   // Filter sessions based on search criteria
@@ -123,7 +197,41 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
+      console.error('Failed to export session:', error);
     }
+  };
+
+  const handleToggleFavorite = async (sessionId: string) => {
+    try {
+      await window.electron.invoke('session:toggleFavorite', sessionId);
+      await loadSessions();
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error);
+    }
+  };
+
+  const handleAddTag = async (sessionId: string, tagName: string) => {
+    try {
+      await window.electron.invoke('session:addTag', sessionId, tagName);
+      await loadSessions();
+    } catch (error) {
+      console.error('Failed to add tag:', error);
+    }
+  };
+
+  const handleRemoveTag = async (sessionId: string, tagName: string) => {
+    try {
+      await window.electron.invoke('session:removeTag', sessionId, tagName);
+      await loadSessions();
+    } catch (error) {
+      console.error('Failed to remove tag:', error);
+    }
+  };
+
+  const handleClearAdvancedSearch = () => {
+    setIsAdvancedMode(false);
+    setSearchResult(null);
+    loadSessions();
   };
   if (loading) {
     return (
@@ -134,46 +242,107 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
   }
   return (
     <div className="space-y-4">
-      {/* Search and Filters */}
+      {/* Enhanced Search and Filters */}
       <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Search input */}
-          <div className="lg:col-span-2">
-            <input
-              type="text"
-              placeholder="Search sessions..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && loadSessions()}
-              className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg 
-                       focus:ring-2 focus:ring-primary focus:border-transparent
-                       bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            />
+        <div className="space-y-4">
+          {/* Search Header */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                Session Library
+              </h3>
+              {isAdvancedMode && searchResult && (
+                <div className="flex items-center space-x-2">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                    Advanced Search ({searchResult.performanceMetrics?.searchTimeMs}ms)
+                  </span>
+                  <Button size="sm" variant="ghost" onClick={handleClearAdvancedSearch}>
+                    Clear
+                  </Button>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowTagManager(true)}
+              >
+                🏷️ Tags
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFolderManager(true)}
+              >
+                📁 Folders
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowAdvancedSearch(true)}
+              >
+                🔍 Advanced Search
+              </Button>
+            </div>
           </div>
-          {/* View toggle */}
-          <div className="flex gap-2">
-            <Button
-              variant={view === 'grid' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setView('grid')}
-            >
-              Grid
-            </Button>
-            <Button
-              variant={view === 'list' ? 'primary' : 'ghost'}
-              size="sm"
-              onClick={() => setView('list')}
-            >
-              List
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => onSessionCreate?.()}
-              className="ml-auto"
-            >
-              New Session
-            </Button>
+
+          {/* Basic Search Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Search input */}
+            <div className="lg:col-span-2">
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Search sessions..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && loadSessions()}
+                  className="w-full px-4 py-2 pl-10 border border-gray-300 dark:border-gray-600 rounded-lg 
+                           focus:ring-2 focus:ring-primary focus:border-transparent
+                           bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="text-gray-400">🔍</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick filters */}
+            <div className="flex gap-2">
+              <Button
+                variant={showFavoritesOnly ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              >
+                ⭐ Favorites
+              </Button>
+            </div>
+
+            {/* View toggle and actions */}
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant={view === 'grid' ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setView('grid')}
+              >
+                Grid
+              </Button>
+              <Button
+                variant={view === 'list' ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setView('list')}
+              >
+                List
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => onSessionCreate?.()}
+              >
+                New Session
+              </Button>
+            </div>
           </div>
         </div>
         {/* Status filters */}
@@ -243,9 +412,24 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
           </Button>
         </div>
       </div>
-      {/* Results count */}
-      <div className="text-sm text-gray-600 dark:text-gray-400">
-        Found {filteredSessions.length} session{filteredSessions.length !== 1 ? 's' : ''}
+      {/* Results count and facets */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Found {filteredSessions.length} session{filteredSessions.length !== 1 ? 's' : ''}
+          {searchResult && searchResult.totalCount > filteredSessions.length && (
+            <span> (showing first {filteredSessions.length} of {searchResult.totalCount})</span>
+          )}
+        </div>
+        {searchResult?.facets && (
+          <div className="flex items-center space-x-4 text-sm text-gray-500">
+            <span>Status:</span>
+            {searchResult.facets.status.slice(0, 3).map(facet => (
+              <span key={facet.value} className="bg-gray-100 px-2 py-1 rounded">
+                {facet.label} ({facet.count})
+              </span>
+            ))}
+          </div>
+        )}
       </div>
       {/* Session list/grid */}
       {filteredSessions.length === 0 ? (
@@ -264,9 +448,24 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
             >
               <div className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
-                  <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-1">
-                    {session.name}
-                  </h3>
+                  <div className="flex items-center space-x-2 flex-1 min-w-0">
+                    <h3 className="font-medium text-gray-900 dark:text-gray-100 line-clamp-1 flex-1">
+                      {session.name}
+                    </h3>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleToggleFavorite(session.id);
+                      }}
+                      className={`text-lg hover:scale-110 transition-transform ${
+                        session.metadata.organizationMetadata?.isFavorite 
+                          ? 'text-yellow-500' 
+                          : 'text-gray-300 hover:text-yellow-400'
+                      }`}
+                    >
+                      ⭐
+                    </button>
+                  </div>
                   <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(session.status)}`}>
                     {getStatusIcon(session.status)} {session.status}
                   </span>
@@ -371,6 +570,30 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
           ))}
         </div>
       )}
+
+      {/* Modals */}
+      <AdvancedSearchPanel
+        isOpen={showAdvancedSearch}
+        onClose={() => setShowAdvancedSearch(false)}
+        onSearch={handleAdvancedSearch}
+        onSaveFilter={handleSaveFilter}
+      />
+
+      <TagManager
+        isOpen={showTagManager}
+        onClose={() => setShowTagManager(false)}
+        onTagCreated={() => loadOrganizationData()}
+        onTagUpdated={() => loadOrganizationData()}
+        onTagDeleted={() => loadOrganizationData()}
+      />
+
+      <FolderManager
+        isOpen={showFolderManager}
+        onClose={() => setShowFolderManager(false)}
+        onFolderCreated={() => loadOrganizationData()}
+        onFolderUpdated={() => loadOrganizationData()}
+        onFolderDeleted={() => loadOrganizationData()}
+      />
     </div>
   );
 };

@@ -3,9 +3,20 @@ import { Session, SessionStatus, SessionRequest, SessionError, SessionMetadata }
 import { SupabaseService } from './cloud/SupabaseService';
 import { LocalCacheService } from './cache/LocalCacheService';
 import { GitVersioningService } from './GitVersioningService';
+import { SearchService } from './SearchService';
 import { InstructionProtocol } from '../models/Instruction';
 import { ExecutionResult } from '../models/ExecutionResult';
 import { Logger } from '../lib/logging/Logger';
+import { 
+  SearchOptions, 
+  FilterCriteria, 
+  SortOptions, 
+  SearchResult,
+  SavedFilter,
+  SessionTag,
+  SessionFolder,
+  OrganizationMetadata
+} from '../models/SearchFilter';
 // Re-export types for convenience
 export type { Session, SessionStatus } from '../models/Session';
 export interface SessionFilter {
@@ -48,12 +59,14 @@ export class SessionService {
   private supabase: SupabaseService;
   private cache: LocalCacheService;
   private gitService: GitVersioningService;
+  private searchService: SearchService;
   private logger: Logger;
   private constructor() {
     this.logger = new Logger('SessionService');
     this.supabase = new SupabaseService(this.logger);
     this.cache = new LocalCacheService(this.logger);
     this.gitService = GitVersioningService.getInstance();
+    this.searchService = SearchService.getInstance();
   }
   static getInstance(): SessionService {
     if (!SessionService.instance) {
@@ -153,6 +166,129 @@ export class SessionService {
       );
     }
     return sessions;
+  }
+
+  // Enhanced Search Methods
+  async advancedSearch(
+    options: SearchOptions,
+    filter?: FilterCriteria,
+    sort?: SortOptions
+  ): Promise<SearchResult<Session>> {
+    return this.searchService.search(options, filter, sort);
+  }
+
+  // Tag Management
+  async createTag(tag: Omit<SessionTag, 'id' | 'sessionCount' | 'createdAt' | 'lastUsedAt'>): Promise<SessionTag> {
+    return this.searchService.createTag(tag);
+  }
+
+  async getTags(): Promise<SessionTag[]> {
+    return this.searchService.getTags();
+  }
+
+  async updateTag(id: string, updates: Partial<SessionTag>): Promise<SessionTag> {
+    return this.searchService.updateTag(id, updates);
+  }
+
+  async deleteTag(id: string): Promise<void> {
+    return this.searchService.deleteTag(id);
+  }
+
+  // Folder Management
+  async createFolder(folder: Omit<SessionFolder, 'id' | 'sessionCount' | 'subfolderCount' | 'createdAt' | 'updatedAt' | 'path'>): Promise<SessionFolder> {
+    return this.searchService.createFolder(folder);
+  }
+
+  async getFolders(parentId?: string): Promise<SessionFolder[]> {
+    return this.searchService.getFolders(parentId);
+  }
+
+  async updateFolder(id: string, updates: Partial<SessionFolder>): Promise<SessionFolder> {
+    return this.searchService.updateFolder(id, updates);
+  }
+
+  async deleteFolder(id: string): Promise<void> {
+    return this.searchService.deleteFolder(id);
+  }
+
+  // Saved Filter Management
+  async createSavedFilter(filter: Omit<SavedFilter, 'id' | 'createdAt' | 'updatedAt' | 'usageCount'>): Promise<SavedFilter> {
+    return this.searchService.createSavedFilter(filter);
+  }
+
+  async getSavedFilters(): Promise<SavedFilter[]> {
+    return this.searchService.getSavedFilters();
+  }
+
+  async updateSavedFilter(id: string, updates: Partial<SavedFilter>): Promise<SavedFilter> {
+    return this.searchService.updateSavedFilter(id, updates);
+  }
+
+  async deleteSavedFilter(id: string): Promise<void> {
+    return this.searchService.deleteSavedFilter(id);
+  }
+
+  // Organization Management
+  async addSessionToFolder(sessionId: string, folderId: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const folders = orgMetadata.folders || [];
+    
+    if (!folders.includes(folderId)) {
+      folders.push(folderId);
+      await this.searchService.updateSessionOrganization(sessionId, { folders });
+    }
+  }
+
+  async removeSessionFromFolder(sessionId: string, folderId: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const folders = orgMetadata.folders || [];
+    
+    const updatedFolders = folders.filter(id => id !== folderId);
+    await this.searchService.updateSessionOrganization(sessionId, { folders: updatedFolders });
+  }
+
+  async addSessionTag(sessionId: string, tagName: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const tags = orgMetadata.tags || [];
+    
+    if (!tags.includes(tagName)) {
+      tags.push(tagName);
+      await this.searchService.updateSessionOrganization(sessionId, { tags });
+    }
+  }
+
+  async removeSessionTag(sessionId: string, tagName: string): Promise<void> {
+    const session = await this.getSession(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const tags = orgMetadata.tags || [];
+    
+    const updatedTags = tags.filter(tag => tag !== tagName);
+    await this.searchService.updateSessionOrganization(sessionId, { tags: updatedTags });
+  }
+
+  async toggleSessionFavorite(sessionId: string): Promise<boolean> {
+    const session = await this.getSession(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    const orgMetadata = session.metadata.organizationMetadata as OrganizationMetadata || {};
+    const newFavoriteState = !orgMetadata.isFavorite;
+    
+    await this.searchService.updateSessionOrganization(sessionId, { 
+      isFavorite: newFavoriteState 
+    });
+
+    return newFavoriteState;
   }
   // Session Templates
   async createTemplate(session: Session, templateData: Partial<SessionTemplate>): Promise<SessionTemplate> {
