@@ -684,5 +684,41 @@ contextBridge.exposeInMainWorld("sessionhub", {
   },
 } as SessionHubAPI);
 
+// Also expose electron object with recovery methods
+contextBridge.exposeInMainWorld("electron", {
+  recovery: {
+    getRecoveryPoints: () => 
+      ipcRenderer.invoke("recovery:getRecoveryPoints"),
+    recoverToPoint: (options: any) => 
+      ipcRenderer.invoke("recovery:recoverToPoint", options),
+    detectCorruption: () => 
+      ipcRenderer.invoke("recovery:detectCorruption"),
+    attemptAutoRecovery: (sessionId?: string) => 
+      ipcRenderer.invoke("recovery:attemptAutoRecovery", sessionId),
+    createCheckpoint: (data: any, description: string) => 
+      ipcRenderer.invoke("recovery:createCheckpoint", data, description),
+    checkStartupHealth: () => 
+      ipcRenderer.invoke("recovery:checkStartupHealth"),
+    enterEmergencyMode: (options?: any) => 
+      ipcRenderer.invoke("recovery:enterEmergencyMode", options),
+    exitEmergencyMode: () => 
+      ipcRenderer.invoke("recovery:exitEmergencyMode"),
+    getSafeModeConfig: () => 
+      ipcRenderer.invoke("recovery:getSafeModeConfig"),
+    getHealthStatus: () => 
+      ipcRenderer.invoke("recovery:getHealthStatus"),
+    checkHealthNow: () => 
+      ipcRenderer.invoke("recovery:checkHealthNow"),
+    queryLogs: (query: any) => 
+      ipcRenderer.invoke("recovery:queryLogs", query),
+    getLogSummary: (startDate?: Date, endDate?: Date) => 
+      ipcRenderer.invoke("recovery:getLogSummary", startDate, endDate),
+    exportLogs: (outputPath: string, query?: any, format?: 'json' | 'csv') => 
+      ipcRenderer.invoke("recovery:exportLogs", outputPath, query, format),
+    cleanupLogs: (daysToKeep: number) => 
+      ipcRenderer.invoke("recovery:cleanupLogs", daysToKeep),
+  }
+});
+
 // Note: Window interface declaration moved to renderer/types/window.d.ts
 // to avoid conflicts with existing declarations

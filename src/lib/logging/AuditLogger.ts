@@ -31,13 +31,44 @@ export interface AuditEvent {
   };
 }
 
+export interface AuditLogEntry {
+  action: string;
+  actorType: string;
+  actorId: string;
+  details?: any;
+}
+
 export class AuditLogger {
   private readonly logger: Logger;
   private readonly events: AuditEvent[] = [];
   private readonly maxEvents: number = 50000;
 
-  constructor() {
-    this.logger = new Logger('AuditLogger', 'audit.log');
+  constructor(logger?: Logger) {
+    this.logger = logger || new Logger('AuditLogger', 'audit.log');
+  }
+
+  /**
+   * Simple log method for backward compatibility
+   */
+  async log(entry: AuditLogEntry): Promise<void> {
+    this.logEvent({
+      actor: {
+        type: entry.actorType as 'planning' | 'execution' | 'system',
+        id: entry.actorId
+      },
+      operation: {
+        type: entry.action,
+        description: entry.action,
+        input: entry.details
+      },
+      result: {
+        status: 'success',
+        duration: 0
+      },
+      metadata: {
+        correlationId: this.generateEventId()
+      }
+    });
   }
 
   /**

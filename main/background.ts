@@ -31,6 +31,7 @@ import { registerAIHandlers } from "./ipc/aiHandlers";
 import { setupOnboardingHandlers } from "./ipc/onboardingHandlers";
 import { registerTutorialHandlers } from "./ipc/tutorialHandlers";
 import { registerSessionOrchestrationHandlers } from "./ipc/sessionOrchestrationHandlers";
+import { registerRecoveryHandlers } from "./ipc/recoveryHandlers";
 // Configure auto-updater for production
 if (!isDev) {
   serve({ directory: "app" });
@@ -404,6 +405,8 @@ class SessionHubApp {
     registerTutorialHandlers();
     // Register Session Orchestration handlers
     registerSessionOrchestrationHandlers();
+    // Register Recovery handlers
+    registerRecoveryHandlers();
     // System health check
     ipcMain.handle("get-system-health", async () => {
       return await productionMonitor.performHealthChecks();

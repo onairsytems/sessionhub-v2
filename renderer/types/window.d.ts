@@ -211,6 +211,162 @@ declare global {
         watchFile: (figmaFileKey: string) => Promise<boolean>;
         getComponentsNeedingUpdate: () => Promise<string[]>;
       };
+      recovery: {
+        getRecoveryPoints: () => Promise<Array<{
+          id: string;
+          timestamp: Date;
+          type: 'full' | 'incremental' | 'checkpoint';
+          description: string;
+          sessionId?: string;
+          projectId?: string;
+          size: number;
+          healthy: boolean;
+          checksumValid: boolean;
+        }>>;
+        recoverToPoint: (options: {
+          targetTimestamp?: Date;
+          sessionId?: string;
+          projectId?: string;
+          skipCorrupted?: boolean;
+          attemptAutoRepair?: boolean;
+          mergePartialSaves?: boolean;
+        }) => Promise<{
+          success: boolean;
+          timestamp: Date;
+          errors: string[];
+          warnings: string[];
+          metadata: {
+            recoveryDuration: number;
+            dataIntegrityScore: number;
+            repairsAttempted: number;
+            repairsSuccessful: number;
+          };
+        }>;
+        detectCorruption: () => Promise<{
+          fileCount: number;
+          corruptedFiles: string[];
+          repairableFiles: string[];
+          unreparableFiles: string[];
+          recommendedAction: 'auto-repair' | 'manual-recovery' | 'restore-previous';
+          severity: 'low' | 'medium' | 'high' | 'critical';
+        }>;
+        attemptAutoRecovery: (sessionId?: string) => Promise<{
+          success: boolean;
+          timestamp: Date;
+          errors: string[];
+          warnings: string[];
+          metadata: {
+            recoveryDuration: number;
+            dataIntegrityScore: number;
+            repairsAttempted: number;
+            repairsSuccessful: number;
+          };
+        }>;
+        createCheckpoint: (data: any, description: string) => Promise<{
+          id: string;
+          timestamp: Date;
+          type: 'full' | 'incremental' | 'checkpoint';
+          description: string;
+          size: number;
+          healthy: boolean;
+          checksumValid: boolean;
+        }>;
+        checkStartupHealth: () => Promise<boolean>;
+        enterEmergencyMode: (options?: {
+          skipUserPrompt?: boolean;
+          autoSelectLatest?: boolean;
+          maxRecoveryAttempts?: number;
+          fallbackToFactoryReset?: boolean;
+        }) => Promise<{
+          success: boolean;
+          mode: 'normal' | 'safe' | 'minimal' | 'factory-reset';
+          recoveredSessions: number;
+          dataLoss: boolean;
+          warnings: string[];
+          errors: string[];
+          recoveryDuration: number;
+        }>;
+        exitEmergencyMode: () => Promise<boolean>;
+        getSafeModeConfig: () => Promise<{
+          disablePlugins: boolean;
+          disableCloudSync: boolean;
+          disableAutoSave: boolean;
+          readOnlyMode: boolean;
+          minimalUI: boolean;
+        }>;
+        getHealthStatus: () => Promise<{
+          healthy: boolean;
+          totalBackups: number;
+          healthyBackups: number;
+          corruptedBackups: number;
+          lastCheckTime: Date;
+          nextScheduledCheck: Date;
+          issues: Array<{
+            backupId: string;
+            filePath: string;
+            severity: 'low' | 'medium' | 'high' | 'critical';
+            type: 'corruption' | 'missing' | 'checksum-mismatch' | 'outdated' | 'size-anomaly';
+            description: string;
+            detectedAt: Date;
+            autoFixable: boolean;
+          }>;
+          recommendations: string[];
+        } | null>;
+        checkHealthNow: () => Promise<{
+          healthy: boolean;
+          totalBackups: number;
+          healthyBackups: number;
+          corruptedBackups: number;
+          lastCheckTime: Date;
+          nextScheduledCheck: Date;
+          issues: Array<{
+            backupId: string;
+            filePath: string;
+            severity: 'low' | 'medium' | 'high' | 'critical';
+            type: 'corruption' | 'missing' | 'checksum-mismatch' | 'outdated' | 'size-anomaly';
+            description: string;
+            detectedAt: Date;
+            autoFixable: boolean;
+          }>;
+          recommendations: string[];
+        }>;
+        queryLogs: (query: {
+          startDate?: Date;
+          endDate?: Date;
+          type?: string | string[];
+          severity?: 'info' | 'warning' | 'error' | 'critical';
+          outcome?: 'success' | 'failure' | 'partial';
+          sessionId?: string;
+          limit?: number;
+          offset?: number;
+        }) => Promise<Array<{
+          id: string;
+          timestamp: Date;
+          type: string;
+          severity: 'info' | 'warning' | 'error' | 'critical';
+          action: string;
+          outcome: 'success' | 'failure' | 'partial';
+          duration?: number;
+          errorMessage?: string;
+        }>>;
+        getLogSummary: (startDate?: Date, endDate?: Date) => Promise<{
+          totalEvents: number;
+          successfulRecoveries: number;
+          failedRecoveries: number;
+          partialRecoveries: number;
+          corruptionEvents: number;
+          autoRepairs: number;
+          emergencyModeActivations: number;
+          factoryResets: number;
+          lastRecoveryDate?: Date;
+          lastSuccessfulRecovery?: Date;
+          lastFailedRecovery?: Date;
+          averageRecoveryDuration: number;
+          mostCommonErrors: Array<{ error: string; count: number }>;
+        }>;
+        exportLogs: (outputPath: string, query?: any, format?: 'json' | 'csv') => Promise<boolean>;
+        cleanupLogs: (daysToKeep: number) => Promise<boolean>;
+      };
       invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
     };
     electronAPI: {

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { RecoveryWizard } from '@/renderer/components/recovery/RecoveryWizard';
 import { 
   Key, 
   Bell, 
@@ -15,7 +16,8 @@ import {
   Eye,
   EyeOff,
   Check,
-  X
+  X,
+  HardDriveDownload
 } from 'lucide-react';
 interface SettingsSection {
   id: string;
@@ -66,6 +68,12 @@ export default function SettingsPage() {
       title: 'Data & Storage',
       icon: Database,
       description: 'Manage local data and cloud sync'
+    },
+    {
+      id: 'recovery',
+      title: 'Backup & Recovery',
+      icon: HardDriveDownload,
+      description: 'Manage backups and data recovery'
     },
     {
       id: 'performance',
@@ -377,6 +385,108 @@ export default function SettingsPage() {
                   </Card>
                 </div>
               )}
+              {activeSection === 'recovery' && (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Backup Health Status</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Automatic Backups</span>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Backup Interval</span>
+                        <select className="px-2 py-1 border rounded text-sm">
+                          <option>Every 30 seconds</option>
+                          <option>Every minute</option>
+                          <option>Every 5 minutes</option>
+                          <option>Every 15 minutes</option>
+                        </select>
+                      </div>
+                      <div className="pt-4 border-t">
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Total Backups</span>
+                          <span className="text-muted-foreground">142</span>
+                        </div>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span>Healthy Backups</span>
+                          <span className="text-green-600">139</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span>Corrupted Backups</span>
+                          <span className="text-red-600">3</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => { void window.electron?.recovery?.checkHealthNow(); }}
+                        >
+                          Check Health Now
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="flex-1"
+                          onClick={() => {
+                            const recoveryWizard = document.getElementById('recovery-wizard-trigger');
+                            if (recoveryWizard) recoveryWizard.click();
+                          }}
+                        >
+                          Open Recovery Wizard
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Recovery Options</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Enable Auto-Repair</span>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Merge Partial Saves</span>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Skip Corrupted Files</span>
+                        <input type="checkbox" className="w-4 h-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Recovery Logs</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex justify-between text-sm">
+                        <span>Log Retention</span>
+                        <select className="px-2 py-1 border rounded text-sm">
+                          <option>30 days</option>
+                          <option>60 days</option>
+                          <option>90 days</option>
+                          <option>1 year</option>
+                        </select>
+                      </div>
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="ghost" size="sm" className="flex-1">
+                          Export Logs
+                        </Button>
+                        <Button variant="ghost" size="sm" className="flex-1">
+                          Clear Old Logs
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
               {activeSection === 'performance' && (
                 <div className="space-y-6">
                   <Card>
@@ -429,6 +539,7 @@ export default function SettingsPage() {
           </Card>
         </div>
       </div>
+      <RecoveryWizard />
     </div>
   );
 }
