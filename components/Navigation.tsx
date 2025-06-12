@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, X, Home, FolderOpen, Settings, Zap, Code2, FileText, GitBranch } from 'lucide-react';
+import { Menu, X, Home, FolderOpen, Settings, Zap, Code2, FileText, GitBranch, Library } from 'lucide-react';
 import { ThemeToggle } from './ui/ThemeToggle';
 import { Button } from './ui/Button';
 import { QuickActionsMenu } from './ui/QuickActions';
@@ -13,6 +13,7 @@ import { clsx } from 'clsx';
 const navItems = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Sessions', href: '/sessions', icon: FolderOpen },
+  { name: 'Library', href: '/library', icon: Library },
   { name: 'Orchestration', href: '/session-orchestration', icon: GitBranch },
   { name: 'Architecture', href: '/architecture', icon: Code2 },
   { name: 'Documentation', href: '/docs', icon: FileText },

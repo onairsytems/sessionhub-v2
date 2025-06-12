@@ -74,7 +74,10 @@
     "production:deploy": "npm run build:production && npm run test:stress && npm run electron:dist",
     "production:monitor": "ts-node --project tsconfig.node.json scripts/start-production-monitor.ts",
     "scale:test": "ts-node --project tsconfig.node.json scripts/run-scale-tests.ts",
-    "test:m4pro": "ts-node --project tsconfig.node.json scripts/test-m4-pro-optimization.ts"
+    "test:m4pro": "ts-node --project tsconfig.node.json scripts/test-m4-pro-optimization.ts",
+    "deploy:app": "ts-node --project tsconfig.node.json scripts/deploy-to-applications.ts",
+    "deploy:app:watch": "ts-node --project tsconfig.node.json scripts/deploy-to-applications.ts --watch",
+    "deploy:quick": "ts-node --project tsconfig.node.json scripts/deploy-to-applications.ts --skip-build"
   },
   "dependencies": {
     "@octokit/rest": "^22.0.0",

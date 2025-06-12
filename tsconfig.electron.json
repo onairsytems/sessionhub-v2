@@ -3,7 +3,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2020",
-    "outDir": "./dist-electron",
+    "outDir": "./dist",
     "lib": [
       "es2020"
     ],
@@ -27,7 +27,8 @@
     ]
   },
   "include": [
-    "main/**/*"
+    "main/**/*",
+    "electron/**/*"
   ],
   "exclude": [
     "node_modules",

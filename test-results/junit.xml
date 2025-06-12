@@ -1,0 +1,268 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="85" failures="0" errors="0" time="1.108">
+  <testsuite name="SessionService" errors="0" failures="0" skipped="20" timestamp="2025-06-11T23:55:35" time="0.213" tests="20">
+    <testcase classname="SessionService › createSession" name="should create a new session with valid input" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › createSession" name="should throw error for invalid session data" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › createSession" name="should generate unique session IDs" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › startSession" name="should transition session from draft to active" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › startSession" name="should not start already active session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › startSession" name="should throw error for non-existent session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › completeSession" name="should transition session from active to completed" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › completeSession" name="should calculate session duration" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › completeSession" name="should not complete draft session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › addPlanningResult" name="should add planning result to active session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › addPlanningResult" name="should not add planning result to completed session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › addExecutionResult" name="should add execution result to session with planning" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › addExecutionResult" name="should require planning before execution" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › getSessionMetrics" name="should calculate session metrics correctly" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › listSessions" name="should list all sessions with pagination" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › listSessions" name="should filter sessions by status" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › listSessions" name="should filter sessions by project" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › deleteSession" name="should delete draft session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › deleteSession" name="should not delete active session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="SessionService › deleteSession" name="should allow deleting completed session with confirmation" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="Two-Actor Model Compliance Tests" errors="0" failures="0" skipped="25" timestamp="2025-06-11T23:55:35" time="0.216" tests="25">
+    <testcase classname="Two-Actor Model Compliance Tests › Actor Boundary Enforcement" name="should prevent planning actor from executing code" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Actor Boundary Enforcement" name="should prevent execution actor from planning" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Actor Boundary Enforcement" name="should allow planning actor to generate strategies" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Actor Boundary Enforcement" name="should allow execution actor to execute code" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › API Endpoint Isolation" name="should enforce correct API usage for planning" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › API Endpoint Isolation" name="should enforce correct API usage for execution" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › API Endpoint Isolation" name="should block planning actor from code API" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › API Endpoint Isolation" name="should block execution actor from chat API" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Content Validation" name="should detect execution keywords in planning output" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Content Validation" name="should detect planning keywords in execution output" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Content Validation" name="should allow valid planning content" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Content Validation" name="should allow valid execution content" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Runtime Monitoring" name="should track all actor operations" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Runtime Monitoring" name="should generate audit trail" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Runtime Monitoring" name="should block operations after violation threshold" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Runtime Monitoring" name="should emit violation events" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Session Isolation" name="should maintain actor boundaries across sessions" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Session Isolation" name="should track violations per session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Performance Impact" name="should not significantly impact operation performance" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Performance Impact" name="should handle high-frequency operations" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Error Recovery" name="should recover from actor failures" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Error Recovery" name="should handle monitor failures gracefully" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Configuration" name="should allow customizing violation thresholds" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Configuration" name="should allow customizing monitoring rules" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Two-Actor Model Compliance Tests › Configuration" name="should validate configuration changes" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="Session Model" errors="0" failures="0" skipped="25" timestamp="2025-06-11T23:55:35" time="0.211" tests="25">
+    <testcase classname="Session Model › constructor" name="should create a session with required fields" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › constructor" name="should generate unique IDs for different sessions" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › constructor" name="should initialize with empty arrays for results" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › validation" name="should validate required title" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › validation" name="should validate required objectives" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › validation" name="should validate required project context" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › validation" name="should validate title length" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › status transitions" name="should transition from draft to active" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › status transitions" name="should transition from active to completed" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › status transitions" name="should not allow invalid transitions" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › status transitions" name="should not transition completed session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › planning operations" name="should add planning result" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › planning operations" name="should not add planning to completed session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › planning operations" name="should not add planning to draft session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › execution operations" name="should add execution result after planning" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › execution operations" name="should not add execution without planning" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › execution operations" name="should track multiple execution results" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › metrics calculation" name="should calculate duration for completed session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › metrics calculation" name="should return null duration for incomplete session" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › metrics calculation" name="should calculate execution success rate" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › metrics calculation" name="should return 0 success rate with no executions" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › metrics calculation" name="should aggregate test statistics" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › serialization" name="should serialize to JSON" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › serialization" name="should deserialize from JSON" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Model › serialization" name="should preserve all data through serialization" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="Session Verification System" errors="0" failures="0" skipped="5" timestamp="2025-06-11T23:55:35" time="0.23" tests="5">
+    <testcase classname="Session Verification System › Documentation Without Implementation Prevention" name="should FAIL to complete a session that only has documentation" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Verification System › Verification Gates" name="should block deployment of unverified sessions" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Verification System › Verification Gates" name="should enforce quality standards" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Verification System › Verification Gates" name="should trigger rollback for failed post-deployment verification" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="Session Verification System › Continuous Verification" name="should periodically verify completed sessions remain valid" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+  <testsuite name="LocalCacheService" errors="0" failures="0" skipped="10" timestamp="2025-06-11T23:55:35" time="0.253" tests="10">
+    <testcase classname="LocalCacheService › Basic Operations" name="should create and retrieve a project" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Basic Operations" name="should update a project" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Basic Operations" name="should delete a project" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Basic Operations" name="should list all projects" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Cache Management" name="should track cache statistics" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Cache Management" name="should clear cache" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Cache Management" name="should export and import cache" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Offline Queue" name="should track pending syncs" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › TTL and Expiration" name="should handle expired records" time="0">
+      <skipped/>
+    </testcase>
+    <testcase classname="LocalCacheService › Performance" name="should handle large numbers of records efficiently" time="0">
+      <skipped/>
+    </testcase>
+  </testsuite>
+</testsuites>

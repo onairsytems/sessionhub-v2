@@ -7,6 +7,7 @@ import { app, BrowserWindow, Menu, shell, ipcMain, dialog } from "electron";
 import type { Notification as ElectronNotification } from "electron";
 // import { autoUpdater } from 'electron-updater'; // Commented out for future use
 import * as path from "path";
+import { UpdateChecker } from "../electron/update-checker";
 // Simple dev detection without external dependencies
 const isDev =
   process.env["NODE_ENV"] === "development" ||
@@ -161,6 +162,12 @@ class SessionHubApp {
         // Focus on the window
         if (isDev) {
           this.mainWindow.webContents.openDevTools();
+        }
+
+        // Start update checker for dev-linked installations
+        const updateChecker = UpdateChecker.getInstance();
+        if (updateChecker.isDevLinked()) {
+          updateChecker.startAutoCheck(this.mainWindow, 30); // Check every 30 minutes
         }
       }
     });

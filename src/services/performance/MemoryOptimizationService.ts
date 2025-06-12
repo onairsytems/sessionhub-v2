@@ -32,7 +32,7 @@ export class MemoryOptimizationService extends EventEmitter {
   private gcStats: GarbageCollectionStats[] = [];
   private isMonitoring: boolean = false;
   private monitoringInterval: NodeJS.Timeout | null = null;
-  private gcObserver: PerformanceObserver | null = null;
+  private gcObserver: InstanceType<typeof PerformanceObserver> | null = null;
   private lastGCCount: number = 0;
   
   // Memory thresholds
