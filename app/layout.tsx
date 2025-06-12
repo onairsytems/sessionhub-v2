@@ -5,7 +5,7 @@ import './globals.css';
 import { Navigation } from '@/components/Navigation';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { ToastProvider } from '@/components/ui/Toast';
-import { OnboardingWizard } from '@/renderer/components/OnboardingWizard';
+import { OnboardingProvider } from '@/renderer/components/OnboardingProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -46,7 +46,7 @@ export default function RootLayout({
       <body className={`${inter.className} bg-background text-foreground`}>
         <ErrorBoundary>
           <ToastProvider>
-            <React.Fragment>
+            <OnboardingProvider>
               <div className="min-h-screen flex flex-col">
                 <Navigation />
                 <main className="flex-1">
@@ -54,7 +54,6 @@ export default function RootLayout({
                     {children}
                   </ErrorBoundary>
                 </main>
-                <OnboardingWizard />
                 <footer className="bg-card border-t py-8 mt-auto">
                   <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center text-sm text-muted-foreground">
@@ -63,7 +62,7 @@ export default function RootLayout({
                   </div>
                 </footer>
               </div>
-            </React.Fragment>
+            </OnboardingProvider>
           </ToastProvider>
         </ErrorBoundary>
       </body>

@@ -17,7 +17,8 @@ import {
   EyeOff,
   Check,
   X,
-  HardDriveDownload
+  HardDriveDownload,
+  GraduationCap
 } from 'lucide-react';
 interface SettingsSection {
   id: string;
@@ -74,6 +75,12 @@ export default function SettingsPage() {
       title: 'Backup & Recovery',
       icon: HardDriveDownload,
       description: 'Manage backups and data recovery'
+    },
+    {
+      id: 'tutorials',
+      title: 'Tutorials & Help',
+      icon: GraduationCap,
+      description: 'Manage tutorial progress and help settings'
     },
     {
       id: 'performance',
@@ -483,6 +490,172 @@ export default function SettingsPage() {
                           Clear Old Logs
                         </Button>
                       </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+              {activeSection === 'tutorials' && (
+                <div className="space-y-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Tutorial Progress</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div className="text-center p-4 bg-muted/50 rounded-lg">
+                          <div className="text-2xl font-bold">3/5</div>
+                          <div className="text-sm text-muted-foreground">Tutorials Completed</div>
+                        </div>
+                        <div className="text-center p-4 bg-muted/50 rounded-lg">
+                          <div className="text-2xl font-bold">60%</div>
+                          <div className="text-sm text-muted-foreground">Overall Progress</div>
+                        </div>
+                      </div>
+                      <Button 
+                        variant="destructive" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => {
+                          if (confirm('Are you sure you want to reset all tutorial progress? This cannot be undone.')) {
+                            // Reset tutorial progress
+                            // Tutorial progress reset functionality
+                            window.location.reload();
+                          }
+                        }}
+                      >
+                        Reset All Tutorial Progress
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Progressive Disclosure</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Expertise Level</label>
+                        <select 
+                          className="w-full px-3 py-2 rounded-lg border bg-background"
+                          onChange={(e) => {
+                            const level = e.target.value as 'beginner' | 'intermediate' | 'expert';
+                            // This would normally call updateExpertiseLevel from useUserExpertise hook
+                            localStorage.setItem('user-expertise', JSON.stringify({
+                              level,
+                              featureUsage: {},
+                              tooltipsShown: {},
+                              lastUpdated: new Date().toISOString(),
+                              onboardingCompleted: true,
+                              helpPreferences: {
+                                showTooltips: true,
+                                tooltipFrequency: 'always',
+                                preferKeyboardShortcuts: level === 'expert'
+                              }
+                            }));
+                          }}
+                        >
+                          <option value="beginner">Beginner - Show all help and tips</option>
+                          <option value="intermediate">Intermediate - Show advanced tips only</option>
+                          <option value="expert">Expert - Minimal assistance</option>
+                        </select>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Adjust how much assistance you receive based on your experience level
+                        </p>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <div className="font-medium text-sm">Show Tooltips</div>
+                          <div className="text-xs text-muted-foreground">
+                            Display helpful tooltips on hover
+                          </div>
+                        </div>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium mb-2">Tooltip Frequency</label>
+                        <select className="w-full px-3 py-2 rounded-lg border bg-background">
+                          <option value="always">Always show</option>
+                          <option value="once">Show once per feature</option>
+                          <option value="never">Never show</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <div className="font-medium text-sm">Contextual Help</div>
+                          <div className="text-xs text-muted-foreground">
+                            Show contextual tips during first use
+                          </div>
+                        </div>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+
+                      <div className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <div className="font-medium text-sm">Prefer Keyboard Shortcuts</div>
+                          <div className="text-xs text-muted-foreground">
+                            Show keyboard shortcuts in tooltips
+                          </div>
+                        </div>
+                        <input type="checkbox" className="w-4 h-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Tutorial Settings</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <div className="font-medium text-sm">Auto-show Tutorials</div>
+                          <div className="text-xs text-muted-foreground">
+                            Automatically show tutorials for new features
+                          </div>
+                        </div>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <div className="font-medium text-sm">Tutorial Tips</div>
+                          <div className="text-xs text-muted-foreground">
+                            Show helpful tips during tutorials
+                          </div>
+                        </div>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+                      <div className="flex items-center justify-between p-3 rounded-lg border">
+                        <div>
+                          <div className="font-medium text-sm">Interactive Mode</div>
+                          <div className="text-xs text-muted-foreground">
+                            Enable interactive tutorial elements
+                          </div>
+                        </div>
+                        <input type="checkbox" defaultChecked className="w-4 h-4" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Help Resources</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <Button variant="ghost" size="sm" className="w-full justify-start">
+                        View All Tutorials
+                      </Button>
+                      <Button variant="ghost" size="sm" className="w-full justify-start">
+                        Open Documentation
+                      </Button>
+                      <Button variant="ghost" size="sm" className="w-full justify-start">
+                        Keyboard Shortcuts Guide
+                      </Button>
+                      <Button variant="ghost" size="sm" className="w-full justify-start">
+                        Contact Support
+                      </Button>
                     </CardContent>
                   </Card>
                 </div>

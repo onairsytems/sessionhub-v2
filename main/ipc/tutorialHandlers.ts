@@ -221,6 +221,166 @@ This works because it's:
     ]
   },
   {
+    id: 'first-session-creation',
+    title: 'Creating Your First Session - Interactive',
+    description: 'Interactive walkthrough of the Two-Actor Model in action',
+    difficulty: 'beginner',
+    duration: '8 minutes',
+    category: 'Basics',
+    steps: [
+      {
+        id: 'welcome',
+        title: 'Welcome to Session Creation!',
+        content: `Let's create your first AI-powered session together. 
+
+This interactive tutorial will guide you through:
+• Understanding the Two-Actor Model
+• Writing effective session descriptions
+• Monitoring the planning phase
+• Reviewing and executing the plan`,
+        action: {
+          type: 'highlight',
+          target: '[data-testid="start-session-button"]'
+        }
+      },
+      {
+        id: 'two-actor-intro',
+        title: 'The Two-Actor Model Explained',
+        content: `Your session will be handled by two specialized AI actors:
+
+**Planning Actor** 🧠
+• Analyzes your request thoroughly
+• Breaks it down into specific tasks
+• Considers edge cases and best practices
+• Creates a detailed action plan
+
+**Execution Actor** 🔨
+• Follows the plan precisely
+• Implements each task step-by-step
+• Maintains code quality
+• Reports progress in real-time`,
+        tips: [
+          'This separation ensures better, more reliable results',
+          'The plan acts as a contract between you and the AI',
+          'You can review and approve plans before execution'
+        ]
+      },
+      {
+        id: 'write-description',
+        title: 'Describe Your Session Goal',
+        content: `Now, let's write a clear description of what you want to build.
+
+Good descriptions include:
+• Clear goal or outcome
+• Specific requirements
+• Any constraints or preferences
+
+Example: "Create a React component for user authentication with login, signup, and password reset forms. Include form validation and error handling."`,
+        action: {
+          type: 'highlight',
+          target: '[data-testid="session-description"]'
+        },
+        validation: {
+          type: 'value-equals',
+          target: '[data-testid="session-description"]',
+          value: '.{20,}'
+        },
+        tips: [
+          'Be specific but not overly technical',
+          'Include user-facing features',
+          'Mention any frameworks or libraries to use'
+        ]
+      },
+      {
+        id: 'planning-phase',
+        title: 'Watch the Planning Phase',
+        content: `Great! Now click "Start Session" to begin.
+
+The Planning Actor will:
+1. Analyze your requirements
+2. Research your codebase
+3. Create a detailed task list
+4. Define success criteria
+
+This typically takes 30-60 seconds.`,
+        action: {
+          type: 'click',
+          target: '[data-testid="start-session-button"]'
+        },
+        validation: {
+          type: 'element-exists',
+          target: '[data-testid="planning-indicator"]'
+        }
+      },
+      {
+        id: 'review-plan',
+        title: 'Review the Generated Plan',
+        content: `The Planning Actor has created a detailed plan!
+
+Review each task to ensure it meets your needs:
+• Are all requirements covered?
+• Is the approach correct?
+• Are there any missing steps?
+
+You can:
+✅ Approve - Proceed with execution
+✏️ Edit - Modify tasks or add details
+❌ Cancel - Start over with a refined description`,
+        action: {
+          type: 'highlight',
+          target: '[data-testid="plan-review"]'
+        },
+        tips: [
+          'Good plans have clear, actionable tasks',
+          'Each task should have a specific outcome',
+          'Dependencies between tasks are handled automatically'
+        ]
+      },
+      {
+        id: 'execution-phase',
+        title: 'Monitor Execution Progress',
+        content: `Excellent! The Execution Actor is now working through the plan.
+
+Watch as it:
+• Completes each task in order
+• Shows real-time progress
+• Writes actual code files
+• Runs validations
+
+You'll see status updates for each task.`,
+        action: {
+          type: 'highlight',
+          target: '[data-testid="execution-progress"]'
+        },
+        validation: {
+          type: 'element-exists',
+          target: '[data-testid="execution-progress"]'
+        }
+      },
+      {
+        id: 'completion',
+        title: 'Session Complete! 🎉',
+        content: `Congratulations! You've successfully completed your first session.
+
+What you've learned:
+• How the Two-Actor Model works in practice
+• Writing effective session descriptions
+• Understanding the planning process
+• Monitoring execution progress
+
+Next steps:
+• Review the generated code in your IDE
+• Save this as a template for similar tasks
+• Try more complex sessions`,
+        tips: [
+          'Templates speed up similar tasks',
+          'You can chain sessions for complex features',
+          'The history tab shows all past sessions'
+        ]
+      }
+    ]
+  },
+  {
     id: 'using-templates',
     title: 'Working with Session Templates',
     description: 'Accelerate development with pre-built session templates',

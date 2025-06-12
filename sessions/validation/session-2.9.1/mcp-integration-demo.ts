@@ -20,8 +20,8 @@ class MCPIntegrationDemo {
   private alertManager: MCPAlertManager;
 
   constructor() {
-    console.log('🚀 Initializing MCP Integration Testing Demo');
-    console.log('=' .repeat(50));
+// REMOVED: console statement
+// REMOVED: console statement
     
     // Initialize all services
     this.testFramework = new MCPIntegrationTestFramework();
@@ -39,54 +39,54 @@ class MCPIntegrationDemo {
 
   async runDemo(): Promise<void> {
     try {
-      console.log('\n1️⃣ Testing Mock Service Capabilities');
+// REMOVED: console statement
       await this.demonstrateMockService();
 
-      console.log('\n2️⃣ Testing Batch Processing (100+ items)');
+// REMOVED: console statement
       await this.demonstrateBatchProcessing();
 
-      console.log('\n3️⃣ Testing Real-Time Monitoring');
+// REMOVED: console statement
       await this.demonstrateMonitoring();
 
-      console.log('\n4️⃣ Testing Integration Framework');
+// REMOVED: console statement
       await this.demonstrateTestFramework();
 
-      console.log('\n5️⃣ Testing Alert Management');
+// REMOVED: console statement
       await this.demonstrateAlertManagement();
 
-      console.log('\n6️⃣ Generating Comprehensive Report');
+// REMOVED: console statement
       await this.generateReport();
 
-      console.log('\n✅ Demo completed successfully!');
+// REMOVED: console statement
       
     } catch (error) {
-      console.error('❌ Demo failed:', error);
+// REMOVED: console statement
     } finally {
       await this.cleanup();
     }
   }
 
   private async demonstrateMockService(): Promise<void> {
-    console.log('   • Enabling offline mode for testing');
+// REMOVED: console statement
     this.mockService.enableOfflineMode();
 
-    console.log('   • Testing GitHub integration mock');
+// REMOVED: console statement
     const githubResult = await this.mockService.executeTool(
       'github',
       'list-repos',
       { owner: 'test-user' }
     );
-    console.log(`   ✓ GitHub mock response: ${githubResult.data.length} repos`);
+// REMOVED: console statement
 
-    console.log('   • Testing Linear integration mock');
+// REMOVED: console statement
     const linearResult = await this.mockService.executeTool(
       'linear',
       'list-issues',
       { teamId: 'test-team' }
     );
-    console.log(`   ✓ Linear mock response: ${linearResult.data.length} issues`);
+// REMOVED: console statement
 
-    console.log('   • Testing error scenario');
+// REMOVED: console statement
     try {
       await this.mockService.executeTool(
         'github',
@@ -94,12 +94,12 @@ class MCPIntegrationDemo {
         {}
       );
     } catch (error: any) {
-      console.log(`   ✓ Error handling works: ${error.message}`);
+// REMOVED: console statement
     }
   }
 
   private async demonstrateBatchProcessing(): Promise<void> {
-    console.log('   • Creating batch with 150 operations');
+// REMOVED: console statement
     
     const operations = Array.from({ length: 150 }, (_, i) => ({
       id: `op-${i}`,
@@ -123,14 +123,14 @@ class MCPIntegrationDemo {
       }
     );
 
-    console.log(`   ✓ Batch created: ${batchId}`);
+// REMOVED: console statement
 
     // Monitor progress
     const progressInterval = setInterval(async () => {
       const operation = await this.batchProcessor.getOperationStatus(batchId);
       if (operation) {
         const progress = operation.progress;
-        console.log(`   • Progress: ${progress.completed}/${progress.total} (${progress.percentage.toFixed(1)}%)`);
+// REMOVED: console statement
         
         if (operation.status === 'completed' || operation.status === 'failed') {
           clearInterval(progressInterval);
@@ -139,7 +139,7 @@ class MCPIntegrationDemo {
     }, 2000);
 
     // Start processing
-    console.log('   • Starting batch processing...');
+// REMOVED: console statement
     await this.batchProcessor.processBatchOperation(batchId);
     
     clearInterval(progressInterval);
@@ -149,18 +149,18 @@ class MCPIntegrationDemo {
     const successful = results.filter(r => r.status === 'success').length;
     const failed = results.filter(r => r.status === 'failed').length;
     
-    console.log(`   ✓ Batch completed: ${successful} successful, ${failed} failed`);
+// REMOVED: console statement
 
     // Check memory usage
     const memUsage = process.memoryUsage();
-    console.log(`   • Memory usage: ${(memUsage.heapUsed / 1024 / 1024).toFixed(2)}MB`);
+// REMOVED: console statement
   }
 
   private async demonstrateMonitoring(): Promise<void> {
-    console.log('   • Starting monitoring service');
+// REMOVED: console statement
     await this.monitor.startMonitoring();
 
-    console.log('   • Simulating integration activity');
+// REMOVED: console statement
     
     // Simulate various metrics
     const integrations = ['github', 'linear', 'figma', 'slack'];
@@ -177,20 +177,20 @@ class MCPIntegrationDemo {
       });
     }
 
-    console.log('   • Checking integration health');
+// REMOVED: console statement
     for (const integration of integrations) {
       const health = await this.monitor.getIntegrationHealth(integration);
-      console.log(`   ✓ ${integration}: ${health.status} (uptime: ${(health.uptime * 100).toFixed(1)}%)`);
+// REMOVED: console statement
     }
 
     // Get dashboard data
     const dashboardData = await this.monitor.getDashboardData();
-    console.log(`   • Active integrations: ${dashboardData.integrations.length}`);
-    console.log(`   • Active alerts: ${dashboardData.alerts.length}`);
+// REMOVED: console statement
+// REMOVED: console statement
   }
 
   private async demonstrateTestFramework(): Promise<void> {
-    console.log('   • Running integration tests');
+// REMOVED: console statement
 
     const testConfig = {
       integration: {
@@ -235,14 +235,14 @@ class MCPIntegrationDemo {
 
     const report = await this.testFramework.runIntegrationTests(testConfig);
     
-    console.log(`   ✓ Tests completed: ${report.passed}/${report.totalTests} passed`);
-    console.log(`   • Average response time: ${report.averageResponseTime.toFixed(2)}ms`);
-    console.log(`   • Performance score: ${report.performanceScore}/100`);
-    console.log(`   • Reliability: ${(report.reliability * 100).toFixed(1)}%`);
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
   }
 
   private async demonstrateAlertManagement(): Promise<void> {
-    console.log('   • Configuring alert rules');
+// REMOVED: console statement
     
     this.alertManager.configure({
       alerts: [
@@ -277,7 +277,7 @@ class MCPIntegrationDemo {
       }
     });
 
-    console.log('   • Triggering test alerts');
+// REMOVED: console statement
     
     // Simulate high response time
     await this.alertManager.checkAlert({
@@ -291,15 +291,15 @@ class MCPIntegrationDemo {
 
     // Check active alerts
     const activeAlerts = this.alertManager.getActiveAlerts();
-    console.log(`   ✓ Active alerts: ${activeAlerts.length}`);
+// REMOVED: console statement
     
     if (activeAlerts.length > 0) {
-      console.log(`   • Alert: ${activeAlerts[0].name} - ${activeAlerts[0].message}`);
+// REMOVED: console statement
     }
   }
 
   private async generateReport(): Promise<void> {
-    console.log('   • Aggregating test results');
+// REMOVED: console statement
     
     // Create sample test results
     const testResults = [
@@ -347,24 +347,24 @@ class MCPIntegrationDemo {
         includeRecommendations: true
       });
       
-      console.log(`   ✓ Generated ${format.toUpperCase()} report (${report.data.length} bytes)`);
+// REMOVED: console statement
     }
 
     // Get aggregated data
     const aggregatedData = this.aggregator.getAggregatedData();
-    console.log(`   • Total test runs: ${aggregatedData.totalRuns}`);
-    console.log(`   • Overall pass rate: ${(aggregatedData.overallPassRate * 100).toFixed(1)}%`);
+// REMOVED: console statement
+// REMOVED: console statement
   }
 
   private async cleanup(): Promise<void> {
-    console.log('\n🧹 Cleaning up...');
+// REMOVED: console statement
     
     try {
       await this.monitor.stopMonitoring();
       await this.batchProcessor.cleanup();
-      console.log('   ✓ Cleanup completed');
+// REMOVED: console statement
     } catch (error) {
-      console.error('   ❌ Cleanup error:', error);
+// REMOVED: console statement
     }
   }
 }

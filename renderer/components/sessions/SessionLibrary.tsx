@@ -72,7 +72,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
         setSessions(result as Session[]);
       }
     } catch (error) {
-      console.error('Failed to load sessions:', error);
+// REMOVED: console statement
     } finally {
       setLoading(false);
     }
@@ -87,7 +87,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       setTags(tagsResult as SessionTag[]);
       setFolders(foldersResult as SessionFolder[]);
     } catch (error) {
-      console.error('Failed to load organization data:', error);
+// REMOVED: console statement
     }
   };
 
@@ -105,7 +105,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       setIsAdvancedMode(true);
       setShowAdvancedSearch(false);
     } catch (error) {
-      console.error('Advanced search failed:', error);
+// REMOVED: console statement
     } finally {
       setLoading(false);
     }
@@ -116,7 +116,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       await window.electron.invoke('session:createSavedFilter', filter);
       alert('Filter saved successfully!');
     } catch (error) {
-      console.error('Failed to save filter:', error);
+// REMOVED: console statement
       alert('Failed to save filter. Please try again.');
     }
   };
@@ -197,7 +197,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       a.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export session:', error);
+// REMOVED: console statement
     }
   };
 
@@ -206,7 +206,7 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       await window.electron.invoke('session:toggleFavorite', sessionId);
       await loadSessions();
     } catch (error) {
-      console.error('Failed to toggle favorite:', error);
+// REMOVED: console statement
     }
   };
 

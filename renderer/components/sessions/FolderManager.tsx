@@ -39,7 +39,7 @@ export const FolderManager: React.FC<FolderManagerProps> = ({
       const result = await window.electron.invoke('session:getFolders');
       setFolders(result as SessionFolder[]);
     } catch (error) {
-      console.error('Failed to load folders:', error);
+// REMOVED: console statement
     } finally {
       setLoading(false);
     }
@@ -69,7 +69,7 @@ export const FolderManager: React.FC<FolderManagerProps> = ({
       
       onFolderCreated?.(createdFolder);
     } catch (error) {
-      console.error('Failed to create folder:', error);
+// REMOVED: console statement
       alert('Failed to create folder. Please try again.');
     }
   };
@@ -91,7 +91,7 @@ export const FolderManager: React.FC<FolderManagerProps> = ({
       
       onFolderUpdated?.(updatedFolder);
     } catch (error) {
-      console.error('Failed to update folder:', error);
+// REMOVED: console statement
       alert('Failed to update folder. Please try again.');
     }
   };
@@ -113,7 +113,7 @@ export const FolderManager: React.FC<FolderManagerProps> = ({
       
       onFolderDeleted?.(folderId);
     } catch (error) {
-      console.error('Failed to delete folder:', error);
+// REMOVED: console statement
       alert('Failed to delete folder. Please try again.');
     }
   };

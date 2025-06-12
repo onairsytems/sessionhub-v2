@@ -41,8 +41,8 @@ class Session29ValidationSuite {
   }
 
   async runFullValidation(): Promise<void> {
-    console.log('🚀 Starting Session 2.9.1 Validation Suite');
-    console.log('============================================\n');
+// REMOVED: console statement
+// REMOVED: console statement
 
     // 1. Validate MCP Integration Test Framework
     await this.validateTestFramework();
@@ -774,20 +774,20 @@ class Session29ValidationSuite {
       results: this.results
     }, null, 2));
     
-    console.log(`\n✅ Validation report saved to: ${reportPath}`);
-    console.log(`📊 JSON results saved to: ${jsonPath}`);
+// REMOVED: console statement
+// REMOVED: console statement
     
     // Display summary
-    console.log('\n' + '='.repeat(60));
-    console.log('VALIDATION SUMMARY');
-    console.log('='.repeat(60));
-    console.log(`Overall Status: ${overallStatus}`);
-    console.log(`Success Rate: ${successRate}%`);
-    console.log(`Components Tested: ${this.results.length}`);
-    console.log(`Total Tests Run: ${totalTests}`);
-    console.log(`Tests Passed: ${passedTests}`);
-    console.log(`Tests Failed: ${totalTests - passedTests}`);
-    console.log('='.repeat(60) + '\n');
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
   }
 }
 

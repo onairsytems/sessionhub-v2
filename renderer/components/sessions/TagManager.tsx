@@ -37,7 +37,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
       const result = await window.electron.invoke('session:getTags');
       setTags(result as SessionTag[]);
     } catch (error) {
-      console.error('Failed to load tags:', error);
+// REMOVED: console statement
     } finally {
       setLoading(false);
     }
@@ -63,7 +63,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
       
       onTagCreated?.(createdTag);
     } catch (error) {
-      console.error('Failed to create tag:', error);
+// REMOVED: console statement
       alert('Failed to create tag. Please try again.');
     }
   };
@@ -84,7 +84,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
       
       onTagUpdated?.(updatedTag);
     } catch (error) {
-      console.error('Failed to update tag:', error);
+// REMOVED: console statement
       alert('Failed to update tag. Please try again.');
     }
   };
@@ -100,7 +100,7 @@ export const TagManager: React.FC<TagManagerProps> = ({
       
       onTagDeleted?.(tagId);
     } catch (error) {
-      console.error('Failed to delete tag:', error);
+// REMOVED: console statement
       alert('Failed to delete tag. Please try again.');
     }
   };

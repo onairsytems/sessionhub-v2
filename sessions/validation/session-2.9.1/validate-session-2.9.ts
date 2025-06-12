@@ -22,9 +22,9 @@ class Session29Validator {
   private rootDir = '/Users/jonathanhoggard/Development/sessionhub-v2';
 
   async validateAll(): Promise<void> {
-    console.log('🔍 Session 2.9.1 Validation - MCP Integration Testing');
-    console.log('=' .repeat(60));
-    console.log('');
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
 
     // Check all required components
     await this.validateComponent('MCP Integration Test Framework', 
@@ -166,7 +166,7 @@ class Session29Validator {
   }
 
   private async checkQualityGates(): Promise<void> {
-    console.log('\n📊 Checking Quality Gates...\n');
+// REMOVED: console statement
 
     // TypeScript check
     try {
@@ -174,9 +174,9 @@ class Session29Validator {
         cwd: this.rootDir,
         stdio: 'pipe'
       });
-      console.log('✅ TypeScript: No compilation errors');
+// REMOVED: console statement
     } catch (error) {
-      console.log('❌ TypeScript: Compilation errors found');
+// REMOVED: console statement
     }
 
     // ESLint check
@@ -185,9 +185,9 @@ class Session29Validator {
         cwd: this.rootDir,
         stdio: 'pipe'
       });
-      console.log('✅ ESLint: No violations');
+// REMOVED: console statement
     } catch (error) {
-      console.log('❌ ESLint: Violations found');
+// REMOVED: console statement
     }
 
     // Check for console statements
@@ -198,24 +198,24 @@ class Session29Validator {
       ).toString();
       
       if (mcpFiles.trim()) {
-        console.log('⚠️  Console statements found in MCP files');
+// REMOVED: console statement
       } else {
-        console.log('✅ No console statements in production code');
+// REMOVED: console statement
       }
     } catch {
-      console.log('✅ No console statements in production code');
+// REMOVED: console statement
     }
   }
 
   private async checkSessionCompletion(): Promise<void> {
-    console.log('\n📋 Checking Session 2.9 Completion...\n');
+// REMOVED: console statement
 
     const completionFile = path.join(this.rootDir, 'SESSION_2.9_COMPLETE.md');
     try {
       const content = await fs.readFile(completionFile, 'utf-8');
       
       if (content.includes('✅ COMPLETED')) {
-        console.log('✅ Session 2.9 marked as COMPLETED');
+// REMOVED: console statement
         
         // Check for key achievements
         const achievements = [
@@ -229,17 +229,17 @@ class Session29Validator {
         
         achievements.forEach(achievement => {
           if (content.includes(achievement)) {
-            console.log(`  ✓ ${achievement}`);
+// REMOVED: console statement
           }
         });
       }
     } catch {
-      console.log('❌ Session 2.9 completion file not found');
+// REMOVED: console statement
     }
   }
 
   private async generateReport(): Promise<void> {
-    console.log('\n📄 Generating Validation Report...\n');
+// REMOVED: console statement
 
     const timestamp = new Date().toISOString();
     let report = `# Session 2.9.1 Validation Report\n\n`;
@@ -312,9 +312,9 @@ class Session29Validator {
     await fs.mkdir(path.dirname(reportPath), { recursive: true });
     await fs.writeFile(reportPath, report);
     
-    console.log(`✅ Validation report saved to: ${reportPath}`);
-    console.log(`\n📊 Overall Success Rate: ${successRate}%`);
-    console.log(`🎯 Session 2.9 Status: ${allComponentsExist ? 'VALIDATED ✅' : 'NEEDS ATTENTION ❌'}`);
+// REMOVED: console statement
+// REMOVED: console statement
+// REMOVED: console statement
   }
 }
 

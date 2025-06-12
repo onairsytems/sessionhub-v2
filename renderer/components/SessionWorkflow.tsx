@@ -12,6 +12,7 @@ import {
   PlayCircle,
   MessageSquare,
   Code,
+  HelpCircle,
 } from "lucide-react";
 
 interface Session {
@@ -49,6 +50,8 @@ export default function SessionWorkflow() {
       status: "planning",
     };
     setCurrentSession(session);
+    
+    // Tutorial functionality to be implemented
   };
 
   const handlePlanComplete = (plan: string) => {
@@ -135,10 +138,29 @@ export default function SessionWorkflow() {
               </div>
             </div>
 
-            <Button onClick={createNewSession} size="lg" className="w-full">
-              <PlayCircle className="h-5 w-5 mr-2" />
-              Start New Session
-            </Button>
+            <div className="flex gap-4">
+              <Button 
+                onClick={createNewSession} 
+                size="lg" 
+                className="flex-1"
+                data-testid="start-session-button"
+              >
+                <PlayCircle className="h-5 w-5 mr-2" />
+                Start New Session
+              </Button>
+              <Button
+                onClick={() => {
+                  // Tutorial functionality not yet implemented
+                }}
+                size="lg"
+                variant="ghost"
+                className="flex-none"
+                data-testid="tutorial-button"
+              >
+                <HelpCircle className="h-5 w-5" />
+                Tutorial
+              </Button>
+            </div>
           </Card>
         </div>
       </div>
@@ -158,6 +180,7 @@ export default function SessionWorkflow() {
                     ? "text-blue-600"
                     : "text-green-600"
                 }`}
+                data-testid="planning-indicator"
               >
                 {currentSession.status === "planning" ? (
                   <Circle className="h-5 w-5" />
@@ -177,6 +200,7 @@ export default function SessionWorkflow() {
                       ? "text-green-600"
                       : "text-gray-400"
                 }`}
+                data-testid="execution-progress"
               >
                 {currentSession.status === "completed" ? (
                   <CheckCircle className="h-5 w-5" />
@@ -210,6 +234,7 @@ export default function SessionWorkflow() {
             sessionId={currentSession.id}
             sessionName={currentSession.name}
             onPlanComplete={handlePlanComplete}
+            data-testid="plan-review"
           />
         )}
 

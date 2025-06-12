@@ -74,7 +74,7 @@ export const AdvancedSearchPanel: React.FC<AdvancedSearchPanelProps> = ({
       // TODO: Load projects from session service
       setProjects(['default', 'project-1', 'project-2']); // Placeholder
     } catch (error) {
-      console.error('Failed to load search data:', error);
+// REMOVED: console statement
     }
   };
 

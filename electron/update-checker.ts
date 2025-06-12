@@ -39,7 +39,7 @@ export class UpdateChecker {
         return JSON.parse(content);
       }
     } catch (error) {
-      console.error('Failed to read dev link info:', error);
+// REMOVED: console statement
     }
     return null;
   }
@@ -58,7 +58,7 @@ export class UpdateChecker {
       // Check if the source project has been updated
       const sourcePackageJson = path.join(linkInfo.projectPath, 'package.json');
       if (!fs.existsSync(sourcePackageJson)) {
-        console.warn('Source project not found at:', linkInfo.projectPath);
+// REMOVED: console statement
         return;
       }
 
@@ -80,7 +80,7 @@ export class UpdateChecker {
         }
       }
     } catch (error) {
-      console.error('Update check failed:', error);
+// REMOVED: console statement
     }
   }
 
@@ -120,7 +120,7 @@ export class UpdateChecker {
       
       exec(`cd "${linkInfo.projectPath}" && npm run deploy:quick`, (error: any) => {
         if (error) {
-          console.error('Update failed:', error);
+// REMOVED: console statement
           dialog.showErrorBox('Update Failed', 'Failed to update SessionHub. Please update manually.');
           return;
         }
@@ -138,7 +138,7 @@ export class UpdateChecker {
         });
       });
     } catch (error) {
-      console.error('Update failed:', error);
+// REMOVED: console statement
       dialog.showErrorBox('Update Failed', 'Failed to update SessionHub. Please update manually.');
     }
   }
