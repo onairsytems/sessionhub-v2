@@ -27,12 +27,23 @@ export interface HealthCheck {
 }
 
 export class RecoveryService {
+  private logger: any;
+
+  constructor(logger: any, _stateManager: any, _sessionStateManager: any) {
+    this.logger = logger;
+  }
+
   async performEmergencyRecovery(_backupId: string): Promise<RecoveryResult> {
     return {
       success: true,
       dataRestored: true,
       integrityVerified: true
     };
+  }
+
+  async rollbackToLastStable(): Promise<void> {
+    // Implement rollback logic
+    this.logger?.info('Rolling back to last stable state');
   }
 
   async switchToOfflineMode(): Promise<RecoveryResult> {

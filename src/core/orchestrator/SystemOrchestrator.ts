@@ -27,6 +27,11 @@ import { MAC_CONFIG } from '@/src/config/mac.config';
 import { SupabaseService } from '@/src/services/cloud/SupabaseService';
 import { ConnectionMonitor } from '@/src/services/monitoring/ConnectionMonitor';
 import { PatternRecognitionService } from '@/src/services/intelligence/PatternRecognitionService';
+import { ResilienceOrchestrator } from './ResilienceOrchestrator';
+import { ErrorSeverity } from './EnhancedErrorHandler';
+import { RecoveryService } from '@/src/services/RecoveryService';
+import { MemoryOptimizationService } from '@/src/services/performance/MemoryOptimizationService';
+import { PerformanceMonitor } from '@/src/services/development/PerformanceMonitor';
 
 export interface SystemConfig {
   apiKey?: string;
@@ -35,6 +40,7 @@ export interface SystemConfig {
   dataDir?: string;
   masterKey?: string;
   useMacKeychain?: boolean;
+  enableResilience?: boolean;
 }
 
 export interface RequestQueueItem {
@@ -68,10 +74,16 @@ export class SystemOrchestrator {
   private supabaseService?: SupabaseService;
   private patternService?: PatternRecognitionService;
   private connectionMonitor: ConnectionMonitor;
+  private resilienceOrchestrator?: ResilienceOrchestrator;
+  private recoveryService?: RecoveryService;
+  private memoryOptimization?: MemoryOptimizationService;
+  private performanceMonitor?: PerformanceMonitor;
   
+  private readonly config: SystemConfig;
   private readonly requestQueue: RequestQueueItem[] = [];
   private isProcessing: boolean = false;
   constructor(config: SystemConfig = {}) {
+    this.config = config;
     const sysConfig = config as SystemConfig;
     
     // Initialize logging
@@ -157,6 +169,11 @@ export class SystemOrchestrator {
       
       // Initialize pattern recognition service
       this.patternService = new PatternRecognitionService(this.supabaseService);
+      
+      // Initialize resilience components if enabled
+      if ((this.config as SystemConfig).enableResilience !== false) {
+        await this.initializeResilience();
+      }
       
       // Get API clients from authentication manager
       this.claudeApiClient = this.apiAuthManager.getPlanningClient() || undefined;
@@ -281,12 +298,18 @@ export class SystemOrchestrator {
       queued: this.requestQueue.filter(item => item.status === 'queued').length
     };
 
-    // Determine overall status based on actors and connections
-    let overallStatus: 'healthy' | 'degraded' | 'offline';
-    if (actorHealth.healthy && connectionHealth.overall === 'healthy') {
-      overallStatus = 'healthy';
-    } else if (connectionHealth.overall === 'offline') {
+    // Include resilience status if available
+    const resilienceStatus = this.resilienceOrchestrator?.getStatus();
+
+    // Determine overall status based on actors, connections, and resilience
+    let overallStatus: 'healthy' | 'degraded' | 'offline' | 'recovering';
+    if (resilienceStatus?.overall === 'recovering') {
+      overallStatus = 'recovering';
+    } else if (resilienceStatus?.overall === 'critical' || connectionHealth.overall === 'offline') {
       overallStatus = 'offline';
+    } else if (actorHealth.healthy && connectionHealth.overall === 'healthy' && 
+               (!resilienceStatus || resilienceStatus.overall === 'healthy')) {
+      overallStatus = 'healthy';
     } else {
       overallStatus = 'degraded';
     }
@@ -307,7 +330,8 @@ export class SystemOrchestrator {
           ? (metrics.successfulRequests / metrics.totalRequests * 100).toFixed(2)
           : 0,
         averageResponseTime: metrics.averageResponseTime
-      }
+      },
+      resilience: resilienceStatus
     };
   }
 
@@ -450,6 +474,62 @@ export class SystemOrchestrator {
       this.planningEngine,
       this.executionEngine
     );
+  }
+
+  /**
+   * Initialize resilience components
+   */
+  private async initializeResilience(): Promise<void> {
+    this.logger.info('Initializing resilience components');
+    
+    try {
+      // Initialize supporting services
+      this.recoveryService = new RecoveryService(
+        this.logger,
+        this.stateManager,
+        this.sessionStateManager
+      );
+      
+      this.memoryOptimization = new MemoryOptimizationService(this.logger);
+      this.performanceMonitor = new PerformanceMonitor();
+      
+      // Initialize resilience orchestrator
+      this.resilienceOrchestrator = new ResilienceOrchestrator(
+        this.logger,
+        this.auditLogger,
+        this.recoveryService,
+        this.memoryOptimization,
+        this.connectionMonitor,
+        this.performanceMonitor,
+        {
+          enableHealthMonitoring: true,
+          enablePredictiveFailureDetection: true,
+          enableAutomaticRecovery: true,
+          enableTelemetryCollection: true
+        }
+      );
+      
+      // Start resilience monitoring
+      await this.resilienceOrchestrator.start();
+      
+      // Listen for resilience events
+      this.resilienceOrchestrator.on('criticalHealth', (status) => {
+        this.logger.error('Critical system health detected', undefined, status);
+      });
+      
+      this.resilienceOrchestrator.on('failurePredicted', (prediction) => {
+        this.logger.warn('Failure predicted', prediction);
+      });
+      
+      this.resilienceOrchestrator.on('recoveryCompleted', (result) => {
+        this.logger.info('Recovery completed', result);
+      });
+      
+      this.logger.info('Resilience components initialized successfully');
+    } catch (error) {
+      this.logger.error('Failed to initialize resilience components', error as Error);
+      // Continue without resilience features
+    }
   }
 
   private setupConnectionMonitoring(): void {
@@ -597,10 +677,21 @@ export class SystemOrchestrator {
       nextItem.status = 'completed';
       
     } catch (error: any) {
-      await this.errorHandler.handleError(error as Error, {
-        actor: 'orchestrator',
-        operation: 'processRequest'
-      });
+      // Use resilience orchestrator if available
+      if (this.resilienceOrchestrator) {
+        await this.resilienceOrchestrator.handleError(error as Error, {
+          actor: 'orchestrator',
+          operation: 'processRequest',
+          severity: ErrorSeverity.HIGH,
+          recoverable: true,
+          retryable: true
+        });
+      } else {
+        await this.errorHandler.handleError(error as Error, {
+          actor: 'orchestrator',
+          operation: 'processRequest'
+        });
+      }
       
       // Record error in session history
       if (nextItem.id) {
@@ -654,5 +745,55 @@ export class SystemOrchestrator {
       return this.keychainService.getCredential(account);
     }
     return null;
+  }
+
+  /**
+   * Get resilience statistics
+   */
+  getResilienceStats(): any {
+    if (!this.resilienceOrchestrator) {
+      return null;
+    }
+    return this.resilienceOrchestrator.getStats();
+  }
+
+  /**
+   * Get failure predictions
+   */
+  getFailurePredictions(): any {
+    if (!this.resilienceOrchestrator) {
+      return [];
+    }
+    return this.resilienceOrchestrator.getPredictions();
+  }
+
+  /**
+   * Trigger manual recovery for a component
+   */
+  async triggerRecovery(component: string): Promise<void> {
+    if (!this.resilienceOrchestrator) {
+      throw new Error('Resilience features not enabled');
+    }
+    await this.resilienceOrchestrator.triggerRecovery(component);
+  }
+
+  /**
+   * Update resilience configuration
+   */
+  updateResilienceConfig(config: any): void {
+    if (!this.resilienceOrchestrator) {
+      throw new Error('Resilience features not enabled');
+    }
+    this.resilienceOrchestrator.updateConfig(config);
+  }
+
+  /**
+   * Force health check
+   */
+  async forceHealthCheck(): Promise<any> {
+    if (!this.resilienceOrchestrator) {
+      return this.getHealthStatus();
+    }
+    return await this.resilienceOrchestrator.checkHealth();
   }
 }

@@ -27,6 +27,7 @@ interface GarbageCollectionStats {
 }
 
 export class MemoryOptimizationService extends EventEmitter {
+  private logger: any;
   private static instance: MemoryOptimizationService;
   private snapshots: MemorySnapshot[] = [];
   private gcStats: GarbageCollectionStats[] = [];
@@ -54,14 +55,15 @@ export class MemoryOptimizationService extends EventEmitter {
   private caches: Map<string, { data: any; timestamp: number }> = new Map();
   private disposables: Set<() => void> = new Set();
 
-  private constructor() {
+  constructor(logger?: any) {
     super();
+    this.logger = logger;
     this.setupGCMonitoring();
   }
 
-  static getInstance(): MemoryOptimizationService {
+  static getInstance(logger?: any): MemoryOptimizationService {
     if (!MemoryOptimizationService.instance) {
-      MemoryOptimizationService.instance = new MemoryOptimizationService();
+      MemoryOptimizationService.instance = new MemoryOptimizationService(logger);
     }
     return MemoryOptimizationService.instance;
   }
@@ -437,5 +439,28 @@ export class MemoryOptimizationService extends EventEmitter {
     }
     
     this.removeAllListeners();
+  }
+
+  async optimizeMemory(): Promise<void> {
+    this.logger?.info('Optimizing memory');
+    
+    // Clear caches - implement cache clearing if needed
+    
+    // Run garbage collection if available
+    if (global.gc) {
+      global.gc();
+    }
+    
+    // Dispose of registered disposables
+    this.disposables.forEach(dispose => {
+      try {
+        dispose();
+      } catch (error) {
+        this.logger?.error('Error disposing resource', error);
+      }
+    });
+    this.disposables.clear();
+    
+    this.emit('memoryOptimized');
   }
 }

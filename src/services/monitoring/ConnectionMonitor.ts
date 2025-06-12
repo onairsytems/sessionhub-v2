@@ -296,4 +296,24 @@ export class ConnectionMonitor extends EventEmitter {
     
     return history;
   }
+
+  /**
+   * Reset all connections
+   */
+  async resetConnections(): Promise<void> {
+    // Stop monitoring temporarily
+    this.stop();
+    
+    // Reset all service states
+    for (const [, service] of this.services) {
+      service.status = 'disconnected';
+      service.error = undefined;
+    }
+    
+    // Restart monitoring
+    this.start();
+    
+    // Force immediate check
+    await this.checkAllServices();
+  }
 }
