@@ -5,7 +5,7 @@
 # Session 2.29.2D Emergency Recovery
 
 # Configuration
-MAX_MEMORY_MB=8192  # 8GB max
+MAX_MEMORY_MB=4096  # 4GB max for safety
 MAX_DISK_USAGE_GB=10  # 10GB max for build artifacts
 CHECK_INTERVAL=3  # Check every 3 seconds
 LOG_FILE="build-monitor.log"

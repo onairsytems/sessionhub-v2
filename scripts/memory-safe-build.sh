@@ -12,7 +12,7 @@ echo "=================================="
 # Function to check memory usage
 check_memory() {
     local mem_used=$(ps aux | awk 'NR>1 {sum+=$6} END {print int(sum/1024)}')
-    local mem_limit=8192  # 8GB limit
+    local mem_limit=4096  # 4GB limit for safety
     
     if [ $mem_used -gt $mem_limit ]; then
         echo "❌ Memory usage exceeds limit: ${mem_used}MB > ${mem_limit}MB"
