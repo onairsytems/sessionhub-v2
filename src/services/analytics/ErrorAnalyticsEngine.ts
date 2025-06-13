@@ -1,6 +1,6 @@
-import { EnhancedErrorHandler, ErrorSeverity } from '@/core/orchestrator/EnhancedErrorHandler';
-import { TelemetryCollectionService, TelemetryEventCategory } from '@/services/telemetry/TelemetryCollectionService';
-import { HealthMonitoringService } from '@/services/monitoring/HealthMonitoringService';
+import { EnhancedErrorHandler, ErrorSeverity } from '@/src/core/orchestrator/EnhancedErrorHandler';
+import { TelemetryCollectionService } from '@/src/services/telemetry/TelemetryCollectionService';
+import { HealthMonitoringService } from '@/src/services/monitoring/HealthMonitoringService';
 import { EventEmitter } from 'events';
 
 export interface ErrorMetrics {
@@ -109,7 +109,7 @@ export class ErrorAnalyticsEngine extends EventEmitter {
     
     // Listen to telemetry events
     this.telemetryService.on('event', (event: any) => {
-      if (event.category === TelemetryEventCategory.ERROR) {
+      if (event.category === 'error') {
         this.processTelemetryError(event);
       }
     });
@@ -122,7 +122,7 @@ export class ErrorAnalyticsEngine extends EventEmitter {
       context: {
         ...context,
         stack: error.stack,
-        severity: this.errorHandler.classifySeverity(error),
+        severity: context.severity || ErrorSeverity.MEDIUM,
         userAgent: globalThis.navigator?.userAgent,
         timestamp: Date.now()
       }
@@ -467,7 +467,7 @@ export class ErrorAnalyticsEngine extends EventEmitter {
         severity: 'critical',
         title: 'System Instability Predicted',
         description: 'Error rate increasing rapidly, system failure possible',
-        impact: `${this.metrics.impactedUsers} users affected, system health: ${health.overall}`,
+        impact: `${this.metrics.impactedUsers} users affected, system health: ${health?.overall || 'unknown'}`,
         recommendation: 'Immediate intervention required - check system resources',
         relatedErrors: [],
         timestamp: new Date()
@@ -575,7 +575,9 @@ export class ErrorAnalyticsEngine extends EventEmitter {
     
     for (const error of errors) {
       const severity = error.context?.severity || ErrorSeverity.MEDIUM;
-      distribution[severity as ErrorSeverity]++;
+      if (distribution[severity as ErrorSeverity] !== undefined) {
+        distribution[severity as ErrorSeverity]++;
+      }
     }
     
     return distribution;

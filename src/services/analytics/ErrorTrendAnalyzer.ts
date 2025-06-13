@@ -1,5 +1,5 @@
 import { ErrorAnalyticsEngine, ErrorPattern, TimeSeriesData } from './ErrorAnalyticsEngine';
-import { ErrorSeverity } from '@/core/orchestrator/EnhancedErrorHandler';
+import { ErrorSeverity } from '@/src/core/orchestrator/EnhancedErrorHandler';
 import { EventEmitter } from 'events';
 
 export interface TrendAnalysis {

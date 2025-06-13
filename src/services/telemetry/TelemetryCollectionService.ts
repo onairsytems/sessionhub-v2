@@ -411,7 +411,7 @@ export class TelemetryCollectionService extends EventEmitter {
     return {
       sessionId: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       version: process.env['NEXT_PUBLIC_BUILD_VERSION'] || '0.0.0',
-      environment: process.env.NODE_ENV || 'development',
+      environment: process.env['NODE_ENV'] || 'development',
       platform: process.platform,
       nodeVersion: process.version,
       electronVersion: process.versions.electron,
