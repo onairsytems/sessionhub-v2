@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { QueueMetrics } from '@/src/services/queue/SessionQueueManager';
+import { QueueMetrics } from '@/src/services/queue/SessionQueueManagerClient';
 import { 
   Clock, 
   TrendingUp, 

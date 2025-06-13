@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { QueueState, SessionQueueManager } from '@/src/services/queue/SessionQueueManager';
+import { QueueState, SessionQueueManagerClient } from '@/src/services/queue/SessionQueueManagerClient';
 import { SessionPriority } from '@/src/models/Session';
 import { QueueControls } from '@/components/queue/QueueControls';
 import { QueueMetricsPanel } from '@/components/queue/QueueMetricsPanel';
@@ -25,7 +25,7 @@ export default function QueueManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('pending');
 
-  const queueManager = SessionQueueManager.getInstance();
+  const queueManager = SessionQueueManagerClient.getInstance();
   const { connected, lastUpdate } = useQueueUpdates((event) => {
     if (event.type === 'state-changed' || event.type === 'metrics-updated') {
       void loadQueueState();
