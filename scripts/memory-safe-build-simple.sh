@@ -30,7 +30,8 @@ NODE_OPTIONS="--max-old-space-size=2048" npm run electron:compile
 # Package without rebuilding native deps (they're already built)
 echo ""
 echo "📱 Packaging application..."
-NODE_OPTIONS="--max-old-space-size=4096" npx electron-builder --mac --arm64 --publish never
+NODE_OPTIONS="--max-old-space-size=4096" npm run postinstall
+NODE_OPTIONS="--max-old-space-size=4096" npx electron-builder --mac --arm64 --publish never -c.npmRebuild=false
 
 # Results
 echo ""
