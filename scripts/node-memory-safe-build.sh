@@ -66,7 +66,7 @@ run_monitored_build "npm run electron:compile" "Electron Compile" 2048
 # Step 3: Package Electron app for macOS ARM64
 echo ""
 echo "📱 Phase 3: Packaging Electron application..."
-run_monitored_build "electron-builder --mac --arm64" "Electron Packaging" 4096
+run_monitored_build "npx electron-builder --mac --arm64" "Electron Packaging" 4096
 
 # Check build results
 echo ""
