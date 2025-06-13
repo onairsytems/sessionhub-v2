@@ -46,7 +46,7 @@ fi
 
 # Check file sizes
 echo "→ Checking file sizes..."
-find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -not -path "./node_modules/*" -not -path "./.next/*" -not -path "./dist/*" -not -path "./out/*" | while read file; do
+find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) -not -path "./node_modules/*" -not -path "./dist/*" -not -path "./out/*" -not -path "./.next/*" | while read file; do
     size=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null)
     if [ $size -gt 1048576 ]; then
         echo -e "${RED}File too large: $file ($(($size / 1024))KB)${NC}"
