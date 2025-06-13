@@ -17,7 +17,7 @@
     "build:strict": "npm run validate:strict && npm run build",
     "build:verify": "npm run build:strict && npm run postbuild:verify",
     "postbuild:verify": "ts-node --project tsconfig.node.json scripts/post-build-validator.ts",
-    "error:check": "ts-node --project tsconfig.node.json scripts/check-errors-simple.ts",
+    "error:check": "ts-node --project tsconfig.node.json scripts/check-errors.ts",
     "error:monitor": "ts-node scripts/start-monitor.ts",
     "error:install-hooks": "ts-node -e \"require('./src/core/error-detection/CICDIntegration').CICDIntegration.createPreCommitHook()\"",
     "tsconfig:validate": "ts-node --project tsconfig.node.json scripts/tsconfig-guardian.ts validate",
