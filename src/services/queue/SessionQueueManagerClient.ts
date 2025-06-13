@@ -117,7 +117,7 @@ export class SessionQueueManagerClient extends EventEmitter {
    */
   async addSession(session: Partial<QueuedSession>): Promise<void> {
     // In a real implementation, this would make an API call
-    console.log('Adding session to queue:', session);
+// REMOVED: console statement
     this.emitQueueEvent({
       type: 'session-added',
       sessionId: session.id,
@@ -129,7 +129,7 @@ export class SessionQueueManagerClient extends EventEmitter {
    * Cancel a session (client-side mock)
    */
   async cancelSession(sessionId: string): Promise<void> {
-    console.log('Cancelling session:', sessionId);
+// REMOVED: console statement
     this.emitQueueEvent({
       type: 'session-removed',
       sessionId,
@@ -141,7 +141,7 @@ export class SessionQueueManagerClient extends EventEmitter {
    * Cancel multiple sessions (client-side mock)
    */
   async cancelMultipleSessions(sessionIds: string[]): Promise<void> {
-    console.log('Cancelling sessions:', sessionIds);
+// REMOVED: console statement
     sessionIds.forEach(id => {
       this.emitQueueEvent({
         type: 'session-removed',
@@ -154,8 +154,8 @@ export class SessionQueueManagerClient extends EventEmitter {
   /**
    * Update session priority (client-side mock)
    */
-  async updatePriority(sessionId: string, priority: SessionPriority): Promise<void> {
-    console.log('Updating priority:', sessionId, priority);
+  async updatePriority(sessionId: string, _priority: SessionPriority): Promise<void> {
+// REMOVED: console statement
     this.emitQueueEvent({
       type: 'position-changed',
       sessionId,
@@ -166,8 +166,8 @@ export class SessionQueueManagerClient extends EventEmitter {
   /**
    * Move session position (client-side mock)
    */
-  async moveSession(sessionId: string, newPosition: number): Promise<void> {
-    console.log('Moving session:', sessionId, 'to position:', newPosition);
+  async moveSession(sessionId: string, _newPosition: number): Promise<void> {
+// REMOVED: console statement
     this.emitQueueEvent({
       type: 'position-changed',
       sessionId,
@@ -179,7 +179,7 @@ export class SessionQueueManagerClient extends EventEmitter {
    * Pause queue (client-side mock)
    */
   async pauseQueue(): Promise<void> {
-    console.log('Pausing queue');
+// REMOVED: console statement
     this.queueState.isPaused = true;
     this.emitQueueEvent({
       type: 'queue-paused',
@@ -191,7 +191,7 @@ export class SessionQueueManagerClient extends EventEmitter {
    * Resume queue (client-side mock)
    */
   async resumeQueue(): Promise<void> {
-    console.log('Resuming queue');
+// REMOVED: console statement
     this.queueState.isPaused = false;
     this.emitQueueEvent({
       type: 'queue-resumed',

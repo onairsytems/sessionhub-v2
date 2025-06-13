@@ -78,7 +78,7 @@ export class SessionHubTwoActorExtension implements Extension {
         setTimeout(() => this.connectToSessionHub(), 5000);
       };
     } catch (error) {
-      console.error('Failed to connect to SessionHub:', error);
+// REMOVED: console statement
     }
   }
 
@@ -294,7 +294,7 @@ export class SessionHubTwoActorExtension implements Extension {
 
   private showNotification(message: string): void {
     // Show notification in Zed's UI
-    console.log(`[SessionHub] ${message}`);
+// REMOVED: console statement
   }
 
   async deactivate(): void {
