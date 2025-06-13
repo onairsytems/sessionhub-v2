@@ -10,8 +10,8 @@ const fixDashboard = () => {
   
   // Add Skeleton import
   content = content.replace(
-    "import { Badge } from '../ui/Badge';",
-    "import { Badge } from '../ui/Badge';\nimport { Skeleton } from '../ui/Skeleton';"
+    "import { Badge } from '../ui/badge';",
+    "import { Badge } from '../ui/badge';\nimport { Skeleton } from '../ui/Skeleton';"
   );
   
   // Add testResults state

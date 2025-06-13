@@ -9,7 +9,7 @@ import { SessionVerificationEngine } from '../SessionVerificationEngine';
 import { VerificationGates } from '../VerificationGates';
 import { SessionManager, Session, ExecutionResult } from '../../orchestrator/SessionManager';
 import { Logger } from '@/src/lib/logging/Logger';
-import { AuditLogger } from '@/src/lib/logging/AuditLogger';
+// Removed unused AuditLogger import
 
 describe('Session Verification System', () => {
   let verificationEngine: SessionVerificationEngine;
@@ -19,8 +19,7 @@ describe('Session Verification System', () => {
 
   beforeEach(() => {
     logger = new Logger('test');
-    const auditLogger = new AuditLogger();
-    sessionManager = new SessionManager(logger, auditLogger);
+        sessionManager = SessionManager.getInstance() // logger, auditLogger);
     verificationEngine = new SessionVerificationEngine(logger);
     verificationGates = new VerificationGates(verificationEngine, logger, true);
   });

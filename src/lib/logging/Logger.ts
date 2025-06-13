@@ -20,14 +20,24 @@ export interface LogEntry {
   correlationId?: string;
 }
 
+export interface LoggerOptions {
+  component: string;
+  auditFile?: string;
+}
+
 export class Logger {
   private readonly name: string;
   private readonly logs: LogEntry[] = [];
   private readonly maxLogs: number = 10000;
   private readonly logFile?: string;
 
-  constructor(name: string, auditFile?: string) {
-    this.name = name;
+  constructor(options: string | LoggerOptions, auditFile?: string) {
+    if (typeof options === 'string') {
+      this.name = options;
+    } else {
+      this.name = options.component;
+      auditFile = options.auditFile;
+    }
     
     // If audit file requested, use Mac log directory
     if (auditFile) {

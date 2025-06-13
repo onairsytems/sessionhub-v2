@@ -189,8 +189,8 @@ export function registerSessionPipelineHandlers() {
       initializeServices();
 
       const defaultMetrics = { totalSessions: 0, successRate: 0, averageDuration: 0 };
-      const metrics = sessionPipeline ? sessionPipeline.getMetrics() : defaultMetrics;
-      return { success: true, metrics: metrics as { totalSessions: number; successRate: number; averageDuration: number } };
+      const metrics = sessionPipeline ? (sessionPipeline.getMetrics() as { totalSessions: number; successRate: number; averageDuration: number }) : defaultMetrics;
+      return { success: true, metrics };
     } catch (error) {
       logger?.error('Failed to get metrics', error as Error);
       return { success: false, error: (error as Error).message };

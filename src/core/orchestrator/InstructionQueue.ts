@@ -42,17 +42,26 @@ export interface InstructionEvent {
 }
 
 export class InstructionQueue extends EventEmitter {
+  private static instance: InstructionQueue;
   private readonly logger: Logger;
   private readonly queue: Map<string, QueuedInstruction> = new Map();
   private readonly completed: Map<string, QueuedInstruction> = new Map();
   private readonly maxQueueSize: number;
   private readonly maxCompletedHistory: number;
   
-  constructor(logger: Logger, maxQueueSize = 100, maxCompletedHistory = 1000) {
+  private constructor(logger: Logger, maxQueueSize = 100, maxCompletedHistory = 1000) {
     super();
     this.logger = logger;
     this.maxQueueSize = maxQueueSize;
     this.maxCompletedHistory = maxCompletedHistory;
+  }
+
+  static getInstance(): InstructionQueue {
+    if (!InstructionQueue.instance) {
+      const logger = new Logger({ component: 'InstructionQueue' });
+      InstructionQueue.instance = new InstructionQueue(logger);
+    }
+    return InstructionQueue.instance;
   }
 
   /**

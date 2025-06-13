@@ -1,0 +1,22 @@
+[extension]
+id = "sessionhub-two-actor"
+name = "SessionHub Two-Actor Integration"
+description = "Enforces Two-Actor architecture with Planning Actor in Zed's AI panel and Execution Actor in the editor"
+version = "1.0.0"
+schema_version = 1
+authors = ["SessionHub Team"]
+repository = "https://github.com/sessionhub/zed-extension"
+lib_path = "src/extension.wasm"
+
+[capabilities]
+assistant = true
+context_menu = true
+slash_commands = true
+status_bar = true
+language_server = false
+
+[slash_commands]
+session_plan = { description = "Create a planning session for code generation" }
+session_execute = { description = "Execute the current plan in the editor" }
+session_status = { description = "Check the status of current actor operations" }
+session_sync = { description = "Synchronize actors between SessionHub and Zed" }

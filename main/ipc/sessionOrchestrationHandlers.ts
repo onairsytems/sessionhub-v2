@@ -22,7 +22,7 @@ export function registerSessionOrchestrationHandlers(): void {
   
   // Create a temporary session manager for orchestration
   // In production, this should be integrated with the main SessionService
-  const sessionManager = new SessionManager(logger, auditLogger);
+  const sessionManager = SessionManager.getInstance() // logger, auditLogger);
   
   const patternService = new PatternRecognitionService();
   const complexityAnalyzer = new SessionComplexityAnalyzer(logger, auditLogger, patternService);
@@ -266,61 +266,61 @@ export function registerSessionOrchestrationHandlers(): void {
   });
 
   // Set up event forwarding
-  orchestrationFramework.on('workflow:created', (workflow) => {
+  orchestrationFramework.on('workflow:created', (workflow: { id: string }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('workflow:created', workflow);
+      void window.webContents.send('workflow:created', workflow);
     });
   });
 
-  orchestrationFramework.on('workflow:started', (workflow) => {
+  orchestrationFramework.on('workflow:started', (workflow: { id: string }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('workflow:started', workflow);
+      void window.webContents.send('workflow:started', workflow);
     });
   });
 
-  orchestrationFramework.on('workflow:progress', (workflow) => {
+  orchestrationFramework.on('workflow:progress', (workflow: { id: string; progress: unknown }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('workflow:progress', {
+      void window.webContents.send('workflow:progress', {
         workflowId: workflow.id,
         progress: workflow.progress
       });
     });
   });
 
-  orchestrationFramework.on('workflow:completed', (workflow) => {
+  orchestrationFramework.on('workflow:completed', (workflow: { id: string }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('workflow:completed', { workflowId: workflow.id });
+      void window.webContents.send('workflow:completed', { workflowId: workflow.id });
     });
   });
 
-  orchestrationFramework.on('workflow:failed', ({ workflow, error }) => {
+  orchestrationFramework.on('workflow:failed', ({ workflow, error }: { workflow: { id: string }; error: Error }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('workflow:failed', {
+      void window.webContents.send('workflow:failed', {
         workflowId: workflow.id,
         error: error.message
       });
     });
   });
 
-  orchestrationFramework.on('session:starting', ({ workflow, sessionId }) => {
+  orchestrationFramework.on('session:starting', ({ workflow, sessionId }: { workflow: { id: string }; sessionId: string }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('session:starting', {
+      void window.webContents.send('session:starting', {
         workflowId: workflow.id,
         sessionId
       });
     });
   });
 
-  orchestrationFramework.on('session:completed', ({ workflow, sessionId }) => {
+  orchestrationFramework.on('session:completed', ({ workflow, sessionId }: { workflow: { id: string }; sessionId: string }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('session:completed', {
+      void window.webContents.send('session:completed', {
         workflowId: workflow.id,
         sessionId
       });
@@ -336,10 +336,10 @@ export function registerSessionOrchestrationHandlers(): void {
     }
   });
 
-  orchestrationFramework.on('session:failed', ({ workflow, sessionId, error }) => {
+  orchestrationFramework.on('session:failed', ({ workflow, sessionId, error }: { workflow: { id: string }; sessionId: string; error: Error }) => {
     const windows = BrowserWindow.getAllWindows();
     windows.forEach((window: BrowserWindow) => {
-      window.webContents.send('session:failed', {
+      void window.webContents.send('session:failed', {
         workflowId: workflow.id,
         sessionId,
         error: error.message

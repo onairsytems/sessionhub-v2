@@ -24,10 +24,19 @@ export interface QueryResult {
   lastInsertRowid: number | bigint;
 }
 
+interface SessionRepository {
+  create(session: any): Promise<void>;
+  findById(id: string): Promise<any | null>;
+  findAll(): Promise<any[]>;
+  update(id: string, updates: any): Promise<void>;
+  delete(id: string): Promise<void>;
+}
+
 export class DatabaseService extends EventEmitter {
   private db: Database.Database | null = null;
   private config: DatabaseConfig;
   private isConnected = false;
+  public sessions: SessionRepository;
 
   constructor(config: DatabaseConfig = {}) {
     super();
@@ -37,6 +46,42 @@ export class DatabaseService extends EventEmitter {
       memory: config.memory || false,
       timeout: config.timeout || 5000,
       verbose: config.verbose || false
+    };
+    
+    // Initialize repositories
+    this.sessions = {
+      create: async (session: any) => {
+        const sql = `INSERT INTO sessions (id, name, description, status, userId, projectId, createdAt, updatedAt, metadata)
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        await this.run(sql, [
+          session.id,
+          session.name,
+          session.description,
+          session.status,
+          session.userId,
+          session.projectId,
+          session.createdAt,
+          session.updatedAt,
+          JSON.stringify(session.metadata || {})
+        ]);
+      },
+      findById: async (id: string) => {
+        const result = await this.query('SELECT * FROM sessions WHERE id = ?', [id]);
+        return result.rows[0] || null;
+      },
+      findAll: async () => {
+        const result = await this.query('SELECT * FROM sessions', []);
+        return result.rows;
+      },
+      update: async (id: string, updates: any) => {
+        const fields = Object.keys(updates).map(key => `${key} = ?`).join(', ');
+        const values = Object.values(updates);
+        values.push(id);
+        await this.run(`UPDATE sessions SET ${fields} WHERE id = ?`, values);
+      },
+      delete: async (id: string) => {
+        await this.run('DELETE FROM sessions WHERE id = ?', [id]);
+      }
     };
   }
 

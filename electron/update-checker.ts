@@ -36,7 +36,7 @@ export class UpdateChecker {
     try {
       if (this.isDevLinked()) {
         const content = fs.readFileSync(this.devLinkPath, 'utf-8');
-        return JSON.parse(content);
+        return JSON.parse(content) as DevLinkInfo;
       }
     } catch (error) {
 // REMOVED: console statement
@@ -62,11 +62,11 @@ export class UpdateChecker {
         return;
       }
 
-      const sourcePackage = JSON.parse(fs.readFileSync(sourcePackageJson, 'utf-8'));
+      const sourcePackage = JSON.parse(fs.readFileSync(sourcePackageJson, 'utf-8')) as { version: string };
       
       // Check if versions differ
       if (sourcePackage.version !== linkInfo.version) {
-        this.notifyUpdateAvailable(window, linkInfo.version, sourcePackage.version);
+        void this.notifyUpdateAvailable(window, linkInfo.version, sourcePackage.version);
       }
 
       // Check build timestamp
@@ -76,7 +76,7 @@ export class UpdateChecker {
         const linkStats = fs.statSync(this.devLinkPath);
         
         if (distStats.mtime > linkStats.mtime) {
-          this.notifyUpdateAvailable(window, 'build', 'newer build');
+          void this.notifyUpdateAvailable(window, 'build', 'newer build');
         }
       }
     } catch (error) {
@@ -116,9 +116,9 @@ export class UpdateChecker {
       window.webContents.send('update-status', { status: 'updating', message: 'Updating SessionHub...' });
 
       // Run the deploy script
-      const { exec } = require('child_process');
+      const { exec } = await import('child_process');
       
-      exec(`cd "${linkInfo.projectPath}" && npm run deploy:quick`, (error: any) => {
+      exec(`cd "${linkInfo.projectPath}" && npm run deploy:quick`, (error: Error | null) => {
         if (error) {
 // REMOVED: console statement
           dialog.showErrorBox('Update Failed', 'Failed to update SessionHub. Please update manually.');
@@ -135,6 +135,8 @@ export class UpdateChecker {
         }).then(() => {
           app.relaunch();
           app.exit(0);
+        }).catch((_dialogError: Error) => {
+          // Dialog error handled
         });
       });
     } catch (error) {
@@ -149,11 +151,11 @@ export class UpdateChecker {
     }
 
     // Initial check
-    this.checkForUpdates(window);
+    void this.checkForUpdates(window);
 
     // Set up periodic checks
     this.checkInterval = setInterval(() => {
-      this.checkForUpdates(window);
+      void this.checkForUpdates(window);
     }, intervalMinutes * 60 * 1000);
   }
 

@@ -353,6 +353,12 @@ class SessionHubApp {
     };
     supabaseHandlers.registerSupabaseHandlers();
 
+    // Register Settings handlers
+    const settingsHandlers = require('./ipc/settingsHandlers') as {
+      registerSettingsHandlers: () => void;
+    };
+    settingsHandlers.registerSettingsHandlers();
+
     // Trigger test issue (for demo purposes)
     ipcMain.handle(
       "trigger-test-issue",

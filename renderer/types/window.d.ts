@@ -144,6 +144,17 @@ declare global {
       onSessionProgress: (callback: (data: unknown) => void) => void;
       removeSessionProgressListener: (callback: (data: unknown) => void) => void;
       // Tutorial and Help API
+      settings: {
+        getSettings: () => Promise<unknown>;
+        saveSettings: (settings: unknown) => Promise<{ success: boolean; error?: string }>;
+        testApiKey: (apiKey: string) => Promise<{ success: boolean; responseTime?: number; message: string; error?: string }>;
+        testSupabase: (url: string, anonKey: string) => Promise<{ success: boolean; message: string; error?: string }>;
+        exportSettings: () => Promise<{ success: boolean; data?: string; error?: string }>;
+        importSettings: (jsonData: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+        getStorageInfo: () => Promise<{ sessions: string; cache: string; logs: string; total: string }>;
+        clearCache: () => Promise<{ success: boolean; message?: string; error?: string }>;
+        getFeatureFlags: () => Promise<unknown>;
+      };
       tutorials: {
         getTutorials: () => Promise<Array<{
           id: string;
@@ -368,6 +379,20 @@ declare global {
         cleanupLogs: (daysToKeep: number) => Promise<boolean>;
       };
       invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
+      settings: {
+        getSettings: () => Promise<unknown>;
+        saveSettings: (settings: unknown) => Promise<{ success: boolean; error?: string }>;
+        testApiKey: (apiKey: string) => Promise<{ success: boolean; responseTime?: number; message: string; error?: string }>;
+        testSupabase: (url: string, anonKey: string) => Promise<{ success: boolean; message: string; error?: string }>;
+        exportSettings: () => Promise<{ success: boolean; data?: string; error?: string }>;
+        importSettings: (jsonData: string) => Promise<{ success: boolean; message?: string; error?: string }>;
+        getStorageInfo: () => Promise<{ sessions: string; cache: string; logs: string; total: string }>;
+        clearCache: () => Promise<{ success: boolean; message?: string; error?: string }>;
+        getFeatureFlags: () => Promise<unknown>;
+      };
+      api: {
+        saveApiKey: (apiKey: string) => Promise<void>;
+      };
     };
     electronAPI: {
       claude: {

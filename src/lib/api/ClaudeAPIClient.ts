@@ -5,6 +5,7 @@
  */
 
 import { Logger } from '@/src/lib/logging/Logger';
+import { APIUsageTracker } from '@/src/services/usage/APIUsageTracker';
 
 export interface ClaudeAPIConfig {
   apiKey: string;
@@ -49,6 +50,9 @@ export class ClaudeAPIClient {
   private readonly defaultSystemPrompt: string;
   private rateLimiter: Map<string, number> = new Map();
   private readonly maxRequestsPerMinute = 60;
+  private usageTracker?: APIUsageTracker;
+  private currentSessionId?: string;
+  private currentUserId?: string;
 
   constructor(config: ClaudeAPIConfig, logger?: Logger) {
     this.logger = logger || new Logger('ClaudeAPIClient');
@@ -210,6 +214,18 @@ Please analyze this request and generate a comprehensive instruction protocol th
         inputTokens: data.usage.input_tokens,
         outputTokens: data.usage.output_tokens
       });
+
+      // Track usage if tracker is available
+      if (this.usageTracker && this.currentSessionId && this.currentUserId) {
+        await this.usageTracker.trackUsage({
+          sessionId: this.currentSessionId,
+          model: data.model,
+          inputTokens: data.usage.input_tokens,
+          outputTokens: data.usage.output_tokens,
+          requestType: 'planning',
+          userId: this.currentUserId
+        });
+      }
 
       return data;
     } catch (error: any) {
@@ -375,16 +391,45 @@ Do not write code - only describe what needs to be built.`
   }
 
   /**
+   * Configure usage tracking
+   */
+  setUsageTracker(tracker: APIUsageTracker, sessionId: string, userId: string): void {
+    this.usageTracker = tracker;
+    this.currentSessionId = sessionId;
+    this.currentUserId = userId;
+  }
+
+  /**
+   * Remove usage tracker
+   */
+  clearUsageTracker(): void {
+    this.usageTracker = undefined;
+    this.currentSessionId = undefined;
+    this.currentUserId = undefined;
+  }
+
+  /**
    * Get usage statistics
    */
   async getUsage(): Promise<any> {
-    // This would typically call a usage endpoint
-    // For now, return mock data
+    if (this.usageTracker && this.currentUserId) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return await this.usageTracker.getUsageMetrics(this.currentUserId, startOfDay, now);
+    }
+
+    // Fallback to mock data if no tracker
     return {
-      inputTokens: 0,
-      outputTokens: 0,
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalTokens: 0,
       totalCost: 0,
-      requestCount: 0
+      requestCount: 0,
+      averageTokensPerRequest: 0,
+      averageCostPerRequest: 0,
+      costByModel: {},
+      tokensByModel: {},
+      timeRange: { start: new Date(), end: new Date() }
     };
   }
 }

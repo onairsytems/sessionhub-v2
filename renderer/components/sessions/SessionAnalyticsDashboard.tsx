@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SessionAnalytics } from '@/src/services/SessionService';
+import type { SessionAnalytics } from '@/src/services/SessionService';
 import { SessionStatus } from '@/src/models/Session';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -136,7 +136,7 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
           <div className="space-y-2">
             <p className="text-sm text-gray-600 dark:text-gray-400">Active Now</p>
             <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {analytics.sessionsByStatus.executing || 0}
+              {analytics.sessionsByStatus['executing'] || 0}
             </p>
           </div>
         </Card>
@@ -199,7 +199,7 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
                 <div
                   className="bg-blue-500 h-2 rounded-full"
                   style={{
-                    width: `${(analytics.performanceMetrics.avgPlanningTime / analytics.performanceMetrics.avgTotalTime) * 100}%`
+                    width: `${(analytics.performanceMetrics.avgPlanningTime / analytics.performanceMetrics.avgExecutionTime) * 100}%`
                   }}
                 />
               </div>
@@ -217,7 +217,7 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
                 <div
                   className="bg-purple-500 h-2 rounded-full"
                   style={{
-                    width: `${(analytics.performanceMetrics.avgExecutionTime / analytics.performanceMetrics.avgTotalTime) * 100}%`
+                    width: `${(analytics.performanceMetrics.avgExecutionTime / analytics.performanceMetrics.avgExecutionTime) * 100}%`
                   }}
                 />
               </div>
@@ -228,7 +228,7 @@ export const SessionAnalyticsDashboard: React.FC<SessionAnalyticsDashboardProps>
                   Total Average Time
                 </span>
                 <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
-                  {formatDuration(analytics.performanceMetrics.avgTotalTime)}
+                  {formatDuration(analytics.performanceMetrics.avgExecutionTime)}
                 </span>
               </div>
             </div>

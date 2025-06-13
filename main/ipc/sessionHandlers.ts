@@ -1,11 +1,17 @@
 import { ipcMain } from 'electron';
-import { SessionService, SessionFilter, SessionTemplate } from '@/src/services/SessionService';
-import { SessionRequest, SessionMetadata, Session, SessionError } from '@/src/models/Session';
-import { InstructionProtocol } from '@/src/models/Instruction';
-import { ExecutionResult } from '@/src/models/ExecutionResult';
+import SessionService, { SessionFilter } from '@/src/services/SessionService';
+import { SessionRequest, SessionMetadata, Session } from '@/src/models/Session';
+// import { InstructionProtocol } from '@/src/models/Instruction';
+// import { ExecutionResult } from '@/src/models/ExecutionResult';
 import { Logger } from '@/src/lib/logging/Logger';
 
-const logger = new Logger('SessionHandlers');
+interface SessionTemplate {
+  name: string;
+  description: string;
+  content: any;
+}
+
+const logger = new Logger({ component: 'SessionHandlers' });
 
 export function registerSessionHandlers() {
   const sessionService = SessionService.getInstance();
@@ -38,20 +44,20 @@ export function registerSessionHandlers() {
     if (!session) {
       throw new Error('Session not found');
     }
-    return sessionService.createTemplate(session, templateData);
+    return sessionService.createTemplate(templateData.name || "", templateData.description || "", session);
   });
 
-  ipcMain.handle('session:getTemplates', async (_event, category?: string, isPublic?: boolean) => {
-    return sessionService.getTemplates(category, isPublic);
+  ipcMain.handle('session:getTemplates', async (_event) => {
+    return sessionService.getTemplates();
   });
 
-  ipcMain.handle('session:createFromTemplate', async (_event, templateId: string, userId: string, customizations?: Partial<SessionRequest>) => {
-    return sessionService.createSessionFromTemplate(templateId, userId, customizations);
+  ipcMain.handle('session:createFromTemplate', async (_event, templateId: string, data: any) => {
+    return sessionService.createSessionFromTemplate(templateId, data);
   });
 
   // Session analytics
-  ipcMain.handle('session:analytics', async (_event, options: { userId?: string; projectId?: string; dateRange?: { from: Date; to: Date } }) => {
-    return sessionService.getAnalytics(options.userId, options.projectId, options.dateRange);
+  ipcMain.handle('session:analytics', async (_event, _userId?: string) => {
+    return sessionService.getAnalytics();
   });
 
   // Export/Import
@@ -59,8 +65,8 @@ export function registerSessionHandlers() {
     return sessionService.exportSession(sessionId);
   });
 
-  ipcMain.handle('session:import', async (_event, exportData: string, userId: string) => {
-    return sessionService.importSession(exportData, userId);
+  ipcMain.handle('session:import', async (_event, data: any) => {
+    return sessionService.importSession(data);
   });
 
   // Session workflow handoffs
@@ -69,23 +75,23 @@ export function registerSessionHandlers() {
     if (!session) {
       throw new Error('Session not found');
     }
-    return sessionService.handoffToPlanningActor(session);
+    return sessionService.handoffToPlanningActor(sessionId);
   });
 
-  ipcMain.handle('session:handoffToExecution', async (_event, sessionId: string, instructions: unknown) => {
+  ipcMain.handle('session:handoffToExecution', async (_event, sessionId: string) => {
     const session = await sessionService.getSession(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
-    return sessionService.handoffToExecutionActor(session, instructions as InstructionProtocol);
+    return sessionService.handoffToExecutionActor(sessionId);
   });
 
-  ipcMain.handle('session:complete', async (_event, sessionId: string, result: unknown) => {
+  ipcMain.handle('session:complete', async (_event, sessionId: string) => {
     const session = await sessionService.getSession(sessionId);
     if (!session) {
       throw new Error('Session not found');
     }
-    return sessionService.completeSession(session, result as ExecutionResult);
+    return sessionService.completeSession(sessionId);
   });
 
   ipcMain.handle('session:fail', async (_event, sessionId: string, error: unknown) => {
@@ -93,7 +99,7 @@ export function registerSessionHandlers() {
     if (!session) {
       throw new Error('Session not found');
     }
-    return sessionService.failSession(session, error as SessionError);
+    return sessionService.failSession(sessionId, String(error));
   });
 
   // Git versioning - Note: These methods access private gitService property

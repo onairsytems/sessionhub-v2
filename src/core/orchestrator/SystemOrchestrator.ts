@@ -119,7 +119,7 @@ export class SystemOrchestrator {
     // this.apiErrorHandler = new APIErrorHandler(this.logger, this.auditLogger);
     
     // Initialize orchestration components
-    this.sessionManager = new SessionManager(this.logger, this.auditLogger);
+    this.sessionManager = SessionManager.getInstance() // this.logger, this.auditLogger);
     this.actorCoordinator = new ActorCoordinator(
       this.logger,
       this.auditLogger,

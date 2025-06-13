@@ -52,6 +52,12 @@ const statusConfig = {
     bgColor: 'bg-gray-500/10',
     label: 'Cancelled',
   },
+  paused: {
+    icon: Pause,
+    color: 'text-orange-500',
+    bgColor: 'bg-orange-500/10',
+    label: 'Paused',
+  },
 };
 
 export default function SessionCard({ session, viewMode, onClick }: SessionCardProps) {

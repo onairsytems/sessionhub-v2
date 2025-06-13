@@ -12,12 +12,22 @@ import {
 } from '../../interfaces/IIDEAdapter';
 import { BaseProjectContext } from '../../models/ProjectContext';
 import { ZedConnectionManager } from './ZedConnectionManager';
+import { ZedAgentPanelAdapter } from './ZedAgentPanelAdapter';
+import { ZedSlashCommandHandler } from './ZedSlashCommandHandler';
+import { ZedInstructionFlowService } from './ZedInstructionFlowService';
+import { ZedBoundaryEnforcer } from './ZedBoundaryEnforcer';
+import { ZedActorSyncService } from './ZedActorSyncService';
 import * as chokidar from 'chokidar';
 
 const execAsync = promisify(exec);
 
 export class ZedAdapter extends EventEmitter implements IZedAdapter {
   private connectionManager: ZedConnectionManager;
+  private agentPanelAdapter: ZedAgentPanelAdapter;
+  private slashCommandHandler: ZedSlashCommandHandler;
+  private instructionFlowService: ZedInstructionFlowService;
+  private boundaryEnforcer: ZedBoundaryEnforcer;
+  private actorSyncService: ZedActorSyncService;
   private activeWorkspace: WorkspaceInfo | null = null;
   private fileWatcher?: chokidar.FSWatcher;
   private mcpServerUrl?: string;
@@ -32,11 +42,51 @@ export class ZedAdapter extends EventEmitter implements IZedAdapter {
       healthCheckInterval: 10000
     });
 
+    // Initialize Two-Actor components
+    this.agentPanelAdapter = new ZedAgentPanelAdapter();
+    this.instructionFlowService = new ZedInstructionFlowService(this.agentPanelAdapter);
+    this.boundaryEnforcer = new ZedBoundaryEnforcer();
+    this.slashCommandHandler = new ZedSlashCommandHandler(this.agentPanelAdapter);
+    this.actorSyncService = new ZedActorSyncService(
+      this.agentPanelAdapter,
+      this.instructionFlowService,
+      this.boundaryEnforcer
+    );
+
     // Forward connection events
     this.connectionManager.on('connected', () => this.emit('connected'));
     this.connectionManager.on('disconnected', () => this.emit('disconnected'));
     this.connectionManager.on('connection-failed', (error) => this.emit('connection-failed', error));
     this.connectionManager.on('health-check', (health) => this.emit('health-check', health));
+
+    // Set up Two-Actor event handling
+    this.setupTwoActorEventHandlers();
+  }
+
+  private setupTwoActorEventHandlers(): void {
+    // Handle slash command executions
+    this.slashCommandHandler.on('execute-plan', async (data) => {
+      const flowId = await this.instructionFlowService.createFlow(data.instruction);
+      await this.instructionFlowService.executeFlow(flowId);
+    });
+
+    // Handle boundary violations
+    this.boundaryEnforcer.on('violation-detected', (violation) => {
+      this.emit('boundary-violation', violation);
+    });
+
+    // Handle actor sync updates
+    this.actorSyncService.on('state-updated', (state) => {
+      this.emit('actor-state-update', state);
+    });
+
+    // Handle instruction flow events
+    this.instructionFlowService.on('flow-completed', (flow) => {
+      this.emit('execution-complete', {
+        flowId: flow.id,
+        duration: flow.completedAt!.getTime() - flow.createdAt.getTime()
+      });
+    });
   }
 
   async connect(): Promise<void> {
@@ -48,6 +98,10 @@ export class ZedAdapter extends EventEmitter implements IZedAdapter {
     }
 
     await this.connectionManager.initialize(credentials);
+    
+    // Initialize Two-Actor components
+    await this.agentPanelAdapter.initialize();
+    this.actorSyncService.startSync();
   }
 
   async disconnect(): Promise<void> {
@@ -56,6 +110,10 @@ export class ZedAdapter extends EventEmitter implements IZedAdapter {
       await this.fileWatcher.close();
       this.fileWatcher = undefined;
     }
+    
+    // Shutdown Two-Actor components
+    this.actorSyncService.stopSync();
+    await this.agentPanelAdapter.shutdown();
   }
 
   async getConnectionStatus(): Promise<IDEConnectionStatus> {
@@ -421,5 +479,30 @@ export class ZedAdapter extends EventEmitter implements IZedAdapter {
     // Zed extension installation would be handled here
     // Currently Zed doesn't have a public extension API
     this.emit('extension-install-requested', extensionId);
+  }
+
+  // Two-Actor specific methods
+  async getActorStatus(): Promise<any> {
+    return this.actorSyncService.getSyncState();
+  }
+
+  async syncActors(): Promise<void> {
+    await this.actorSyncService.forceSyc();
+  }
+
+  async handleSlashCommand(command: string, args: string, context: any): Promise<any> {
+    return this.slashCommandHandler.handleCommand(command, args, context);
+  }
+
+  getBoundaryViolations(): any {
+    return this.boundaryEnforcer.getViolationStats();
+  }
+
+  getInstructionFlowMetrics(): any {
+    return this.instructionFlowService.getExecutionMetrics();
+  }
+
+  async enforceAssistantResponse(response: any): Promise<any> {
+    return this.boundaryEnforcer.enforceAssistantBoundaries(response);
   }
 }

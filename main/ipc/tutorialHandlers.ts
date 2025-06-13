@@ -477,8 +477,8 @@ export function registerTutorialHandlers() {
   // Mark tutorial as completed
   ipcMain.handle('complete-tutorial', async (_, tutorialId: string) => {
     // Store completion status
-    const store = (global as any).store as { get: (key: string, defaultValue: any) => string[]; set: (key: string, value: any) => void };
-    const completed = store.get('completedTutorials', []) as string[];
+    const store = (global as unknown as { store: { get: (key: string, defaultValue: string[]) => string[]; set: (key: string, value: string[]) => void } }).store;
+    const completed = store.get('completedTutorials', []);
     if (!completed.includes(tutorialId)) {
       completed.push(tutorialId);
       store.set('completedTutorials', completed);
@@ -488,7 +488,7 @@ export function registerTutorialHandlers() {
 
   // Get completed tutorials
   ipcMain.handle('get-completed-tutorials', async () => {
-    const store = (global as any).store as { get: (key: string, defaultValue: any) => string[] };
+    const store = (global as unknown as { store: { get: (key: string, defaultValue: string[]) => string[] } }).store;
     return store.get('completedTutorials', []);
   });
 

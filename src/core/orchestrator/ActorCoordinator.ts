@@ -66,7 +66,7 @@ export class ActorCoordinator {
     this.protocolValidator = protocolValidator;
     this.boundaryEnforcer = boundaryEnforcer;
     this.errorHandler = errorHandler;
-    this.instructionQueue = new InstructionQueue(logger);
+    this.instructionQueue = InstructionQueue.getInstance() // logger);
     
     this.initializeActorStates();
     this.setupQueueEventListeners();

@@ -10,6 +10,7 @@ export interface Session {
   id: string;
   name: string;
   description: string;
+  objective?: string;
   
   status: SessionStatus;
   
@@ -36,7 +37,10 @@ export type SessionStatus =
   | 'executing'    // Running execution
   | 'completed'    // Successfully completed
   | 'failed'       // Failed with error
-  | 'cancelled';   // Cancelled by user or system
+  | 'cancelled'    // Cancelled by user or system
+  | 'paused';      // Temporarily paused
+
+export type SessionPriority = 'critical' | 'high' | 'medium' | 'low';
 
 export interface SessionRequest {
   id: string;
@@ -66,6 +70,8 @@ export interface SessionMetadata {
   // Runtime metadata
   queuePosition?: number;
   retryCount?: number;
+  priority?: SessionPriority;
+  executionTime?: number;
   progress?: {
     completedSteps: number;
     totalSteps: number;

@@ -74,7 +74,7 @@ export class SessionExecutionPipeline extends EventEmitter {
     // Initialize all services
     this.protocolValidator = new ProtocolValidator(logger);
     this.securitySandbox = new SecuritySandbox(logger);
-    this.sessionManager = new SessionManager(logger, auditLogger);
+    this.sessionManager = SessionManager.getInstance() // logger, auditLogger);
     this.workflowEngine = new WorkflowEngine(logger, auditLogger);
     this.planningEngine = new PlanningEngine(logger, this.protocolValidator, claudeClient);
     this.executionEngine = new ExecutionEngine(logger, this.protocolValidator, this.securitySandbox);

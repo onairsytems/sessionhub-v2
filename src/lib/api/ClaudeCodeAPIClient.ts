@@ -6,6 +6,7 @@
 
 import { Logger } from '@/src/lib/logging/Logger';
 import { InstructionProtocol } from '@/src/models/Instruction';
+import { APIUsageTracker } from '@/src/services/usage/APIUsageTracker';
 import { spawn, ChildProcessWithoutNullStreams } from 'child_process';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -46,6 +47,9 @@ export class ClaudeCodeAPIClient {
   private readonly workspaceDir: string;
   private rateLimiter: Map<string, number> = new Map();
   private readonly maxRequestsPerMinute = 30; // Lower for code generation
+  private usageTracker?: APIUsageTracker;
+  private currentSessionId?: string;
+  private currentUserId?: string;
 
   constructor(config: ClaudeCodeAPIConfig, logger?: Logger) {
     this.logger = logger || new Logger('ClaudeCodeAPIClient');
@@ -332,7 +336,7 @@ Implement everything needed to meet all success criteria.`;
     max_tokens: number;
     temperature: number;
     system: string;
-  }): Promise<{ content: Array<{ text?: string }> }> {
+  }): Promise<{ content: Array<{ text?: string }>; usage?: { input_tokens: number; output_tokens: number; }; model?: string; }> {
     await this.checkRateLimit();
     
     const controller = new AbortController();
@@ -348,8 +352,22 @@ Implement everything needed to meet all success criteria.`;
       const data = await response.json();
 
       this.logger.debug('Claude Code API response received', {
-        contentLength: data.content?.[0]?.text?.length || 0
+        contentLength: data.content?.[0]?.text?.length || 0,
+        inputTokens: data.usage?.input_tokens || 0,
+        outputTokens: data.usage?.output_tokens || 0
       });
+
+      // Track usage if tracker is available
+      if (this.usageTracker && this.currentSessionId && this.currentUserId && data.usage) {
+        await this.usageTracker.trackUsage({
+          sessionId: this.currentSessionId,
+          model: data.model || request.model,
+          inputTokens: data.usage.input_tokens,
+          outputTokens: data.usage.output_tokens,
+          requestType: 'execution',
+          userId: this.currentUserId
+        });
+      }
 
       return data;
     } catch (error: any) {
@@ -461,6 +479,49 @@ Implement everything needed to meet all success criteria.`;
    */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  /**
+   * Configure usage tracking
+   */
+  setUsageTracker(tracker: APIUsageTracker, sessionId: string, userId: string): void {
+    this.usageTracker = tracker;
+    this.currentSessionId = sessionId;
+    this.currentUserId = userId;
+  }
+
+  /**
+   * Remove usage tracker
+   */
+  clearUsageTracker(): void {
+    this.usageTracker = undefined;
+    this.currentSessionId = undefined;
+    this.currentUserId = undefined;
+  }
+
+  /**
+   * Get usage statistics
+   */
+  async getUsage(): Promise<any> {
+    if (this.usageTracker && this.currentUserId) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      return await this.usageTracker.getUsageMetrics(this.currentUserId, startOfDay, now);
+    }
+
+    // Fallback to mock data if no tracker
+    return {
+      totalInputTokens: 0,
+      totalOutputTokens: 0,
+      totalTokens: 0,
+      totalCost: 0,
+      requestCount: 0,
+      averageTokensPerRequest: 0,
+      averageCostPerRequest: 0,
+      costByModel: {},
+      tokensByModel: {},
+      timeRange: { start: new Date(), end: new Date() }
+    };
   }
 
   /**

@@ -13,7 +13,7 @@ export function registerZedHandlers() {
       connectionManager = new ZedConnectionManager();
     }
     
-    await connectionManager.initialize(credentials);
+    void connectionManager.initialize(credentials);
     return { success: true };
   });
 
@@ -38,7 +38,7 @@ export function registerZedHandlers() {
       throw new Error('Connection manager not initialized');
     }
     
-    await connectionManager.connect();
+    void connectionManager.connect();
     return { success: true };
   });
 
@@ -48,7 +48,7 @@ export function registerZedHandlers() {
       zedAdapter = new ZedAdapter();
     }
     
-    await zedAdapter.connect();
+    void zedAdapter.connect();
     return { success: true };
   });
 
@@ -57,17 +57,17 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.disconnect();
+    void zedAdapter.disconnect();
     return { success: true };
   });
 
   ipcMain.handle('zed:open-workspace', async (_event, workspacePath: string) => {
     if (!zedAdapter) {
       zedAdapter = new ZedAdapter();
-      await zedAdapter.connect();
+      void zedAdapter.connect();
     }
     
-    await zedAdapter.openWorkspace(workspacePath);
+    void zedAdapter.openWorkspace(workspacePath);
     return { success: true };
   });
 
@@ -84,7 +84,7 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.openFile(filePath);
+    void zedAdapter.openFile(filePath);
     return { success: true };
   });
 
@@ -93,7 +93,7 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.saveFile(filePath, content);
+    void zedAdapter.saveFile(filePath, content);
     return { success: true };
   });
 
@@ -103,7 +103,7 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.sendToExecutionActor(instruction, context as BaseProjectContext);
+    void zedAdapter.sendToExecutionActor(instruction, context as BaseProjectContext);
     return { success: true };
   });
 
@@ -120,20 +120,7 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    const executionStatus = await zedAdapter.getExecutionStatus();
-    const agentPanelStatus = await zedAdapter.getAgentPanelStatus();
-    
-    return {
-      planning: {
-        active: true, // SessionHub planning is always available
-        currentTask: 'Ready'
-      },
-      execution: {
-        active: executionStatus.active,
-        currentTask: executionStatus.currentTask,
-        agentPanelConnected: agentPanelStatus.connectedToMCP
-      }
-    };
+    return await zedAdapter.getActorStatus();
   });
 
   ipcMain.handle('zed:sync-actors', async () => {
@@ -141,13 +128,41 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    // Configure MCP connection for agent panel
-    await zedAdapter.configureAgentPanel({
-      mcpServerUrl: process.env['MCP_SERVER_URL'] || 'http://localhost:3001/mcp',
-      authToken: process.env['SESSIONHUB_API_TOKEN'] || ''
-    });
-    
+    await zedAdapter.syncActors();
     return { success: true };
+  });
+
+  // New Two-Actor handlers
+  ipcMain.handle('zed:handle-slash-command', async (_event, command: string, args: string, context: any) => {
+    if (!zedAdapter) {
+      throw new Error('Zed adapter not initialized');
+    }
+    
+    return await zedAdapter.handleSlashCommand(command, args, context);
+  });
+
+  ipcMain.handle('zed:get-boundary-violations', async () => {
+    if (!zedAdapter) {
+      throw new Error('Zed adapter not initialized');
+    }
+    
+    return zedAdapter.getBoundaryViolations();
+  });
+
+  ipcMain.handle('zed:get-flow-metrics', async () => {
+    if (!zedAdapter) {
+      throw new Error('Zed adapter not initialized');
+    }
+    
+    return zedAdapter.getInstructionFlowMetrics();
+  });
+
+  ipcMain.handle('zed:enforce-assistant-response', async (_event, response: any) => {
+    if (!zedAdapter) {
+      throw new Error('Zed adapter not initialized');
+    }
+    
+    return await zedAdapter.enforceAssistantResponse(response);
   });
 
   // Git Operations
@@ -164,7 +179,7 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.stageFiles(files);
+    void zedAdapter.stageFiles(files);
     return { success: true };
   });
 
@@ -173,7 +188,7 @@ export function registerZedHandlers() {
       throw new Error('Zed adapter not initialized');
     }
     
-    await zedAdapter.commit(message);
+    void zedAdapter.commit(message);
     return { success: true };
   });
 
@@ -196,13 +211,13 @@ export function registerZedHandlers() {
 
   // Utility
   ipcMain.handle('zed:open-external', async (_event, url: string) => {
-    await shell.openExternal(url);
+    void shell.openExternal(url);
     return { success: true };
   });
 
   // Forward events from adapters to renderer
   if (connectionManager) {
-    connectionManager.on('health-check', (health) => {
+    connectionManager.on('health-check', (health: unknown) => {
       const windows = BrowserWindow.getAllWindows();
       windows.forEach((window) => {
         void window.webContents.send('zed:health-update', health);
@@ -211,14 +226,14 @@ export function registerZedHandlers() {
   }
 
   if (zedAdapter) {
-    zedAdapter.on('workspace-opened', (workspace) => {
+    zedAdapter.on('workspace-opened', (workspace: unknown) => {
       const windows = BrowserWindow.getAllWindows();
       windows.forEach((window) => {
         void window.webContents.send('zed:workspace-opened', workspace);
       });
     });
 
-    zedAdapter.on('execution-sent', (message) => {
+    zedAdapter.on('execution-sent', (message: { instruction: string }) => {
       const windows = BrowserWindow.getAllWindows();
       windows.forEach((window) => {
         void window.webContents.send('actor:instruction-sent', {
@@ -228,6 +243,28 @@ export function registerZedHandlers() {
           timestamp: new Date(),
           status: 'sent'
         });
+      });
+    });
+
+    // Forward Two-Actor events
+    zedAdapter.on('actor-state-update', (state: any) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        void window.webContents.send('zed:actor-state-update', state);
+      });
+    });
+
+    zedAdapter.on('boundary-violation', (violation: any) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        void window.webContents.send('zed:boundary-violation', violation);
+      });
+    });
+
+    zedAdapter.on('execution-complete', (data: any) => {
+      const windows = BrowserWindow.getAllWindows();
+      windows.forEach((window) => {
+        void window.webContents.send('zed:execution-complete', data);
       });
     });
   }

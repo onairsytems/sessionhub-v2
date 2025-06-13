@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { SessionFilter } from '@/src/services/SessionService';
+import type { SessionFilter } from '@/src/services/SessionService';
 import { Session, SessionStatus } from '@/src/models/Session';
 import { 
   SearchOptions, 
@@ -23,11 +23,13 @@ interface SessionLibraryProps {
   onSessionCreate?: () => void;
 }
 export const SessionLibrary: React.FC<SessionLibraryProps> = ({
-  userId,
-  projectId,
+  // userId,
+  // projectId,
   onSessionSelect,
   onSessionCreate
 }) => {
+  const userId = "default-user";
+  const projectId = undefined;
   const [sessions, setSessions] = useState<Session[]>([]);
   const [searchResult, setSearchResult] = useState<SearchResult<Session> | null>(null);
   const [loading, setLoading] = useState(true);
@@ -60,13 +62,13 @@ export const SessionLibrary: React.FC<SessionLibraryProps> = ({
       } else {
         // Use basic search
         const filter: SessionFilter = {
-          userId,
-          projectId,
-          status: statusFilter.length > 0 ? statusFilter : undefined,
-          searchTerm: searchTerm || undefined,
+          // userId,
+          // projectId,
+          status: statusFilter.length > 0 ? statusFilter[0] : undefined,
+          search: searchTerm || undefined,
           tags: selectedTags.length > 0 ? selectedTags : undefined,
-          dateFrom: dateRange.from,
-          dateTo: dateRange.to
+          createdAfter: dateRange.from,
+          createdBefore: dateRange.to
         };
         const result = await window.electron.invoke('session:search', filter);
         setSessions(result as Session[]);

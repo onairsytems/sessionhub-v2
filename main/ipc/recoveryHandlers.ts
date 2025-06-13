@@ -62,7 +62,7 @@ export function registerRecoveryHandlers(): void {
   recoveryLogger = new RecoveryLogger(logger);
 
   // Start backup health monitoring
-  healthMonitor.startMonitoring().catch(error => {
+  void healthMonitor.startMonitoring().catch(error => {
     logger.error('Failed to start backup health monitoring', error);
   });
 
@@ -125,7 +125,7 @@ export function registerRecoveryHandlers(): void {
         type: 'recovery-failed',
         severity: 'critical',
         action: 'Point-in-time recovery failed',
-        details: options as any,
+        details: options as Record<string, unknown>,
         outcome: 'failure',
         errorMessage: (error as Error).message,
         stackTrace: (error as Error).stack
@@ -206,7 +206,7 @@ export function registerRecoveryHandlers(): void {
   /**
    * Create recovery checkpoint
    */
-  ipcMain.handle('recovery:createCheckpoint', async (_event, data: any, description: string) => {
+  ipcMain.handle('recovery:createCheckpoint', async (_event, data: unknown, description: string) => {
     try {
       const checkpoint = await recoveryService.createRecoveryCheckpoint(data, description);
       
@@ -269,9 +269,9 @@ export function registerRecoveryHandlers(): void {
   /**
    * Enter emergency recovery mode
    */
-  ipcMain.handle('recovery:enterEmergencyMode', async (_event, options: any) => {
+  ipcMain.handle('recovery:enterEmergencyMode', async (_event, options: unknown) => {
     try {
-      const result = await emergencyRecovery.enterEmergencyMode(options);
+      const result = await emergencyRecovery.enterEmergencyMode(options as any);
       
       await recoveryLogger.log({
         type: result.mode === 'factory-reset' ? 'factory-reset-performed' : 'safe-mode-activated',
@@ -294,7 +294,7 @@ export function registerRecoveryHandlers(): void {
         type: 'emergency-mode-entered',
         severity: 'critical',
         action: 'Failed to enter emergency mode',
-        details: options,
+        details: options as Record<string, unknown>,
         outcome: 'failure',
         errorMessage: (error as Error).message
       });

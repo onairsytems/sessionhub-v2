@@ -14,7 +14,7 @@ export interface Session {
   id: string;
   name: string;
   description: string;
-  status: 'pending' | 'planning' | 'executing' | 'completed' | 'failed';
+  status: 'pending' | 'planning' | 'executing' | 'completed' | 'failed' | 'cancelled';
   createdAt: string;
   updatedAt: string;
   userId: string;
@@ -53,6 +53,7 @@ export interface ExecutionResult {
 }
 
 export class SessionManager {
+  private static instance: SessionManager;
   private readonly logger: Logger;
   private readonly auditLogger: AuditLogger;
   private readonly sessions: Map<string, Session> = new Map();
@@ -61,11 +62,20 @@ export class SessionManager {
   private readonly verificationEngine: SessionVerificationEngine;
   private readonly verificationGates: VerificationGates;
 
-  constructor(logger: Logger, auditLogger: AuditLogger) {
+  private constructor(logger: Logger, auditLogger: AuditLogger) {
     this.logger = logger;
     this.auditLogger = auditLogger;
     this.verificationEngine = new SessionVerificationEngine(logger);
     this.verificationGates = new VerificationGates(this.verificationEngine, logger, true);
+  }
+
+  static getInstance(): SessionManager {
+    if (!SessionManager.instance) {
+      const logger = new Logger({ component: 'SessionManager' });
+      const auditLogger = new AuditLogger();
+      SessionManager.instance = new SessionManager(logger, auditLogger);
+    }
+    return SessionManager.instance;
   }
 
   /**
@@ -336,6 +346,10 @@ export class SessionManager {
 
   private generateCorrelationId(): string {
     return `corr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+  }
+
+  getAvailableSlots(): number {
+    return Math.max(0, this.maxConcurrentSessions - this.activeSessions.size);
   }
 
   /**

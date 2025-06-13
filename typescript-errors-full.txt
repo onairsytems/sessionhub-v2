@@ -1,0 +1,187 @@
+app/settings.tsx(191,21): error TS2345: Argument of type '{}' is not assignable to parameter of type 'SetStateAction<SettingsData | null>'.
+components/queue/QueuedSessionItem.tsx(146,17): error TS2322: Type '{ children: Element[]; value: SessionPriority; onValueChange: (value: any) => void; disabled: boolean; }' is not assignable to type 'IntrinsicAttributes & SelectProps & RefAttributes<HTMLSelectElement>'.
+  Property 'onValueChange' does not exist on type 'IntrinsicAttributes & SelectProps & RefAttributes<HTMLSelectElement>'. Did you mean 'onVolumeChange'?
+components/queue/QueuedSessionItem.tsx(146,33): error TS7006: Parameter 'value' implicitly has an 'any' type.
+components/queue/QueuedSessionItem.tsx(149,32): error TS2322: Type '{ children: Element; className: string; }' is not assignable to type 'IntrinsicAttributes & { children?: ReactNode; }'.
+  Property 'className' does not exist on type 'IntrinsicAttributes & { children?: ReactNode; }'.
+components/ui/alert-dialog.tsx(4,39): error TS2307: Cannot find module '@radix-ui/react-alert-dialog' or its corresponding type declarations.
+components/ui/dropdown-menu.tsx(4,40): error TS2307: Cannot find module '@radix-ui/react-dropdown-menu' or its corresponding type declarations.
+components/ui/scroll-area.tsx(4,38): error TS2307: Cannot find module '@radix-ui/react-scroll-area' or its corresponding type declarations.
+components/usage/UsageAnalyticsDashboard.tsx(78,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+components/usage/UsageAnalyticsDashboard.tsx(119,7): error TS2532: Object is possibly 'undefined'.
+components/usage/UsageAnalyticsDashboard.tsx(120,7): error TS2532: Object is possibly 'undefined'.
+components/usage/UsageStatusWidget.tsx(372,13): error TS7030: Not all code paths return a value.
+main/ipc/sessionHandlers.ts(31,59): error TS2304: Cannot find name 'SessionFilter'.
+main/ipc/sessionHandlers.ts(32,27): error TS2339: Property 'searchSessions' does not exist on type 'SessionService'.
+main/ipc/sessionHandlers.ts(36,100): error TS2304: Cannot find name 'SessionTemplate'.
+main/ipc/sessionHandlers.ts(41,27): error TS2339: Property 'createTemplate' does not exist on type 'SessionService'.
+main/ipc/sessionHandlers.ts(45,27): error TS2339: Property 'getTemplates' does not exist on type 'SessionService'.
+main/ipc/sessionHandlers.ts(49,27): error TS2339: Property 'createSessionFromTemplate' does not exist on type 'SessionService'.
+main/ipc/sessionHandlers.ts(54,40): error TS2554: Expected 0 arguments, but got 3.
+main/ipc/sessionHandlers.ts(63,27): error TS2551: Property 'importSession' does not exist on type 'SessionService'. Did you mean 'exportSession'?
+main/ipc/sessionHandlers.ts(72,27): error TS2339: Property 'handoffToPlanningActor' does not exist on type 'SessionService'.
+main/ipc/sessionHandlers.ts(80,27): error TS2339: Property 'handoffToExecutionActor' does not exist on type 'SessionService'.
+main/ipc/sessionHandlers.ts(88,27): error TS2551: Property 'completeSession' does not exist on type 'SessionService'. Did you mean 'createSession'?
+main/ipc/sessionHandlers.ts(96,27): error TS2339: Property 'failSession' does not exist on type 'SessionService'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(88,47): error TS2339: Property 'sessionsByDay' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(88,65): error TS7006: Parameter 'd' implicitly has an 'any' type.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(139,26): error TS2339: Property 'sessionsByStatus' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(152,39): error TS2339: Property 'sessionsByStatus' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(153,39): error TS18046: 'b' is of type 'unknown'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(153,43): error TS18046: 'a' is of type 'unknown'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(170,38): error TS18046: 'count' is of type 'unknown'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(176,23): error TS2322: Type 'unknown' is not assignable to type 'ReactNode'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(195,45): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(202,42): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(202,89): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(213,45): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(220,42): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(220,90): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(231,45): error TS2339: Property 'performanceMetrics' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(244,22): error TS2339: Property 'sessionsByDay' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(244,41): error TS7006: Parameter 'day' implicitly has an 'any' type.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(271,18): error TS2339: Property 'commonErrors' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(277,24): error TS2339: Property 'commonErrors' does not exist on type 'SessionAnalytics'.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(277,54): error TS7006: Parameter 'error' implicitly has an 'any' type.
+renderer/components/sessions/SessionAnalyticsDashboard.tsx(277,61): error TS7006: Parameter 'index' implicitly has an 'any' type.
+renderer/components/sessions/SessionLibrary.tsx(65,11): error TS2322: Type 'SessionStatus[] | undefined' is not assignable to type 'string | undefined'.
+  Type 'SessionStatus[]' is not assignable to type 'string'.
+scripts/fix-eslint-2.26.ts(13,11): error TS6133: 'violationCount' is declared but its value is never read.
+scripts/fix-eslint-2.26.ts(221,13): error TS6133: 'output' is declared but its value is never read.
+scripts/fix-eslint-2.26.ts(229,14): error TS7006: Parameter 'e' implicitly has an 'any' type.
+scripts/fix-eslint-2.26.ts(230,18): error TS7006: Parameter 'a' implicitly has an 'any' type.
+scripts/fix-eslint-2.26.ts(230,21): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/components/organization/ProjectNavigationView.tsx(13,1): error TS6133: 'Session' is declared but its value is never read.
+src/components/organization/ProjectNavigationView.tsx(14,23): error TS2307: Cannot find module '@/src/components/ui/input' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(15,24): error TS2307: Cannot find module '@/src/components/ui/button' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(16,23): error TS2307: Cannot find module '@/src/components/ui/badge' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(17,28): error TS2307: Cannot find module '@/src/components/ui/scroll-area' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(18,58): error TS2307: Cannot find module '@/src/components/ui/tabs' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(19,75): error TS2307: Cannot find module '@/src/components/ui/card' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(20,26): error TS2307: Cannot find module '@/src/components/ui/progress' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(27,8): error TS2307: Cannot find module '@/src/components/ui/select' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(35,8): error TS2307: Cannot find module '@/src/components/ui/dropdown-menu' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(36,20): error TS2307: Cannot find module '@/src/lib/utils' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(42,3): error TS6133: 'Filter' is declared but its value is never read.
+src/components/organization/ProjectNavigationView.tsx(50,3): error TS6133: 'Tag' is declared but its value is never read.
+src/components/organization/ProjectNavigationView.tsx(52,3): error TS6133: 'Activity' is declared but its value is never read.
+src/components/organization/ProjectNavigationView.tsx(55,3): error TS6133: 'Star' is declared but its value is never read.
+src/components/organization/ProjectNavigationView.tsx(62,26): error TS2307: Cannot find module '@/src/hooks/use-toast' or its corresponding type declarations.
+src/components/organization/ProjectNavigationView.tsx(71,11): error TS6196: 'ProjectTreeNode' is declared but never used.
+src/components/organization/ProjectNavigationView.tsx(300,27): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/organization/ProjectNavigationView.tsx(428,30): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/projects/ArchivedProjectsPage.tsx(10,3): error TS6133: 'CheckIcon' is declared but its value is never read.
+src/components/projects/ArchivedProjectsPage.tsx(11,8): error TS2307: Cannot find module '@heroicons/react/24/outline' or its corresponding type declarations.
+src/components/projects/ArchivedProjectsPage.tsx(13,10): error TS6133: 'Project' is declared but its value is never read.
+src/components/projects/ProjectDuplicateModal.tsx(4,24): error TS2307: Cannot find module '@headlessui/react' or its corresponding type declarations.
+src/components/projects/ProjectDuplicateModal.tsx(5,50): error TS2307: Cannot find module '@heroicons/react/24/outline' or its corresponding type declarations.
+src/components/projects/ProjectExportModal.tsx(4,24): error TS2307: Cannot find module '@headlessui/react' or its corresponding type declarations.
+src/components/projects/ProjectExportModal.tsx(5,47): error TS2307: Cannot find module '@heroicons/react/24/outline' or its corresponding type declarations.
+src/components/projects/ProjectImportModal.tsx(4,24): error TS2307: Cannot find module '@headlessui/react' or its corresponding type declarations.
+src/components/projects/ProjectImportModal.tsx(5,59): error TS2307: Cannot find module '@heroicons/react/24/outline' or its corresponding type declarations.
+src/components/projects/ProjectList.tsx(3,47): error TS6133: 'useRef' is declared but its value is never read.
+src/components/projects/ProjectList.tsx(102,13): error TS7030: Not all code paths return a value.
+src/components/projects/ProjectSettingsModal.tsx(4,24): error TS2307: Cannot find module '@headlessui/react' or its corresponding type declarations.
+src/components/projects/ProjectSettingsModal.tsx(5,36): error TS2307: Cannot find module '@heroicons/react/24/outline' or its corresponding type declarations.
+src/components/projects/ProjectSettingsModal.tsx(75,22): error TS2538: Type 'undefined' cannot be used as an index type.
+src/components/projects/ProjectSettingsModal.tsx(76,19): error TS2538: Type 'undefined' cannot be used as an index type.
+src/components/projects/ProjectSettingsModal.tsx(78,27): error TS2538: Type 'undefined' cannot be used as an index type.
+src/components/projects/ProjectSettingsModal.tsx(81,15): error TS2538: Type 'undefined' cannot be used as an index type.
+src/components/projects/ProjectsPage.tsx(17,1): error TS6133: 'Link' is declared but its value is never read.
+src/components/projects/ProjectsPage.tsx(123,11): error TS2322: Type '{ project: Project; onEdit: () => void; onArchive: () => Promise<void>; onDelete: () => void; onExport: () => void; onDuplicate: () => void; onSettings: () => void; }' is not assignable to type 'IntrinsicAttributes & ProjectDashboardProps'.
+  Property 'onExport' does not exist on type 'IntrinsicAttributes & ProjectDashboardProps'.
+src/components/templates/TemplateApplicationView.tsx(14,23): error TS2307: Cannot find module '@/src/components/ui/input' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(15,24): error TS2307: Cannot find module '@/src/components/ui/button' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(16,23): error TS2307: Cannot find module '@/src/components/ui/label' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(17,79): error TS2307: Cannot find module '@/src/components/ui/select' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(18,24): error TS2307: Cannot find module '@/src/components/ui/switch' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(19,26): error TS2307: Cannot find module '@/src/components/ui/progress' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(20,87): error TS2307: Cannot find module '@/src/components/ui/card' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(21,23): error TS2307: Cannot find module '@/src/components/ui/badge' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(22,58): error TS2307: Cannot find module '@/src/components/ui/tabs' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(23,53): error TS2307: Cannot find module '@/src/components/ui/alert' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(35,3): error TS6133: 'Settings' is declared but its value is never read.
+src/components/templates/TemplateApplicationView.tsx(39,26): error TS2307: Cannot find module '@/src/hooks/use-toast' or its corresponding type declarations.
+src/components/templates/TemplateApplicationView.tsx(119,42): error TS4111: Property 'skipDependencies' comes from an index signature, so it must be accessed with ['skipDependencies'].
+src/components/templates/TemplateApplicationView.tsx(120,37): error TS4111: Property 'skipGitInit' comes from an index signature, so it must be accessed with ['skipGitInit'].
+src/components/templates/TemplateApplicationView.tsx(121,38): error TS4111: Property 'openInEditor' comes from an index signature, so it must be accessed with ['openInEditor'].
+src/components/templates/TemplateApplicationView.tsx(173,33): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(185,31): error TS7006: Parameter 'val' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(210,26): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(372,30): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(384,32): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(415,45): error TS4111: Property 'skipDependencies' comes from an index signature, so it must be accessed with ['skipDependencies'].
+src/components/templates/TemplateApplicationView.tsx(416,39): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(432,45): error TS4111: Property 'skipGitInit' comes from an index signature, so it must be accessed with ['skipGitInit'].
+src/components/templates/TemplateApplicationView.tsx(433,39): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/components/templates/TemplateApplicationView.tsx(449,45): error TS4111: Property 'openInEditor' comes from an index signature, so it must be accessed with ['openInEditor'].
+src/components/templates/TemplateApplicationView.tsx(450,39): error TS7006: Parameter 'checked' implicitly has an 'any' type.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(200,26): error TS2554: Expected 2 arguments, but got 1.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(209,32): error TS2554: Expected 4 arguments, but got 3.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(297,28): error TS2554: Expected 2 arguments, but got 1.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(681,9): error TS2554: Expected 1 arguments, but got 2.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(709,34): error TS2554: Expected 2-3 arguments, but got 1.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(765,30): error TS2554: Expected 2 arguments, but got 1.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(858,7): error TS2554: Expected 1 arguments, but got 2.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(977,53): error TS2554: Expected 1 arguments, but got 0.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(977,71): error TS2339: Property 'length' does not exist on type 'Promise<any>'.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(978,46): error TS2554: Expected 1 arguments, but got 0.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(978,58): error TS2339: Property 'length' does not exist on type 'Promise<any>'.
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(980,48): error TS2551: Property 'getGeneratedReports' does not exist on type 'ReportGenerator'. Did you mean 'generateReport'?
+src/core/orchestrator/AnalyticsIntegratedResilienceOrchestrator.ts(1023,51): error TS2339: Property 'getAllUserMetrics' does not exist on type 'UserImpactAssessment'.
+src/services/analytics/UserImpactAssessment.ts(122,25): error TS2339: Property 'on' does not exist on type 'SessionService'.
+src/services/analytics/UserImpactAssessment.ts(149,48): error TS2339: Property 'getRecentSessions' does not exist on type 'SessionService'.
+src/services/analytics/UserImpactAssessment.ts(260,54): error TS2339: Property 'getRecentSessions' does not exist on type 'SessionService'.
+src/services/analytics/UserImpactAssessment.ts(368,52): error TS2551: Property 'getUserSessions' does not exist on type 'SessionService'. Did you mean 'getSession'?
+src/services/converters/SessionConverter.ts(155,13): error TS2741: Property 'paused' is missing in type '{ pending: string; planning: string; validating: string; executing: string; completed: string; failed: string; cancelled: string; }' but required in type 'Record<SessionStatus, string>'.
+src/services/ide/ZedAgentPanelAdapter.ts(121,17): error TS6133: 'clientId' is declared but its value is never read.
+src/services/organization/SessionOrganizationSystem.ts(173,20): error TS6133: 'auditLogger' is declared but its value is never read.
+src/services/ProjectService.ts(11,3): error TS6133: 'ProjectImport' is declared but its value is never read.
+src/services/ProjectService.ts(24,11): error TS6133: 'archivedKey' is declared but its value is never read.
+src/services/queue/SessionQueueManager.ts(73,11): error TS6133: 'instructionQueue' is declared but its value is never read.
+src/services/queue/SessionQueueManager.ts(81,42): error TS2339: Property 'getInstance' does not exist on type 'typeof SessionManager'.
+src/services/queue/SessionQueueManager.ts(82,46): error TS2339: Property 'getInstance' does not exist on type 'typeof InstructionQueue'.
+src/services/queue/SessionQueueManager.ts(177,48): error TS2339: Property 'getAvailableSlots' does not exist on type 'SessionManager'.
+src/services/queue/SessionQueueManager.ts(261,57): error TS2345: Argument of type 'QueuedSession | undefined' is not assignable to parameter of type 'QueuedSession'.
+  Type 'undefined' is not assignable to type 'QueuedSession'.
+src/services/queue/SessionQueueManager.ts(312,58): error TS2322: Type '"cancelled"' is not assignable to type '"completed" | "pending" | "planning" | "executing" | "failed" | undefined'.
+src/services/queue/SessionQueueManager.ts(353,11): error TS6133: 'updateSessionInQueue' is declared but its value is never read.
+src/services/queue/SessionQueueManager.ts(374,11): error TS6133: 'activeSessions' is declared but its value is never read.
+src/services/search/UnifiedSearchService.ts(582,70): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/search/UnifiedSearchService.ts(589,68): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/SessionService.ts(1,52): error TS6133: 'SessionError' is declared but its value is never read.
+src/services/SessionService.ts(4,33): error TS2307: Cannot find module '@/database/DatabaseService' or its corresponding type declarations.
+src/services/SessionService.ts(35,30): error TS2559: Type '"SessionService"' has no properties in common with type 'LoggerOptions'.
+src/services/SessionService.ts(48,9): error TS2783: 'id' is specified more than once, so this usage will be overwritten.
+src/services/SessionService.ts(52,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+src/services/SessionService.ts(53,9): error TS2322: Type 'Date' is not assignable to type 'string'.
+src/services/SessionService.ts(61,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(70,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(78,19): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(89,7): error TS2322: Type '{ updatedAt: Date; id: string; name: string; description: string; objective?: string; status: SessionStatus; createdAt: string; completedAt?: string; ... 6 more ...; metadata: SessionMetadata; }' is not assignable to type 'Session'.
+  Types of property 'updatedAt' are incompatible.
+    Type 'Date' is not assignable to type 'string'.
+src/services/SessionService.ts(92,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(102,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(111,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(119,19): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(129,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(137,19): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(142,9): error TS2353: Object literal may only specify known properties, and 'id' does not exist in type 'ExecutionResult'.
+src/services/SessionService.ts(144,36): error TS2339: Property 'id' does not exist on type 'InstructionProtocol'.
+src/services/SessionService.ts(153,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(170,17): error TS2693: 'SessionError' only refers to a type, but is being used as a value here.
+src/services/SessionService.ts(192,25): error TS2339: Property 'map' does not exist on type 'InstructionProtocol'.
+src/services/SessionService.ts(192,29): error TS7006: Parameter 'i' implicitly has an 'any' type.
+src/services/SessionService.ts(201,43): error TS2339: Property 'getTime' does not exist on type 'string'.
+src/services/SessionService.ts(201,73): error TS2339: Property 'getTime' does not exist on type 'string'.
+src/services/templates/ProjectTemplateSystem.ts(284,20): error TS6133: 'auditLogger' is declared but its value is never read.
+src/services/usage/CostCalculator.ts(304,28): error TS6133: 'pricing' is declared but its value is never read.
+src/services/usage/UsageExportService.ts(182,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/usage/UsageExportService.ts(187,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/services/usage/UsageMonitorService.ts(278,11): error TS6133: 'calculateOptimizationScore' is declared but its value is never read.

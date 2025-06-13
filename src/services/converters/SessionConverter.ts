@@ -50,8 +50,9 @@ export class SessionConverter {
     const statusMap: Record<string, SessionStatus> = {
       'active': 'executing',
       'completed': 'completed',
-      'paused': 'pending',
-      'cancelled': 'cancelled'
+      'paused': 'paused',
+      'cancelled': 'cancelled',
+      'pending': 'pending'
     };
 
     const session: Session = {
@@ -93,7 +94,8 @@ export class SessionConverter {
       'executing': 'active',
       'completed': 'completed',
       'failed': 'cancelled',
-      'cancelled': 'cancelled'
+      'cancelled': 'cancelled',
+      'paused': 'paused'
     };
 
     // Combine all metadata
@@ -157,7 +159,8 @@ export class SessionConverter {
         'executing': 'active',
         'completed': 'completed',
         'failed': 'cancelled',
-        'cancelled': 'cancelled'
+        'cancelled': 'cancelled',
+        'paused': 'paused'
       };
       record.status = statusMap[updates.status] as 'active' | 'completed' | 'paused' | 'cancelled';
     }

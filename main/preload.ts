@@ -304,7 +304,7 @@ contextBridge.exposeInMainWorld("sessionhub", {
   // Auto-updater
   checkForUpdates: () => ipcRenderer.invoke("check-for-updates"),
   downloadUpdate: () => ipcRenderer.invoke("download-update"),
-  installUpdate: () => void ipcRenderer.invoke("install-update"),
+  installUpdate: () => { void ipcRenderer.invoke("install-update"); },
 
   // File associations
   saveProjectFile: (projectData: ProjectData, savePath?: string) => 
@@ -321,8 +321,9 @@ contextBridge.exposeInMainWorld("sessionhub", {
     ipcRenderer.invoke("save-session", sessionData),
 
   // Menu bar
-  updateMenuBarStatus: (status: MenuBarStatus) => 
-    void ipcRenderer.invoke("update-menu-bar-status", status),
+  updateMenuBarStatus: (status: MenuBarStatus) => {
+    void ipcRenderer.invoke("update-menu-bar-status", status);
+  },
 
   // Session Pipeline API
   executeSession: (request: SessionRequest) => ipcRenderer.invoke("session:execute", request),
@@ -340,8 +341,8 @@ contextBridge.exposeInMainWorld("sessionhub", {
   },
   removeSessionProgressListener: (callback: (data: SessionProgressData) => void) => {
     // Create a wrapper function to match the expected signature
-    const wrapper = (_event: any, data: SessionProgressData) => callback(data);
-    ipcRenderer.removeListener("session:progress", wrapper);
+    const wrapper = (_event: Electron.IpcRendererEvent, data: SessionProgressData) => callback(data);
+    ipcRenderer.removeListener("session:progress", wrapper as any);
   },
 
   // Event handlers
@@ -572,7 +573,7 @@ contextBridge.exposeInMainWorld("sessionhub", {
       ipcRenderer.on(`mcp:event:${event}`, (_event, data) => callback(data));
     },
     removeListener: (event: string, callback: (data: unknown) => void) => {
-      ipcRenderer.removeListener(`mcp:event:${event}`, callback);
+      ipcRenderer.removeListener(`mcp:event:${event}`, callback as any);
     },
   },
 
@@ -682,6 +683,28 @@ contextBridge.exposeInMainWorld("sessionhub", {
     searchHelp: (query: string) => 
       ipcRenderer.invoke("search-help", query),
   },
+
+  // Settings Handlers
+  settings: {
+    getSettings: () => 
+      ipcRenderer.invoke("get-settings"),
+    saveSettings: (settings: unknown) => 
+      ipcRenderer.invoke("save-settings", settings),
+    testApiKey: (apiKey: string) => 
+      ipcRenderer.invoke("test-api-key", apiKey),
+    testSupabase: (url: string, anonKey: string) => 
+      ipcRenderer.invoke("test-supabase", url, anonKey),
+    exportSettings: () => 
+      ipcRenderer.invoke("export-settings"),
+    importSettings: (jsonData: string) => 
+      ipcRenderer.invoke("import-settings", jsonData),
+    getStorageInfo: () => 
+      ipcRenderer.invoke("get-storage-info"),
+    clearCache: () => 
+      ipcRenderer.invoke("clear-cache"),
+    getFeatureFlags: () => 
+      ipcRenderer.invoke("get-feature-flags"),
+  },
 } as SessionHubAPI);
 
 // Also expose electron object with recovery methods
@@ -689,17 +712,17 @@ contextBridge.exposeInMainWorld("electron", {
   recovery: {
     getRecoveryPoints: () => 
       ipcRenderer.invoke("recovery:getRecoveryPoints"),
-    recoverToPoint: (options: any) => 
+    recoverToPoint: (options: unknown) => 
       ipcRenderer.invoke("recovery:recoverToPoint", options),
     detectCorruption: () => 
       ipcRenderer.invoke("recovery:detectCorruption"),
     attemptAutoRecovery: (sessionId?: string) => 
       ipcRenderer.invoke("recovery:attemptAutoRecovery", sessionId),
-    createCheckpoint: (data: any, description: string) => 
+    createCheckpoint: (data: unknown, description: string) => 
       ipcRenderer.invoke("recovery:createCheckpoint", data, description),
     checkStartupHealth: () => 
       ipcRenderer.invoke("recovery:checkStartupHealth"),
-    enterEmergencyMode: (options?: any) => 
+    enterEmergencyMode: (options?: unknown) => 
       ipcRenderer.invoke("recovery:enterEmergencyMode", options),
     exitEmergencyMode: () => 
       ipcRenderer.invoke("recovery:exitEmergencyMode"),
@@ -709,14 +732,38 @@ contextBridge.exposeInMainWorld("electron", {
       ipcRenderer.invoke("recovery:getHealthStatus"),
     checkHealthNow: () => 
       ipcRenderer.invoke("recovery:checkHealthNow"),
-    queryLogs: (query: any) => 
+    queryLogs: (query: unknown) => 
       ipcRenderer.invoke("recovery:queryLogs", query),
     getLogSummary: (startDate?: Date, endDate?: Date) => 
       ipcRenderer.invoke("recovery:getLogSummary", startDate, endDate),
-    exportLogs: (outputPath: string, query?: any, format?: 'json' | 'csv') => 
+    exportLogs: (outputPath: string, query?: unknown, format?: 'json' | 'csv') => 
       ipcRenderer.invoke("recovery:exportLogs", outputPath, query, format),
     cleanupLogs: (daysToKeep: number) => 
       ipcRenderer.invoke("recovery:cleanupLogs", daysToKeep),
+  },
+  settings: {
+    getSettings: () => 
+      ipcRenderer.invoke("get-settings"),
+    saveSettings: (settings: unknown) => 
+      ipcRenderer.invoke("save-settings", settings),
+    testApiKey: (apiKey: string) => 
+      ipcRenderer.invoke("test-api-key", apiKey),
+    testSupabase: (url: string, anonKey: string) => 
+      ipcRenderer.invoke("test-supabase", url, anonKey),
+    exportSettings: () => 
+      ipcRenderer.invoke("export-settings"),
+    importSettings: (jsonData: string) => 
+      ipcRenderer.invoke("import-settings", jsonData),
+    getStorageInfo: () => 
+      ipcRenderer.invoke("get-storage-info"),
+    clearCache: () => 
+      ipcRenderer.invoke("clear-cache"),
+    getFeatureFlags: () => 
+      ipcRenderer.invoke("get-feature-flags"),
+  },
+  api: {
+    saveApiKey: (apiKey: string) => 
+      ipcRenderer.invoke("save-api-key", apiKey),
   }
 });
 
