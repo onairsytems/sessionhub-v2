@@ -6,10 +6,10 @@
  */
 
 import { createClient, SupabaseClient, User, Session as SupabaseSession } from '@supabase/supabase-js';
-import { MacKeychainService } from '@/src/lib/security/MacKeychainService';
-import { Logger } from '@/src/lib/logging/Logger';
-import { Session } from '@/src/models/Session';
-import { SessionConverter } from '@/src/services/converters/SessionConverter';
+import { MacKeychainService } from '../../lib/security/MacKeychainService';
+import { Logger } from '../../lib/logging/Logger';
+import { Session } from '../../models/Session';
+import { SessionConverter } from '../converters/SessionConverter';
 
 // Database types based on schema
 export interface Project {

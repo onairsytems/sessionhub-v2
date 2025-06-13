@@ -4,8 +4,8 @@
  * Integrates with Anthropic's Claude API for instruction generation
  */
 
-import { Logger } from '@/src/lib/logging/Logger';
-import { APIUsageTracker } from '@/src/services/usage/APIUsageTracker';
+import { Logger } from '../logging/Logger';
+import { APIUsageTracker } from '../../services/usage/APIUsageTracker';
 
 export interface ClaudeAPIConfig {
   apiKey: string;
