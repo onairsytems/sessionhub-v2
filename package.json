@@ -140,6 +140,7 @@
     "electron": "^28.2.0",
     "electron-builder": "^24.9.1",
     "electron-is-dev": "^3.0.1",
+    "electron-rebuild": "^3.2.9",
     "electron-reload": "^2.0.0-alpha.1",
     "eslint": "^8",
     "eslint-config-next": "14.1.0",
